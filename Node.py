@@ -2,10 +2,13 @@ import math
 
 
 class Node:
-    def __init__(self, state, parent = None):
+    def __init__(self, state, parent=None):
         self.children = []
         self.parent = None
-        self.depth
+        if self.parent is None:
+            self.depth = 0
+        else:
+            self.depth = parent.depth + 1
 
         self.state = state
 
@@ -13,7 +16,7 @@ class Node:
         self.times_visited = 0
 
     def uct(self, t, c=math.sqrt(2)):
-        return self.value/self.times_visited + c * math.sqrt(math.log(t) / self.times_visited)
+        return self.value / self.times_visited + c * math.sqrt(math.log(t) / self.times_visited)
 
     def is_fully_expanded(self):
         if self.state.is_terminal():
@@ -56,5 +59,3 @@ class Node:
             backpropagator.value += value
             backpropagator = backpropagator.parent
         backpropagator.value += value
-
-

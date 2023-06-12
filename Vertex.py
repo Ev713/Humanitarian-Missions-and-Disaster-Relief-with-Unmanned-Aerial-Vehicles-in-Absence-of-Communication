@@ -1,3 +1,6 @@
+import random
+
+
 class Vertex:
     def __init__(self, number):
         self.number = number  # String name
@@ -8,7 +11,7 @@ class Vertex:
         return self.number
 
     def __str__(self):
-        return "v"+str(self.number)
+        return "v" + str(self.number)
 
 class DetVertex(Vertex):
     def __init__(self, number):
@@ -17,10 +20,16 @@ class DetVertex(Vertex):
         self.det_reward = 0
 
     def generate_reward(self):
-        pass
+        p = random.random()
+        sum_p = 0
+        for r in self.distribution:
+            sum_p += self.distribution[r]
+            if sum_p > p:
+                self.det_reward = r
+                return
 
     def __str__(self):
-        return "det_v"+str(self.number)
+        return "det_v" + str(self.number)
 
 
 class Stoch_Vertex(Vertex):
