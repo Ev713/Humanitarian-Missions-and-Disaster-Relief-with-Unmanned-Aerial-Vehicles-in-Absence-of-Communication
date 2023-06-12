@@ -11,12 +11,6 @@ class Agent:
     def hash(self):
         return self.number
 
-    def generateStochAgent(self):
-        pass
-
-    def generateDetAgent(self):
-        pass
-
     def __str__(self):
         return "a" + self.number
 

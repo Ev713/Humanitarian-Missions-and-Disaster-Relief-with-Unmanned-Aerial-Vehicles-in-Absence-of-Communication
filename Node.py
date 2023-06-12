@@ -1,6 +1,5 @@
 import math
 
-
 class Node:
     def __init__(self, state, parent=None):
         self.children = []
