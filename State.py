@@ -1,7 +1,7 @@
 class State:
+    # Info held by every node. The info is gathered using agents actions only therefore is deterministic.
     def __init__(self, agents, map):
-        self.agents = agents
-        self.map = map
+        self.a_locs = [{a.hash():a.loc.hash()}for a in agents]
         self.action = None
         self.time_left = 0
 

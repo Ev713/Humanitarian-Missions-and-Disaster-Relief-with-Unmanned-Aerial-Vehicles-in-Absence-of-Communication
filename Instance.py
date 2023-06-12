@@ -48,7 +48,8 @@ class Instance:
         return new_agents, new_agents_map
 
     def actions(self, state):
-        pass
+        agent_movements = {}
+        for a in state.agents:
 
     def make_action(self, action, state):
         pass
