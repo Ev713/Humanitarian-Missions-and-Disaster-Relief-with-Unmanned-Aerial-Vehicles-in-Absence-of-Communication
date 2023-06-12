@@ -53,6 +53,7 @@ class Instance:
     def make_action(self, action, state):
         pass
 
+
 class DetInstance(Instance):
     def __init__(self, instance):
         super().__init__(instance.map, instance.agents, instance.horizon)
@@ -61,9 +62,11 @@ class DetInstance(Instance):
         self.horizon = instance.horizon
         self.initial_state = State.DetState(self.agents, self.map)
 
-    def regenerate(self):
+    def regenerate_instance(self):
         for v in self.map:
             v.generate_reward()
+        for a in self.agents:
+            a = Agent.DetAgent(a.number, a.loc, a.movement_budget, a.utility_budget)
 
 
 class StochInstance(Instance):
