@@ -1,9 +1,10 @@
 import math
 
+
 class Node:
     def __init__(self, state, parent=None):
         self.children = []
-        self.parent = None
+        self.parent = parent
         if self.parent is None:
             self.depth = 0
         else:

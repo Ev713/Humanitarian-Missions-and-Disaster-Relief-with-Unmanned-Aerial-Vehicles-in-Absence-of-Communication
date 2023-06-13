@@ -9,6 +9,8 @@ class Agent:
         self.utility_budget = utility_budget  # int
 
     def hash(self):
+        if self.number == -1:
+            raise Exception("-1 is an unusable hash number.")
         return self.number
 
     def __str__(self):

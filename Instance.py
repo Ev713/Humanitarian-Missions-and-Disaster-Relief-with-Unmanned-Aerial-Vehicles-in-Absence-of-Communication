@@ -1,4 +1,5 @@
 import itertools
+import random
 
 import Agent
 import State
@@ -49,9 +50,6 @@ class Instance:
             new_agents_map[a.hash()] = new_a
         return new_agents, new_agents_map
 
-    def get_agent_location(self, state, a_hash):
-        return self.map_map[state.a_locs[a_hash]]
-
     def actions(self, state):
         agent_movements = {}
         for a_hash in state.agents:
@@ -63,17 +61,17 @@ class Instance:
     def make_action(self, action, state):  # Abstract method
         pass
 
-    def make_initial_state(self, is_det):
-        raise NotImplementedError
-
 
 class DetInstance(Instance):
-    def __init__(self, instance):
+    def __init__(self, instance=None):
         super().__init__(instance.map, instance.agents, instance.horizon)
         self.map, self.map_map = instance.make_special_map_and_map_map(Vertex.DetVertex)
         self.agents, self.agents_map = instance.make_agents_and_agents_map(self.map_map, Agent.DetAgent)
         self.horizon = instance.horizon
-        self.initial_state = self.make_initial_state(True)
+        self.initial_state = State.DetState(instance)
+
+    def get_agent_location(self, state, a_hash, time):
+        return self.map_map[state.path[a_hash][time]]
 
     def regenerate_instance(self):
         for v in self.map:
@@ -86,9 +84,29 @@ class DetInstance(Instance):
         new_state.a_locs = action.copy
         new_state.time_left -= 1
         time = self.horizon - state.time_left
+        horizon = state[state.keys()[0]]
         for a_hash in new_state.action:
-            new_state.a_locs[a_hash][time] = action[a_hash]
+            if self.agents_map[a_hash].movements_budget > time:
+                new_state.a_locs[a_hash][time] = -1  # chosen action cannot be done due to insufficient movement budget
+            else:
+                new_state.a_locs[a_hash][time] = action[a_hash]
         return new_state
+
+    def reward(self, state):
+        self.regenerate_instance()
+        tot_reward = 0
+        for t in range(self.horizon):
+            for a in self.agents:
+                if state.path[a.hash()][t] == -1 or a.utility_budget < 1:
+                    continue
+                a_loc = self.get_agent_location(state, a.hash(), t)
+                if a_loc.is_empty:
+                    continue
+                a_loc.is_empty = True
+                tot_reward += a_loc.reward
+                a.utility_budget -= 1
+        return tot_reward
+
 
 class StochInstance(Instance):
     def __init__(self, instance):

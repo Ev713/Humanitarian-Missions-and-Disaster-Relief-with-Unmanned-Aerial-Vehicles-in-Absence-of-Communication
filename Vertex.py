@@ -8,16 +8,19 @@ class Vertex:
         self.distribution = {}  # reward: probability dictionary
 
     def hash(self):
+        if self.number == -1:
+            raise Exception("-1 is an unusable hash number.")
         return self.number
 
     def __str__(self):
         return "v" + str(self.number)
 
+
 class DetVertex(Vertex):
     def __init__(self, number):
         super().__init__(number)
-        self.is_visited = False
-        self.det_reward = 0
+        self.is_empty = False
+        self.reward = 0
 
     def generate_reward(self):
         p = random.random()
@@ -25,7 +28,9 @@ class DetVertex(Vertex):
         for r in self.distribution:
             sum_p += self.distribution[r]
             if sum_p > p:
-                self.det_reward = r
+                self.reward = r
+                if r == 0:
+                    self.is_empty = True
                 return
 
     def __str__(self):
