@@ -7,7 +7,7 @@ class State:
         self.time_left = 0  # int
 
     def is_terminal(self):
-        return self.time_left > 0
+        return self.time_left == 0
 
 
 class DetState(State):

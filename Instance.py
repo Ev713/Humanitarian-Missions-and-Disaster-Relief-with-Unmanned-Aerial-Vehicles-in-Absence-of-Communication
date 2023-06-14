@@ -1,9 +1,16 @@
 import itertools
 import random
-
+import copy
 import Agent
 import State
 import Vertex
+
+def product_dict(dict):
+    mini_dicts = {key: [] for key in dict}
+    for key in dict:
+        for l in dict[key]:
+            mini_dicts[key].append({key: l})
+    return itertools.product(*mini_dicts.values())
 
 
 class Instance:
@@ -50,12 +57,12 @@ class Instance:
             new_agents_map[a.hash()] = new_a
         return new_agents, new_agents_map
 
-    def actions(self, state):
+    def actions(self, state, time):
         agent_movements = {}
-        for a_hash in state.agents:
-            a_loc = self.get_agent_location(state, a_hash)
+        for a_hash in state.path:
+            a_loc = self.get_agent_location(state, a_hash, time)
             agent_movements[a_hash] = a_loc.neighbours
-        actions = [action for action in itertools.product(agent_movements)]
+        actions = [a for a in product_dict(agent_movements)]
         return actions
 
     def make_action(self, action, state):  # Abstract method
@@ -80,14 +87,12 @@ class DetInstance(Instance):
             a = Agent.DetAgent(a.number, a.loc, a.movement_budget, a.utility_budget)
 
     def make_action(self, action, state):
-        new_state = state.copy
-        new_state.a_locs = action.copy
+        new_state = state.copy()
         new_state.time_left -= 1
         time = self.horizon - state.time_left
-        horizon = state[state.keys()[0]]
-        for a_hash in new_state.action:
-            if self.agents_map[a_hash].movements_budget > time:
-                new_state.a_locs[a_hash][time] = -1  # chosen action cannot be done due to insufficient movement budget
+        for a_hash in action:
+            if self.agents_map[a_hash].movement_budget > time:
+                new_state.path[a_hash][time] = -1  # chosen action cannot be done due to insufficient movement budget
             else:
                 new_state.a_locs[a_hash][time] = action[a_hash]
         return new_state

@@ -28,7 +28,7 @@ def mcts(def_inst, is_det=False):
 
         # expansion
         if not node.state.is_terminal():
-            node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state)])
+            node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state, t)])
 
         # simulation
         rollout_state = node.state.copy()
