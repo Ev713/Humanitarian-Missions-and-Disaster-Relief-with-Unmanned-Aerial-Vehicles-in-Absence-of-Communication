@@ -36,7 +36,6 @@ class Node:
             if not c.times_visited:
                 return c
         raise Exception("All children are visited!")
-        return None
 
     def highest_uct_child(self, time):
         max_uct = self.children[0].uct(time)

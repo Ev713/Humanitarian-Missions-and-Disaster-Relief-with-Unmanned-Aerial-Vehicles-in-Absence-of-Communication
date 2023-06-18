@@ -7,7 +7,7 @@ import Node
 import State
 import Vertex
 
-NUMBER_OF_SIMULATIONS = 50
+NUMBER_OF_SIMULATIONS = 1000
 
 
 def mcts(def_inst, is_det=False):
@@ -25,7 +25,10 @@ def mcts(def_inst, is_det=False):
         # selection
         while node.all_children_visited():
             node.times_visited += 1
-            node = node.highest_uct_child(t)
+            if not node.state.is_terminal():
+                node = node.highest_uct_child(t)
+            else:
+                break
 
         # expansion
         if not node.children and not node.state.is_terminal():
