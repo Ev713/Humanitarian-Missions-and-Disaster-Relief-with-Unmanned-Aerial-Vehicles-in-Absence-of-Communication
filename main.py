@@ -7,7 +7,7 @@ import Node
 import State
 import Vertex
 
-NUMBER_OF_SIMULATIONS = 500
+NUMBER_OF_SIMULATIONS = 50
 
 
 def mcts(def_inst, is_det=False):
@@ -23,32 +23,44 @@ def mcts(def_inst, is_det=False):
     for t in range(NUMBER_OF_SIMULATIONS):
 
         # selection
-        while node.is_fully_expanded() and not node.state.is_terminal:
+        while node.all_children_visited():
+            node.times_visited += 1
             node = node.highest_uct_child(t)
 
         # expansion
-        if not node.state.is_terminal():
-            node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state, t)])
+        if not node.children and not node.state.is_terminal():
+            node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state)])
+
+        if node.children:
+            node.times_visited += 1
+            node = node.pick_unvisited_child()
+
+        node.times_visited += 1
 
         # simulation
         rollout_state = node.state.copy()
-        while not rollout_state.is_terminal:
-            action = random.choice(instance.actions(node.state))
+        while not rollout_state.is_terminal():
+            action = random.choice(instance.actions(rollout_state))
             rollout_state = instance.make_action(action, rollout_state)
         rollout_reward = instance.reward(rollout_state)
 
         # backpropagation
         while True:
             node.value += rollout_reward
-            node = node.parent
             if node is root:
                 break
+            node = node.parent
+        print("simulation "+str(t))
+        root.get_tree()
 
         # returning
-        if is_det:
-            while not node.state.is_terminal():
-                node = node.highest_value_child()
-        print(node.a_locs)
+    if is_det:
+        while not node.state.is_terminal():
+            node = node.most_visited_child()
+            print(node.state)
+
+
+
 
 
 v1 = Vertex.Vertex(1)
@@ -62,9 +74,9 @@ v3.neighbours = [v1, v4]
 v4.neighbours = [v2, v3]
 
 v1.distribution = {0: 1}
-v2.distribution = {0: 0.5}
-v1.distribution = {1: 0.5}
-v1.distribution = {3: 0.5}
+v2.distribution = {0.5: 1}
+v3.distribution = {0: 0.5, 1: 0.5}
+v4.distribution = {3: 0.5, 0: 0.5}
 
 a1 = Agent.Agent(1, v1, 3, 3)
 a2 = Agent.Agent(2, v1, 3, 3)

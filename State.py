@@ -1,3 +1,5 @@
+import copy
+
 import MatricesFunctions
 
 
@@ -22,10 +24,13 @@ class DetState(State):
                 self.path[a.hash()][0] = a.loc.hash()
 
     def copy(self):
-        copy = DetState()
-        copy.path = self.path.copy()
-        copy.time_left = self.time_left
-        return copy
+        copy_state = DetState()
+        copy_state.path = copy.deepcopy(self.path)
+        copy_state.time_left = self.time_left
+        return copy_state
+
+    def __str__(self):
+        return str((self.path, self.time_left))
 
 
 class StochState(State):

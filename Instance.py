@@ -5,12 +5,24 @@ import Agent
 import State
 import Vertex
 
+
 def product_dict(dict):
+    """
+    :param dict: {a1: [v1_1, v2_1, ... , v_n_1], a2: [v1_2, v2_2, ... , v_n_2], ... }
+    :return: [{a1:v1_1, a2: v1_2, ...}, {a1:v2_1, a2: v1_2, ...},{,a1:v1_1, a2: v2_2, ...} {a1:v2_1, a2: v2_2, ...}...]
+    """
     mini_dicts = {key: [] for key in dict}
     for key in dict:
         for l in dict[key]:
             mini_dicts[key].append({key: l})
-    return itertools.product(*mini_dicts.values())
+    big_dict = [a for a in itertools.product(*mini_dicts.values())]
+    dict_actions = []
+    for a in big_dict:
+        a_dict = {}
+        for mini_dict in a:
+            a_dict.update(mini_dict)
+        dict_actions.append(a_dict)
+    return dict_actions
 
 
 class Instance:
@@ -42,6 +54,7 @@ class Instance:
             new_v = ver_builder(v.hash())
             map.append(new_v)
             map_map[v.hash()] = new_v
+            new_v.distribution = copy.deepcopy(v.distribution)
         for v in self.map:
             det_v = map_map[v.hash()]
             for n in v.neighbours:
@@ -57,8 +70,10 @@ class Instance:
             new_agents_map[a.hash()] = new_a
         return new_agents, new_agents_map
 
-    def actions(self, state, time):
+    def actions(self, state):
+        # action: {p1: v_k, p2: v_m, ...  }
         agent_movements = {}
+        time = len(state.path[list(state.path.keys())[0]])-state.time_left-1
         for a_hash in state.path:
             a_loc = self.get_agent_location(state, a_hash, time)
             agent_movements[a_hash] = a_loc.neighbours
@@ -83,18 +98,20 @@ class DetInstance(Instance):
     def regenerate_instance(self):
         for v in self.map:
             v.generate_reward()
+        new_agents = []
         for a in self.agents:
-            a = Agent.DetAgent(a.number, a.loc, a.movement_budget, a.utility_budget)
+            new_agents.append(Agent.DetAgent(a.number, a.loc, a.movement_budget, a.utility_budget))
+        self.agents = new_agents
 
     def make_action(self, action, state):
         new_state = state.copy()
         new_state.time_left -= 1
-        time = self.horizon - state.time_left
-        for a_hash in action:
-            if self.agents_map[a_hash].movement_budget > time:
+        time = self.horizon - new_state.time_left
+        for a_hash in action.keys():
+            if self.agents_map[a_hash].movement_budget < time:
                 new_state.path[a_hash][time] = -1  # chosen action cannot be done due to insufficient movement budget
             else:
-                new_state.a_locs[a_hash][time] = action[a_hash]
+                new_state.path[a_hash][time] = action[a_hash].hash()
         return new_state
 
     def reward(self, state):
@@ -109,7 +126,7 @@ class DetInstance(Instance):
                     continue
                 a_loc.is_empty = True
                 tot_reward += a_loc.reward
-                a.utility_budget -= 1
+                a.current_utility_budget -= 1
         return tot_reward
 
 

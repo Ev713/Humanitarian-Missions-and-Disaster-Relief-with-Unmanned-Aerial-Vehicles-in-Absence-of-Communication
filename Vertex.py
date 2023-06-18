@@ -31,6 +31,8 @@ class DetVertex(Vertex):
                 self.reward = r
                 if r == 0:
                     self.is_empty = True
+                else:
+                    self.is_empty = False
                 return
 
     def __str__(self):

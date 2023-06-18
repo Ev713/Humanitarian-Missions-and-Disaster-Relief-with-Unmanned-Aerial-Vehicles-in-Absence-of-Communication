@@ -15,10 +15,13 @@ class Node:
         self.value = 0
         self.times_visited = 0
 
+    def __str__(self):
+        return "TV:"+str(self.times_visited)+" R:"+str(self.value)+" "+str(self.state)
+
     def uct(self, t, c=math.sqrt(2)):
         return self.value / self.times_visited + c * math.sqrt(math.log(t) / self.times_visited)
 
-    def is_fully_expanded(self):
+    def all_children_visited(self):
         if self.state.is_terminal():
             return True
         if not self.children:
@@ -27,6 +30,13 @@ class Node:
             if child.times_visited == 0:
                 return False
         return True
+
+    def pick_unvisited_child(self):
+        for c in self.children:
+            if not c.times_visited:
+                return c
+        raise Exception("All children are visited!")
+        return None
 
     def highest_uct_child(self, time):
         max_uct = self.children[0].uct(time)
@@ -47,6 +57,15 @@ class Node:
                 max_value_child = c
         return max_value_child
 
+    def most_visited_child(self):
+        max_visits = self.children[0].times_visited
+        max_visits_child = self.children[0]
+        for c in self.children:
+            if c.times_visited > max_visits:
+                max_visits = c.times_visited
+                max_visits_child = c
+        return max_visits_child
+
     def expand(self, child_states):
         for child_state in child_states:
             child = Node(child_state, self)
@@ -59,3 +78,41 @@ class Node:
             backpropagator.value += value
             backpropagator = backpropagator.parent
         backpropagator.value += value
+
+    def add_to_paths(self, paths):
+        new_paths = []
+        for i in range(len(paths)):
+            attachment = None
+            if i == 0:
+                attachment = self
+            path = [attachment]
+            path_i = paths[i]
+            path.extend(path_i)
+            new_paths.append(path)
+        return new_paths
+
+    def get_leaf_paths(self):
+        if not len(self.children):
+            leaf = [[self]]
+            return leaf
+        else:
+            paths = []
+            for child in self.children:
+                paths.extend(child.get_leaf_paths())
+            return self.add_to_paths(paths)
+
+    def get_tree(self):
+        for path in self.get_leaf_paths():
+            line = ""
+            is_first = True
+            for n in path:
+                if n is not None:
+                    if is_first:
+                        line += "└── "
+                        is_first = False
+                    else:
+                        line += "── "
+                    line += str(n)
+                else:
+                    line += "                                                         "
+            print(line)
