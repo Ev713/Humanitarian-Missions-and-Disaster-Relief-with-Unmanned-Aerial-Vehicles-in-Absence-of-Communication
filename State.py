@@ -36,6 +36,17 @@ class DetState(State):
 class StochState(State):
     def __init__(self, instance=None):
         super().__init__()
-        self.a_locs = {}  # a.hash(): v.hash()
-        self.matrices = {}  # a.hash(): Matrix
-        self.thetas = {}  # v.hash(): probability
+        if instance is not None:
+            self.a_locs = [{a.hash(): a.loc.hash()} for a in instance.agents]  # a.hash(): v.hash()
+            self.matrices = [{a.hash(): MatricesFunctions.get_starting_matrix(a, a.loc)} for a in instance.agents]
+            self.thetas = [{v_hash: 1}for v_hash in instance.map_map]
+        else:
+            self.a_locs = {}
+            self.matrices = {}  # a.hash(): Matrix
+            self.thetas = {}  # v.hash(): probability
+
+    def copy(self):
+        copy_state = StochState()
+        copy_state.a_locs = copy.deepcopy(self.a_locs)
+        copy_state.matrices = copy.deepcopy(self.matrices)
+        copy_state.thetas = copy.deepcopy(self.copy())

@@ -20,7 +20,6 @@ class Agent:
 class StochAgent(Agent):
     def __init__(self, number, loc, movement_budget, utility_budget):
         super().__init__(number, loc, movement_budget, utility_budget)
-        self.matrix = np.array([])
 
 
 class DetAgent(Agent):

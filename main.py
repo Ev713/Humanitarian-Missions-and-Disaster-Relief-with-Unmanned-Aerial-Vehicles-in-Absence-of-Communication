@@ -17,7 +17,7 @@ def mcts(def_inst, is_det=False):
         instance = Instance.DetInstance(def_inst)
     else:
         root.state = State.StochState(def_inst)
-        instance = Instance.DetInstance(def_inst)
+        instance = Instance.StochInstance(def_inst)
 
     node = root
     for t in range(NUMBER_OF_SIMULATIONS):
@@ -87,4 +87,4 @@ a2 = Agent.Agent(2, v1, 3, 3)
 map = [v1, v2, v3, v4]
 agents = [a1, a2]
 i1 = Instance.Instance(map, agents, 3)
-mcts(i1, True)
+mcts(i1, False)

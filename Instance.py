@@ -2,6 +2,7 @@ import itertools
 import random
 import copy
 import Agent
+import MatricesFunctions
 import State
 import Vertex
 
@@ -71,14 +72,7 @@ class Instance:
         return new_agents, new_agents_map
 
     def actions(self, state):
-        # action: {p1: v_k, p2: v_m, ...  }
-        agent_movements = {}
-        time = len(state.path[list(state.path.keys())[0]])-state.time_left-1
-        for a_hash in state.path:
-            a_loc = self.get_agent_location(state, a_hash, time)
-            agent_movements[a_hash] = a_loc.neighbours
-        actions = [a for a in product_dict(agent_movements)]
-        return actions
+        pass
 
     def make_action(self, action, state):  # Abstract method
         pass
@@ -94,6 +88,16 @@ class DetInstance(Instance):
 
     def get_agent_location(self, state, a_hash, time):
         return self.map_map[state.path[a_hash][time]]
+
+    def actions(self, state):
+        # action: {p1: v_k, p2: v_m, ...  }
+        agent_movements = {}
+        time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
+        for a_hash in state.path:
+            a_loc = self.get_agent_location(state, a_hash, time)
+            agent_movements[a_hash] = a_loc.neighbours
+        actions = [a for a in product_dict(agent_movements)]
+        return actions
 
     def regenerate_instance(self):
         for v in self.map:
@@ -136,11 +140,31 @@ class StochInstance(Instance):
         self.map, self.map_map = instance.make_special_map_and_map_map(Vertex.Stoch_Vertex)
         self.agents, self.agents_map = instance.make_agents_and_agents_map(self.map_map, Agent.StochAgent)
         self.horizon = instance.horizon
-        self.initial_state = self.make_initial_state(False)
+        self.initial_state = State.StochState(instance)
+
+    def actions(self, state):
+        agent_movements = {}
+        time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
+        for a_hash in state.path:
+            a_loc = state.a_locs[a_hash]
+            agent_movements[a_hash] = a_loc.neighbours
+        actions = [a for a in product_dict(agent_movements)]
+        return actions
 
     def make_action(self, action, state):
-        raise NotImplementedError
+        new_state = State.StochState()
+        new_state.a_locs = copy.deepcopy(action)
+        for a_hash in self.agents_map:
+            if action[a_hash] == -1:
+                continue
+            vertex_hash = action[a_hash]
+            new_matrix = MatricesFunctions.update_matrix(new_state.matrices[a_hash],
+                                                         new_state.thetas[vertex_hash],
+                                                         self.map_map[vertex_hash].distribution)
+            new_theta = MatricesFunctions.update_theta(new_state.matrices[a_hash], new_state.thetas[vertex_hash])
+            new_state.matrices[a_hash] = new_matrix
+            new_state.thetas[vertex_hash] = new_theta
+        return new_state
 
     def reward(self, state):
-        raise NotImplementedError
-
+        return MatricesFunctions.get_tot_reward(state.matrices)
