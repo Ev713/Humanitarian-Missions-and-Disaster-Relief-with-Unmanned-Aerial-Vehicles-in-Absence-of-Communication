@@ -140,3 +140,7 @@ class StochInstance(Instance):
 
     def make_action(self, action, state):
         raise NotImplementedError
+
+    def reward(self, state):
+        raise NotImplementedError
+
