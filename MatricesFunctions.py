@@ -1,5 +1,4 @@
 import numpy as np
-from decimal import *
 import Instance
 import numpy
 
@@ -22,16 +21,15 @@ def get_matrix_value(matrix, reward, used):
     if reward < 0 or used < 0 or reward > len(matrix) - 1 or used > len(matrix[0]) - 1:
         return 0
     else:
-        return Decimal(matrix[reward][used])
+        return matrix[reward][used]
 
 
 def get_stay_matrix(matrix, max_r, max_u, prob, theta):
     stay_matrix = np.zeros((max_r + 1, max_u + 1))
     for reward in range(len(matrix)):
-        stay_matrix[reward][max_u] = Decimal(get_matrix_value(matrix, reward, max_u))
+        stay_matrix[reward][max_u] = get_matrix_value(matrix, reward, max_u)
         for used in range(max_u):
-            stay_matrix[reward][used] = (Decimal(theta) * Decimal(prob[0]) + 1 - Decimal(theta)) * Decimal(
-                get_matrix_value(matrix, reward, used))
+            stay_matrix[reward][used] = (theta * prob[0] + 1 - theta) * get_matrix_value(matrix, reward, used)
     return stay_matrix
 
 
@@ -39,42 +37,42 @@ def get_go_matrix(matrix, max_r, max_u, prob, theta):
     go_matrix = np.zeros((max_r + 1, max_u + 1))
     for reward in range(max_r + 1):
         for used in range(max_u + 1):
-            go_matrix[reward][used] = Decimal(0)
+            go_matrix[reward][used] = 0
             for r in prob:
                 if r != 0:
-                    go_matrix[reward][used] = Decimal(go_matrix[reward][used]) + Decimal(theta) * Decimal(
-                        prob[r]) * Decimal(get_matrix_value(matrix, reward - r, used - 1))
+                    go_matrix[reward][used] = go_matrix[reward][used] + theta * prob[r] * get_matrix_value(matrix, reward - r, used - 1)
     return go_matrix
 
 
-def update_matrix(matrix, theta, prob):
-    if 0 not in prob:
-        prob[0] = 0
-    max_r = np.shape(matrix)[0] + max([r for r in prob]) - 1
+def update_matrix(matrix, theta, dist):
+    if 0 not in dist:
+        dist[0] = 0
+    max_r = np.shape(matrix)[0] + max([r for r in dist]) - 1
     max_u = np.shape(matrix)[1] - 1
-    stay_matrix = get_stay_matrix(matrix, max_r, max_u, prob, theta)
-    go_matrix = get_go_matrix(matrix, max_r, max_u, prob, theta)
+    if type(max_r) != int:
+        raise Exception("Reward must be an integer!")
+    stay_matrix = get_stay_matrix(matrix, max_r, max_u, dist, theta)
+    go_matrix = get_go_matrix(matrix, max_r, max_u, dist, theta)
     # print_matrix(new_matrix)
     return np.add(stay_matrix, go_matrix)
 
 
 def update_theta(matrix, theta):
-    prb = Decimal(0)
-    max_u = np.shape(matrix)[1] - 1
-    max_r = np.shape(matrix)[0] - 1
-    for reward in range(max_r):
-        for used in range(max_u):
-            prb += Decimal(get_matrix_value(matrix, reward, used))
-    return Decimal(theta * (1 - prb))
+    prb = 0  # probability of the agent having utility budget
+    for reward in range(np.shape(matrix)[0]):
+        for used in range(np.shape(matrix)[1]-1):
+            prb += get_matrix_value(matrix, reward, used)
+    return theta * (1 - prb)
 
 
 def get_tot_reward(matrices):
-    sum = Decimal(0)
-    for m in matrices:
+    sum = 0
+    for a_hash in matrices:
+        m = matrices[a_hash]
         u_max = len(m[0]) - 1
         for r in range(len(m)):
             for u in range(u_max + 1):
-                sum += Decimal(get_matrix_value(m, r, u) * r)
+                sum += get_matrix_value(m, r, u) * r
     return sum
 
 

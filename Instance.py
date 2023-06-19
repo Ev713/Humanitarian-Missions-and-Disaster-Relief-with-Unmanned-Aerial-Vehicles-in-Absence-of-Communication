@@ -95,7 +95,7 @@ class DetInstance(Instance):
         time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
         for a_hash in state.path:
             a_loc = self.get_agent_location(state, a_hash, time)
-            agent_movements[a_hash] = a_loc.neighbours
+            agent_movements[a_hash] =[n.hash() for n in a_loc.neighbours]
         actions = [a for a in product_dict(agent_movements)]
         return actions
 
@@ -115,7 +115,7 @@ class DetInstance(Instance):
             if self.agents_map[a_hash].movement_budget < time:
                 new_state.path[a_hash][time] = -1  # chosen action cannot be done due to insufficient movement budget
             else:
-                new_state.path[a_hash][time] = action[a_hash].hash()
+                new_state.path[a_hash][time] = action[a_hash]
         return new_state
 
     def reward(self, state):
@@ -144,15 +144,15 @@ class StochInstance(Instance):
 
     def actions(self, state):
         agent_movements = {}
-        time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
-        for a_hash in state.path:
-            a_loc = state.a_locs[a_hash]
-            agent_movements[a_hash] = a_loc.neighbours
+        for a_hash in state.a_locs:
+            a_loc = self.map_map[state.a_locs[a_hash]]
+            agent_movements[a_hash] = [n.hash() for n in a_loc.neighbours]
         actions = [a for a in product_dict(agent_movements)]
         return actions
 
     def make_action(self, action, state):
-        new_state = State.StochState()
+        new_state = state.copy()
+        new_state.time_left -= 1
         new_state.a_locs = copy.deepcopy(action)
         for a_hash in self.agents_map:
             if action[a_hash] == -1:
@@ -161,7 +161,7 @@ class StochInstance(Instance):
             new_matrix = MatricesFunctions.update_matrix(new_state.matrices[a_hash],
                                                          new_state.thetas[vertex_hash],
                                                          self.map_map[vertex_hash].distribution)
-            new_theta = MatricesFunctions.update_theta(new_state.matrices[a_hash], new_state.thetas[vertex_hash])
+            new_theta = MatricesFunctions.update_theta(state.matrices[a_hash], new_state.thetas[vertex_hash])
             new_state.matrices[a_hash] = new_matrix
             new_state.thetas[vertex_hash] = new_theta
         return new_state

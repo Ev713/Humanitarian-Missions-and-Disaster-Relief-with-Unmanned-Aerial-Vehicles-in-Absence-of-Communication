@@ -57,10 +57,9 @@ def mcts(def_inst, is_det=False):
         root.get_tree()
 
         # returning
-    if is_det:
-        while not node.state.is_terminal():
-            node = node.most_visited_child()
-            print(node.state)
+    while not node.state.is_terminal():
+        node = node.most_visited_child()
+        print(node.state)
 
 
 
@@ -77,7 +76,7 @@ v3.neighbours = [v1, v4]
 v4.neighbours = [v2, v3]
 
 v1.distribution = {0: 1}
-v2.distribution = {0.5: 1}
+v2.distribution = {1: 1}
 v3.distribution = {0: 0.5, 1: 0.5}
 v4.distribution = {3: 0.5, 0: 0.5}
 
