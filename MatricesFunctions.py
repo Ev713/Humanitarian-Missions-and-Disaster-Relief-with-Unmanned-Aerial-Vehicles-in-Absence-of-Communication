@@ -3,6 +3,29 @@ import Instance
 import numpy
 
 
+def shift_right(mtrx, x):
+    num_of_columns = mtrx.shape[1]
+    if num_of_columns >= x:
+        matrix = mtrx.copy()
+        for _ in range(x):
+            last_column = matrix[:, mtrx.shape[1] - 1]
+            matrix[:, mtrx.shape[1] - 2] = np.add(matrix[:, mtrx.shape[1] - 1], matrix[:, mtrx.shape[1] - 2])
+            shape = (matrix.shape[0], 1)
+            zeros = numpy.zeros(shape)
+            matrix = numpy.concatenate((zeros, matrix), axis=1)
+            matrix = numpy.delete(matrix, matrix.shape[1] - 1, axis=1)
+        return matrix
+    else:
+        return [[sum(mtrx[r, :])] for r in range(mtrx.shape[0])]
+
+
+def shift_down(mtrx, x):
+    matrix = mtrx.copy()
+    for _ in range(x):
+        matrix = np.concatenate((np.zeros((1, matrix.shape[1])), matrix))
+    return matrix
+
+
 def get_starting_matrix(agent, v):
     max_reward = max([r for r in v.distribution])
     max_utility = agent.utility_budget
@@ -40,8 +63,31 @@ def get_go_matrix(matrix, max_r, max_u, prob, theta):
             go_matrix[reward][used] = 0
             for r in prob:
                 if r != 0:
-                    go_matrix[reward][used] = go_matrix[reward][used] + theta * prob[r] * get_matrix_value(matrix, reward - r, used - 1)
+                    go_matrix[reward][used] = go_matrix[reward][used] + theta * prob[r] * get_matrix_value(matrix,
+                                                                                                           reward - r,
+                                                                                                           used - 1)
     return go_matrix
+
+def add_zeros_to_bottom(mtrx, x):
+    matrix = mtrx.copy()
+    for _ in range(x):
+        shape = (1, matrix.shape[1])
+        zeros = np.zeros(shape)
+        matrix = np.concatenate((matrix, zeros))
+    return matrix
+def new_matrix(mtrx, prob, theta):
+    stay_matrix = mtrx.copy()
+    go_matrix = mtrx.copy()
+    for r in prob:
+        if r == 0:
+            last_column = stay_matrix[:, stay_matrix.shape[1]-1]
+            stay_matrix = stay_matrix * (theta * prob[0] + 1 - theta)
+            stay_matrix[:, stay_matrix.shape[1] - 1] = last_column
+        else:
+            u = 1  # might change
+            p = prob[r]
+            go_matrix = np.add(add_zeros_to_bottom(go_matrix, r), theta * p * shift_right(shift_down(go_matrix, r), u))
+    return np.add(stay_matrix, go_matrix)
 
 
 def update_matrix(matrix, theta, dist):
@@ -54,13 +100,14 @@ def update_matrix(matrix, theta, dist):
     stay_matrix = get_stay_matrix(matrix, max_r, max_u, dist, theta)
     go_matrix = get_go_matrix(matrix, max_r, max_u, dist, theta)
     # print_matrix(new_matrix)
-    return np.add(stay_matrix, go_matrix)
+    new_matrix = np.add(stay_matrix, go_matrix)
+    return new_matrix
 
 
 def update_theta(matrix, theta):
     prb = 0  # probability of the agent having utility budget
     for reward in range(np.shape(matrix)[0]):
-        for used in range(np.shape(matrix)[1]-1):
+        for used in range(np.shape(matrix)[1] - 1):
             prb += get_matrix_value(matrix, reward, used)
     return theta * (1 - prb)
 

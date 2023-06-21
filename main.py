@@ -1,5 +1,7 @@
 import random
 
+import numpy as np
+
 import Agent
 import Instance
 import MatricesFunctions
@@ -86,4 +88,7 @@ a2 = Agent.Agent(2, v1, 3, 3)
 map = [v1, v2, v3, v4]
 agents = [a1, a2]
 i1 = Instance.Instance(map, agents, 3)
-mcts(i1, False)
+  # mcts(i1, False)
+matrix = MatricesFunctions.get_starting_matrix(a1, v1)
+matrix = MatricesFunctions.new_matrix(np.array([[0.1, 0.2, 0.3, 0.4]]), {0: 0.5, 1: 0.3, 2: 0.2}, 0.9)
+print(matrix)
