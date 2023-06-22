@@ -21,8 +21,14 @@ def shift_right(mtrx, x):
 
 def shift_down(mtrx, x):
     matrix = mtrx.copy()
+    last_column = mtrx[:,mtrx.shape[1]-1].copy()
+    for _ in range(x):
+        last_column = np.append(last_column, 0)
     for _ in range(x):
         matrix = np.concatenate((np.zeros((1, matrix.shape[1])), matrix))
+    vs = np.vstack(last_column)
+    lc = matrix[:, matrix.shape[1] - 1]
+    matrix[:, matrix.shape[1]-1] = last_column
     return matrix
 
 
@@ -68,6 +74,7 @@ def get_go_matrix(matrix, max_r, max_u, prob, theta):
                                                                                                            used - 1)
     return go_matrix
 
+
 def add_zeros_to_bottom(mtrx, x):
     matrix = mtrx.copy()
     for _ in range(x):
@@ -75,21 +82,29 @@ def add_zeros_to_bottom(mtrx, x):
         zeros = np.zeros(shape)
         matrix = np.concatenate((matrix, zeros))
     return matrix
+
+
 def new_matrix(mtrx, prob, theta):
+    if 0 not in prob:
+        prob[0] = 0
     stay_matrix = mtrx.copy()
-    go_matrix = mtrx.copy()
+    go_matrix = np.zeros(mtrx.shape)
     for r in prob:
-        if r == 0:
-            last_column = stay_matrix[:, stay_matrix.shape[1]-1]
+        '''if r == 0:
+            last_column = stay_matrix[:, stay_matrix.shape[1] - 1]
             stay_matrix = stay_matrix * (theta * prob[0] + 1 - theta)
             stay_matrix[:, stay_matrix.shape[1] - 1] = last_column
-        else:
-            u = 1  # might change
-            p = prob[r]
-            go_matrix = np.add(add_zeros_to_bottom(go_matrix, r), theta * p * shift_right(shift_down(go_matrix, r), u))
+        else:'''
+        u = 1  # might change
+        p = prob[r]
+        p_matrix = theta * p * shift_right(shift_down(mtrx.copy(), r), u)
+        go_matrix = np.add(add_zeros_to_bottom(go_matrix, r), p_matrix)
+        print("r:"+ str(r)+ "p:"+str(p))
+        print(go_matrix)
+            #stay_matrix = add_zeros_to_bottom(stay_matrix, r)
     return np.add(stay_matrix, go_matrix)
 
-
+'''
 def update_matrix(matrix, theta, dist):
     if 0 not in dist:
         dist[0] = 0
@@ -102,13 +117,12 @@ def update_matrix(matrix, theta, dist):
     # print_matrix(new_matrix)
     new_matrix = np.add(stay_matrix, go_matrix)
     return new_matrix
-
+'''
 
 def update_theta(matrix, theta):
     prb = 0  # probability of the agent having utility budget
-    for reward in range(np.shape(matrix)[0]):
-        for used in range(np.shape(matrix)[1] - 1):
-            prb += get_matrix_value(matrix, reward, used)
+    for used in range(np.shape(matrix)[1] - 1):
+        prb += sum(matrix[:, used])
     return theta * (1 - prb)
 
 

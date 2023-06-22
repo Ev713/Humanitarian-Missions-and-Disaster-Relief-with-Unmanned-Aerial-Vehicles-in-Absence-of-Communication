@@ -55,7 +55,7 @@ def mcts(def_inst, is_det=False):
             if node is root:
                 break
             node = node.parent
-        print("simulation "+str(t))
+        print("simulation " + str(t))
         root.get_tree()
 
         # returning
@@ -63,10 +63,7 @@ def mcts(def_inst, is_det=False):
         node = node.most_visited_child()
         print(node.state)
 
-
-
-
-
+print(np.array([[0,0],[0,0]]))
 v1 = Vertex.Vertex(1)
 v2 = Vertex.Vertex(2)
 v3 = Vertex.Vertex(3)
@@ -88,7 +85,7 @@ a2 = Agent.Agent(2, v1, 3, 3)
 map = [v1, v2, v3, v4]
 agents = [a1, a2]
 i1 = Instance.Instance(map, agents, 3)
-  # mcts(i1, False)
-matrix = MatricesFunctions.get_starting_matrix(a1, v1)
-matrix = MatricesFunctions.new_matrix(np.array([[0.1, 0.2, 0.3, 0.4]]), {0: 0.5, 1: 0.3, 2: 0.2}, 0.9)
+# mcts(i1, False)
+#matrix = MatricesFunctions.get_starting_matrix(a1, v1)
+matrix = MatricesFunctions.new_matrix(np.array([[0.1, 0.2, 0.3, 0.4]]), {0: 0.5, 1: 0.3, 2: 0.2}, 1)
 print(matrix)

@@ -151,6 +151,7 @@ class StochInstance(Instance):
         return actions
 
     def make_action(self, action, state):
+
         new_state = state.copy()
         new_state.time_left -= 1
         new_state.a_locs = copy.deepcopy(action)
@@ -158,9 +159,7 @@ class StochInstance(Instance):
             if action[a_hash] == -1:
                 continue
             vertex_hash = action[a_hash]
-            new_matrix = MatricesFunctions.update_matrix(new_state.matrices[a_hash],
-                                                         new_state.thetas[vertex_hash],
-                                                         self.map_map[vertex_hash].distribution)
+            new_matrix = MatricesFunctions.new_matrix(state.matrices[a_hash], self.map_map[vertex_hash].distribution, new_state.thetas[vertex_hash])
             new_theta = MatricesFunctions.update_theta(state.matrices[a_hash], new_state.thetas[vertex_hash])
             new_state.matrices[a_hash] = new_matrix
             new_state.thetas[vertex_hash] = new_theta
