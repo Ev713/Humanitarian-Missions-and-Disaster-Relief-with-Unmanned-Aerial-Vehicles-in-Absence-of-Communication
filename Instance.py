@@ -119,19 +119,23 @@ class DetInstance(Instance):
         return new_state
 
     def reward(self, state):
-        self.regenerate_instance()
-        tot_reward = 0
-        for t in range(self.horizon):
-            for a in self.agents:
-                if state.path[a.hash()][t] == -1 or a.utility_budget < 1:
-                    continue
-                a_loc = self.get_agent_location(state, a.hash(), t)
-                if a_loc.is_empty:
-                    continue
-                a_loc.is_empty = True
-                tot_reward += a_loc.reward
-                a.current_utility_budget -= 1
-        return tot_reward
+        NUM_OF_SIM=30
+        avg_reward = 0
+        for _ in range(NUM_OF_SIM):
+            self.regenerate_instance()
+            tot_reward = 0
+            for t in range(self.horizon):
+                for a in self.agents:
+                    if state.path[a.hash()][t] == -1 or a.utility_budget < 1:
+                        continue
+                    a_loc = self.get_agent_location(state, a.hash(), t)
+                    if a_loc.is_empty:
+                        continue
+                    a_loc.is_empty = True
+                    tot_reward += a_loc.reward
+                    a.current_utility_budget -= 1
+            avg_reward += tot_reward
+        return avg_reward/NUM_OF_SIM
 
 
 class StochInstance(Instance):

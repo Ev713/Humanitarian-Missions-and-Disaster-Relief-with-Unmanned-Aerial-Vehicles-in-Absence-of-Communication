@@ -1,18 +1,20 @@
 import random
-
 import numpy as np
-
 import Agent
 import Instance
+import Instances
 import MatricesFunctions
 import Node
 import State
 import Vertex
+from matplotlib import pyplot as plt
 
-NUMBER_OF_SIMULATIONS = 1000
+NUMBER_OF_SIMULATIONS = 10000
+JUMP = NUMBER_OF_SIMULATIONS/100
 
 
 def mcts(def_inst, is_det=False):
+    values = []
     root = Node.Node(None)
     if is_det:
         root.state = State.DetState(def_inst)
@@ -23,7 +25,7 @@ def mcts(def_inst, is_det=False):
 
     node = root
     for t in range(NUMBER_OF_SIMULATIONS):
-
+    #    print(t)
         # selection
         while node.all_children_visited():
             node.times_visited += 1
@@ -55,37 +57,42 @@ def mcts(def_inst, is_det=False):
             if node is root:
                 break
             node = node.parent
-        print("simulation " + str(t))
-        root.get_tree()
+            rollout_reward *= 0.9
 
-        # returning
+        # showing tree
+        # print("simulation " + str(t))
+        # root.get_tree()
+
+        # checking mid-rewards
+        if t > 0 and t % JUMP == 0:
+            node1 = root
+            while not node.state.is_terminal() and len(node1.children) != 0:
+                node1 = node1.highest_value_child()
+            value = instance.reward(node1.state)
+            values.append(value)
+    #root.get_tree()
+    # returning
     while not node.state.is_terminal():
         node = node.most_visited_child()
         print(node.state)
+    #print(values)
+    return values
 
-print(np.array([[0,0],[0,0]]))
-v1 = Vertex.Vertex(1)
-v2 = Vertex.Vertex(2)
-v3 = Vertex.Vertex(3)
-v4 = Vertex.Vertex(4)
 
-v1.neighbours = [v2, v3]
-v2.neighbours = [v1, v4]
-v3.neighbours = [v1, v4]
-v4.neighbours = [v2, v3]
+i = Instances.instance15
+stoch = mcts(i, False)
+det = mcts(i, True)
 
-v1.distribution = {0: 1}
-v2.distribution = {1: 1}
-v3.distribution = {0: 0.5, 1: 0.5}
-v4.distribution = {3: 0.5, 0: 0.5}
+y1 = stoch
+y2 = det
 
-a1 = Agent.Agent(1, v1, 3, 3)
-a2 = Agent.Agent(2, v1, 3, 3)
+x1 = [JUMP * i for i in range(len(y1))]
+x2 = [JUMP * i for i in range(len(x1))]
 
-map = [v1, v2, v3, v4]
-agents = [a1, a2]
-i1 = Instance.Instance(map, agents, 3)
-mcts(i1, False)
-#matrix = MatricesFunctions.get_starting_matrix(a1, v1)
-#matrix = MatricesFunctions.new_matrix(np.array([[0.1, 0.2, 0.3, 0.4]]), {0: 0.5, 1: 0.3, 2: 0.2}, 1)
-#print(matrix)
+plt.scatter(x1, y1)
+plt.scatter(x2, y2)
+plt.legend(["Stoch", 'Det'])
+plt.show()
+# matrix = MatricesFunctions.get_starting_matrix(a1, v1)
+# matrix = MatricesFunctions.new_matrix(np.array([[0.1, 0.2, 0.3, 0.4]]), {0: 0.5, 1: 0.3, 2: 0.2}, 1)
+# print(matrix)
