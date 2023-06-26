@@ -159,7 +159,8 @@ class StochInstance(Instance):
             if action[a_hash] == -1:
                 continue
             vertex_hash = action[a_hash]
-            new_matrix = MatricesFunctions.new_matrix(state.matrices[a_hash], self.map_map[vertex_hash].distribution, new_state.thetas[vertex_hash])
+            new_matrix = MatricesFunctions.new_matrix(state.matrices[a_hash], self.map_map[vertex_hash].distribution,
+                                                      new_state.thetas[vertex_hash])
             new_theta = MatricesFunctions.update_theta(state.matrices[a_hash], new_state.thetas[vertex_hash])
             new_state.matrices[a_hash] = new_matrix
             new_state.thetas[vertex_hash] = new_theta

@@ -87,22 +87,18 @@ def add_zeros_to_bottom(mtrx, x):
 def new_matrix(mtrx, prob, theta):
     if 0 not in prob:
         prob[0] = 0
-    stay_matrix = mtrx.copy()
-    go_matrix = np.zeros(mtrx.shape)
+    new_matrix = (1-theta) * mtrx.copy()
     for r in prob:
-        '''if r == 0:
-            last_column = stay_matrix[:, stay_matrix.shape[1] - 1]
-            stay_matrix = stay_matrix * (theta * prob[0] + 1 - theta)
-            stay_matrix[:, stay_matrix.shape[1] - 1] = last_column
-        else:'''
-        u = 1  # might change
         p = prob[r]
+        if r == 0:
+            u = 0
+        else:
+            u = 1  # might change
         p_matrix = theta * p * shift_right(shift_down(mtrx.copy(), r), u)
-        go_matrix = np.add(add_zeros_to_bottom(go_matrix, r), p_matrix)
-        print("r:"+ str(r)+ "p:"+str(p))
-        print(go_matrix)
-            #stay_matrix = add_zeros_to_bottom(stay_matrix, r)
-    return np.add(stay_matrix, go_matrix)
+        new_matrix = np.add(add_zeros_to_bottom(new_matrix, p_matrix.shape[0] - new_matrix.shape[0]), p_matrix)
+        print("r:"+ str(r)+ ", p:"+str(p))
+        print(new_matrix)
+    return new_matrix
 
 '''
 def update_matrix(matrix, theta, dist):
@@ -120,10 +116,7 @@ def update_matrix(matrix, theta, dist):
 '''
 
 def update_theta(matrix, theta):
-    prb = 0  # probability of the agent having utility budget
-    for used in range(np.shape(matrix)[1] - 1):
-        prb += sum(matrix[:, used])
-    return theta * (1 - prb)
+    return theta * sum(matrix[:, matrix.shape[1]-1])
 
 
 def get_tot_reward(matrices):
