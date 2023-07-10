@@ -2,8 +2,34 @@ import Agent
 import Instance
 import Vertex
 
-# instance 1
+# instance line
 
+v1 = Vertex.Vertex(1)
+v2 = Vertex.Vertex(2)
+v3 = Vertex.Vertex(3)
+v4 = Vertex.Vertex(4)
+v5 = Vertex.Vertex(5)
+
+v1.neighbours = [v2]
+v2.neighbours = [v3]
+v3.neighbours = [v4]
+v4.neighbours = [v5]
+v5.neighbours = [v1]
+
+v1.distribution = {0: 1}
+v2.distribution = {1: 1}
+v3.distribution = {1: 1}
+v4.distribution = {1: 1}
+v5.distribution = {1: 1}
+
+a1 = Agent.Agent(1, v1, 7, 7)
+
+map = [v1, v2, v3, v4, v5]
+agents = [a1]
+line = Instance.Instance(map, agents, 4)
+
+
+# instance 1
 
 v1 = Vertex.Vertex(1)
 v2 = Vertex.Vertex(2)
@@ -98,6 +124,4 @@ map1 = [vertex1, vertex2, vertex3, vertex4, vertex5, vertex6, vertex7, vertex8, 
         vertex13, vertex14, vertex15]
 agents = [agent1, agent2]
 
-instance15 = Instance.Instance(map1, agents, 4)
-
-
+i15 = Instance.Instance(map1, agents, 4)

@@ -119,12 +119,12 @@ class DetInstance(Instance):
         return new_state
 
     def reward(self, state):
-        NUM_OF_SIM=30
+        NUM_OF_SIM=20
         avg_reward = 0
         for _ in range(NUM_OF_SIM):
             self.regenerate_instance()
             tot_reward = 0
-            for t in range(self.horizon):
+            for t in range(self.horizon+1):
                 for a in self.agents:
                     if state.path[a.hash()][t] == -1 or a.utility_budget < 1:
                         continue

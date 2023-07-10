@@ -16,7 +16,7 @@ class Node:
         self.times_visited = 0
 
     def __str__(self):
-        return "TV:"+str(self.times_visited)+" R:"+str(self.value)+" "+str(self.state)
+        return "TV:"+str(self.times_visited)+" R:"+str(round(self.value))+" "+str(self.state)
 
     def uct(self, t, c=math.sqrt(2)):
         return self.value / self.times_visited + c * math.sqrt(math.log(t) / self.times_visited)
@@ -68,7 +68,6 @@ class Node:
     def expand(self, child_states):
         for child_state in child_states:
             child = Node(child_state, self)
-            child.depth = self.depth + 1
             self.children.append(child)
 
     def backpropagate(self, value):
@@ -78,6 +77,7 @@ class Node:
             backpropagator = backpropagator.parent
         backpropagator.value += value
 
+    # Printing Tree
     def add_to_paths(self, paths):
         new_paths = []
         for i in range(len(paths)):
@@ -113,5 +113,5 @@ class Node:
                         line += "── "
                     line += str(n)
                 else:
-                    line += "                                                     "
+                    line += "                      "
             print(line)

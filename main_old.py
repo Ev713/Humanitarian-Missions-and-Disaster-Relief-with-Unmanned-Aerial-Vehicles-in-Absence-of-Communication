@@ -9,13 +9,13 @@ import matplotlib
 from matplotlib import pyplot as plt
 
 
-def check_valuing_diff():
+def check_valuing_diff(i):
     for _ in range(60):
-        path = i8.return_random_path()
+        path = i.return_random_path()
         for hor in range(1, len(path)):
             path_shorter = [path[i] for i in range(hor)]
-            dumb_value = i8.value(path_shorter, True, 10000)
-            smart_value = i8.value(path_shorter, False)
+            dumb_value = i.value(path_shorter, True, 10000)
+            smart_value = i.value(path_shorter, False)
             print(smart_value - dumb_value)
         print("********************")
 

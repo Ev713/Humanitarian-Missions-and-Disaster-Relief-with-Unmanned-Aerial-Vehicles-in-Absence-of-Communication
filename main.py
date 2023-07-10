@@ -1,5 +1,5 @@
 import random
-import numpy as np
+import  numpy as np
 import Agent
 import Instance
 import Instances
@@ -9,8 +9,10 @@ import State
 import Vertex
 from matplotlib import pyplot as plt
 
+import grid
+
 NUMBER_OF_SIMULATIONS = 10000
-JUMP = NUMBER_OF_SIMULATIONS/100
+JUMP = NUMBER_OF_SIMULATIONS/10
 
 
 def mcts(def_inst, is_det=False):
@@ -60,9 +62,8 @@ def mcts(def_inst, is_det=False):
             rollout_reward *= 0.9
 
         # showing tree
-        # print("simulation " + str(t))
+        print("simulation " + str(t))
         # root.get_tree()
-
         # checking mid-rewards
         if t > 0 and t % JUMP == 0:
             node1 = root
@@ -73,13 +74,15 @@ def mcts(def_inst, is_det=False):
     #root.get_tree()
     # returning
     while not node.state.is_terminal():
+        if not node.children:
+            raise Exception("Note enough simulations.")
         node = node.most_visited_child()
         print(node.state)
     #print(values)
     return values
 
 
-i = Instances.instance15
+i = grid.instance1
 stoch = mcts(i, False)
 det = mcts(i, True)
 
@@ -87,7 +90,7 @@ y1 = stoch
 y2 = det
 
 x1 = [JUMP * i for i in range(len(y1))]
-x2 = [JUMP * i for i in range(len(x1))]
+x2 = [JUMP * (i+1) for i in range(len(x1))]
 
 plt.scatter(x1, y1)
 plt.scatter(x2, y2)
