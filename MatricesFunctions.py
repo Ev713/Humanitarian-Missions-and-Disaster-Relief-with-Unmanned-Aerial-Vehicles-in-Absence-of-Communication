@@ -86,11 +86,10 @@ def add_zeros_to_bottom(mtrx, x):
     return matrix
 
 def add_diff_height_mtrxs(mtrx1, mtrx2):
-    height_diff = math.abs(mtrx2.shape[0]-mtrx1.shape[0])
+    height_diff = abs(mtrx2.shape[0]-mtrx1.shape[0])
     if mtrx1.shape[0] > mtrx2.shape[0]:
         return np.add(mtrx1, add_zeros_to_bottom(mtrx2, height_diff))
-    if mtrx2.shape[0] > mtrx1.shape[0]:
-        return np.add(add_zeros_to_bottom(mtrx1, height_diff), mtrx2)
+    return np.add(add_zeros_to_bottom(mtrx1, height_diff), mtrx2)
 
 
 def new_matrix(mtrx, prob, theta):
@@ -105,6 +104,8 @@ def new_matrix(mtrx, prob, theta):
             u = 1  # might change
         p_matrix = theta * p * shift_right(shift_down(mtrx.copy(), r), u)
         new_matrix = add_diff_height_mtrxs(new_matrix, p_matrix)
+        if new_matrix is None:
+            print()
         #print("r:"+ str(r)+ ", p:"+str(p))
         #print(new_matrix)
     return new_matrix

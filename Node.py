@@ -113,5 +113,5 @@ class Node:
                         line += "── "
                     line += str(n)
                 else:
-                    line += "                                                         "
+                    line += "                                                     "
             print(line)
