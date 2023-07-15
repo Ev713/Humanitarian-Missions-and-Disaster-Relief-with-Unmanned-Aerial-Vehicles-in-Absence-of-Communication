@@ -1,5 +1,5 @@
 import random
-import  numpy as np
+import numpy as np
 import Agent
 import Instance
 import Instances
@@ -8,11 +8,11 @@ import Node
 import State
 import Vertex
 from matplotlib import pyplot as plt
+import corner_grid
 
-import grid
-
-NUMBER_OF_SIMULATIONS = 10000
-JUMP = NUMBER_OF_SIMULATIONS/10
+NUMBER_OF_SIMULATIONS = 1000
+JUMP = NUMBER_OF_SIMULATIONS / 100
+EXPLORATION_RATE = 4
 
 
 def mcts(def_inst, is_det=False):
@@ -27,12 +27,12 @@ def mcts(def_inst, is_det=False):
 
     node = root
     for t in range(NUMBER_OF_SIMULATIONS):
-    #    print(t)
+        #    print(t)
         # selection
         while node.all_children_visited():
             node.times_visited += 1
             if not node.state.is_terminal():
-                node = node.highest_uct_child(t)
+                node = node.highest_uct_child(t, exp_rate=EXPLORATION_RATE)
             else:
                 break
 
@@ -62,27 +62,28 @@ def mcts(def_inst, is_det=False):
             rollout_reward *= 0.9
 
         # showing tree
-        print("simulation " + str(t))
+
         # root.get_tree()
         # checking mid-rewards
         if t > 0 and t % JUMP == 0:
+            print("simulation " + str(t))
             node1 = root
             while not node.state.is_terminal() and len(node1.children) != 0:
                 node1 = node1.highest_value_child()
             value = instance.reward(node1.state)
             values.append(value)
-    #root.get_tree()
+    # root.get_tree()
     # returning
     while not node.state.is_terminal():
         if not node.children:
-            raise Exception("Note enough simulations.")
+            raise Exception("Note enough simulations. Increase number of simulations, lower the horizon ot try again.")
         node = node.most_visited_child()
         print(node.state)
-    #print(values)
+    # print(values)
     return values
 
 
-i = grid.instance1
+i = corner_grid.instance1
 stoch = mcts(i, False)
 det = mcts(i, True)
 
@@ -90,7 +91,7 @@ y1 = stoch
 y2 = det
 
 x1 = [JUMP * i for i in range(len(y1))]
-x2 = [JUMP * (i+1) for i in range(len(x1))]
+x2 = [JUMP * (i + 1) for i in range(len(x1))]
 
 plt.scatter(x1, y1)
 plt.scatter(x2, y2)
