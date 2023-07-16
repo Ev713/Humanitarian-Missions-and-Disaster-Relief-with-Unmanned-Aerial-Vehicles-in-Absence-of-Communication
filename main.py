@@ -8,7 +8,7 @@ import Node
 import State
 import Vertex
 from matplotlib import pyplot as plt
-import corner_grid
+import grid6X6_CORNERS as map
 
 NUMBER_OF_SIMULATIONS = 1000
 JUMP = NUMBER_OF_SIMULATIONS / 100
@@ -83,7 +83,7 @@ def mcts(def_inst, is_det=False):
     return values
 
 
-i = corner_grid.instance1
+i = map.instance1
 stoch = mcts(i, False)
 det = mcts(i, True)
 
