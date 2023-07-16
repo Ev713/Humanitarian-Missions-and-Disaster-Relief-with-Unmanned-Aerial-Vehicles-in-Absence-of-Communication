@@ -2,7 +2,7 @@ import Instance
 import Vertex
 import Agent
 vertex0 = Vertex.Vertex("v0")
-vertex0.distribution = {3: 0.146, 5: 0.165, 0: 0.272, 2: 0.1}
+vertex0.distribution = {0: 1} #{3: 0.146, 5: 0.165, 0: 0.272, 2: 0.1}
 vertex1 = Vertex.Vertex("v1")
 vertex1.distribution = {1: 0.377, 0: 0.414, 2: 0.067}
 vertex2 = Vertex.Vertex("v2")

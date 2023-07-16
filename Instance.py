@@ -94,8 +94,8 @@ class DetInstance(Instance):
         agent_movements = {}
         time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
         for a_hash in state.path:
-            a_loc = self.get_agent_location(state, a_hash, time)
-            agent_movements[a_hash] =[n.hash() for n in a_loc.neighbours]
+            a_loc = self.map_map[state.path[a_hash][time]]
+            agent_movements[a_hash] = [n.hash() for n in a_loc.neighbours]
         actions = [a for a in product_dict(agent_movements)]
         return actions
 
@@ -112,21 +112,18 @@ class DetInstance(Instance):
         new_state.time_left -= 1
         time = self.horizon - new_state.time_left
         for a_hash in action.keys():
-            if self.agents_map[a_hash].movement_budget < time:
-                new_state.path[a_hash][time] = -1  # chosen action cannot be done due to insufficient movement budget
-            else:
-                new_state.path[a_hash][time] = action[a_hash]
+            new_state.path[a_hash][time] = action[a_hash]
         return new_state
 
     def reward(self, state):
-        NUM_OF_SIM=20
+        NUM_OF_SIM = 100
         avg_reward = 0
         for _ in range(NUM_OF_SIM):
             self.regenerate_instance()
             tot_reward = 0
-            for t in range(self.horizon+1):
+            for t in range(self.horizon + 1):
                 for a in self.agents:
-                    if state.path[a.hash()][t] == -1 or a.utility_budget < 1:
+                    if a.movement_budget <= t or a.utility_budget < 1:
                         continue
                     a_loc = self.get_agent_location(state, a.hash(), t)
                     if a_loc.is_empty:
@@ -135,7 +132,7 @@ class DetInstance(Instance):
                     tot_reward += a_loc.reward
                     a.current_utility_budget -= 1
             avg_reward += tot_reward
-        return avg_reward/NUM_OF_SIM
+        return avg_reward / NUM_OF_SIM
 
 
 class StochInstance(Instance):
@@ -144,7 +141,9 @@ class StochInstance(Instance):
         self.map, self.map_map = instance.make_special_map_and_map_map(Vertex.Stoch_Vertex)
         self.agents, self.agents_map = instance.make_agents_and_agents_map(self.map_map, Agent.StochAgent)
         self.horizon = instance.horizon
-        self.initial_state = State.StochState(instance)
+        default_state = State.StochState(instance)
+        self.initial_state = self.make_action(self.action_zero(default_state), default_state)
+        self.initial_state.time_left = self.horizon
 
     def actions(self, state):
         agent_movements = {}
@@ -153,6 +152,12 @@ class StochInstance(Instance):
             agent_movements[a_hash] = [n.hash() for n in a_loc.neighbours]
         actions = [a for a in product_dict(agent_movements)]
         return actions
+
+    def action_zero(self, false_init_state):
+        action_zero = {}
+        for a_hash in false_init_state.a_locs:
+            action_zero[a_hash] = false_init_state.a_locs[a_hash]
+        return action_zero
 
     def make_action(self, action, state):
 
@@ -171,4 +176,7 @@ class StochInstance(Instance):
         return new_state
 
     def reward(self, state):
-        return MatricesFunctions.get_tot_reward(state.matrices)
+        # if state.reward is not None:
+        #    return state.reward
+        state.reward = MatricesFunctions.get_tot_reward(state.matrices)
+        return state.reward

@@ -39,6 +39,7 @@ class StochState(State):
         self.a_locs = {}
         self.matrices = {}  # a.hash(): Matrix
         self.thetas = {}  # v.hash(): probability
+        self.reward = None
         if instance is not None:
             for a in instance.agents:
                 self.time_left = instance.horizon

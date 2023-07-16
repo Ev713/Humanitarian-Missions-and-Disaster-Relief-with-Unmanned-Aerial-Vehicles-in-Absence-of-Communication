@@ -23,14 +23,14 @@ def shift_right(mtrx, x):
 
 def shift_down(mtrx, x):
     matrix = mtrx.copy()
-    last_column = mtrx[:,mtrx.shape[1]-1].copy()
+    last_column = mtrx[:, mtrx.shape[1] - 1].copy()
     for _ in range(x):
         last_column = np.append(last_column, 0)
     for _ in range(x):
         matrix = np.concatenate((np.zeros((1, matrix.shape[1])), matrix))
     vs = np.vstack(last_column)
     lc = matrix[:, matrix.shape[1] - 1]
-    matrix[:, matrix.shape[1]-1] = last_column
+    matrix[:, matrix.shape[1] - 1] = last_column
     return matrix
 
 
@@ -85,8 +85,9 @@ def add_zeros_to_bottom(mtrx, x):
         matrix = np.concatenate((matrix, zeros))
     return matrix
 
+
 def add_diff_height_mtrxs(mtrx1, mtrx2):
-    height_diff = abs(mtrx2.shape[0]-mtrx1.shape[0])
+    height_diff = abs(mtrx2.shape[0] - mtrx1.shape[0])
     if mtrx1.shape[0] > mtrx2.shape[0]:
         return np.add(mtrx1, add_zeros_to_bottom(mtrx2, height_diff))
     return np.add(add_zeros_to_bottom(mtrx1, height_diff), mtrx2)
@@ -95,7 +96,7 @@ def add_diff_height_mtrxs(mtrx1, mtrx2):
 def new_matrix(mtrx, prob, theta):
     if 0 not in prob:
         prob[0] = 0
-    new_matrix = (1-theta) * mtrx.copy()
+    new_matrix = (1 - theta) * mtrx.copy()
     for r in prob:
         p = prob[r]
         if r == 0:
@@ -106,9 +107,10 @@ def new_matrix(mtrx, prob, theta):
         new_matrix = add_diff_height_mtrxs(new_matrix, p_matrix)
         if new_matrix is None:
             print()
-        #print("r:"+ str(r)+ ", p:"+str(p))
-        #print(new_matrix)
+        # print("r:"+ str(r)+ ", p:"+str(p))
+        # print(new_matrix)
     return new_matrix
+
 
 '''
 def update_matrix(matrix, theta, dist):
@@ -125,18 +127,18 @@ def update_matrix(matrix, theta, dist):
     return new_matrix
 '''
 
+
 def update_theta(matrix, theta):
-    return theta * sum(matrix[:, matrix.shape[1]-1])
+    return theta * sum(matrix[:, matrix.shape[1] - 1])
 
 
 def get_tot_reward(matrices):
     sum = 0
     for a_hash in matrices:
         m = matrices[a_hash]
-        u_max = len(m[0]) - 1
-        for r in range(len(m)):
-            for u in range(u_max + 1):
-                sum += get_matrix_value(m, r, u) * r
+        for r in range(m.shape[0]):
+            for u in range(m.shape[1]):
+                sum += m[r][u] * r
     return sum
 
 

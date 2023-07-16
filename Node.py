@@ -18,7 +18,7 @@ class Node:
     def __str__(self):
         return "TV:"+str(self.times_visited)+" R:"+str(round(self.value))+" "+str(self.state)
 
-    def uct(self, t, c=math.sqrt(2)):
+    def uct(self, t, c):
         return self.value / self.times_visited + c * math.sqrt(math.log(t) / self.times_visited)
 
     def all_children_visited(self):
@@ -37,11 +37,11 @@ class Node:
                 return c
         raise Exception("All children are visited!")
 
-    def highest_uct_child(self, time, exp_rate=2):
-        max_uct = self.children[0].uct(time, c=exp_rate)
+    def highest_uct_child(self, time, exp_rate=math.sqrt(2)):
+        max_uct = self.children[0].uct(time, exp_rate)
         max_uct_child = self.children[0]
         for c in self.children:
-            c_uct = c.uct(time)
+            c_uct = c.uct(time, exp_rate)
             if c_uct > max_uct:
                 max_uct = c_uct
                 max_uct_child = c

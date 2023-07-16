@@ -8,11 +8,16 @@ import Node
 import State
 import Vertex
 from matplotlib import pyplot as plt
-import grid6X6_CORNERS as map
+import grid6X6_CORNERS
+import grid1X3_SIMPLE
+import grid3X3_CORNERS_SIMPLE
+import grid3X3_CORNERS
+import grid1X3_CORNERS
+import grid3X3_SIMPLE
+import grid2X1_VERY_SIMPLE as map
 
-NUMBER_OF_SIMULATIONS = 1000
+NUMBER_OF_SIMULATIONS = 5000
 JUMP = NUMBER_OF_SIMULATIONS / 100
-EXPLORATION_RATE = 4
 
 
 def mcts(def_inst, is_det=False):
@@ -22,8 +27,8 @@ def mcts(def_inst, is_det=False):
         root.state = State.DetState(def_inst)
         instance = Instance.DetInstance(def_inst)
     else:
-        root.state = State.StochState(def_inst)
         instance = Instance.StochInstance(def_inst)
+        root.state = instance.initial_state.copy()
 
     node = root
     for t in range(NUMBER_OF_SIMULATIONS):
@@ -32,7 +37,7 @@ def mcts(def_inst, is_det=False):
         while node.all_children_visited():
             node.times_visited += 1
             if not node.state.is_terminal():
-                node = node.highest_uct_child(t, exp_rate=EXPLORATION_RATE)
+                node = node.highest_uct_child(t) #, exp_rate=EXPLORATION_RATE)
             else:
                 break
 
@@ -65,21 +70,23 @@ def mcts(def_inst, is_det=False):
 
         # root.get_tree()
         # checking mid-rewards
-        if t > 0 and t % JUMP == 0:
-            print("simulation " + str(t))
+        if t % JUMP == 0:
+            #print("simulation " + str(t))
             node1 = root
             while not node.state.is_terminal() and len(node1.children) != 0:
                 node1 = node1.highest_value_child()
             value = instance.reward(node1.state)
             values.append(value)
-    # root.get_tree()
+    #root.get_tree()
     # returning
     while not node.state.is_terminal():
         if not node.children:
             raise Exception("Note enough simulations. Increase number of simulations, lower the horizon ot try again.")
         node = node.most_visited_child()
         print(node.state)
+        print(instance.reward(node.state))
     # print(values)
+    print("---------------------------------------------------------------------------")
     return values
 
 
