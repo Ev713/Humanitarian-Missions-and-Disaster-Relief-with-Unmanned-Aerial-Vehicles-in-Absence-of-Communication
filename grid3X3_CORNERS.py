@@ -2,15 +2,15 @@ import Instance
 import Vertex
 import Agent
 vertex0 = Vertex.Vertex(0)
-vertex0.distribution = {0:1}
+vertex0.distribution = {2: 0.1, 1: 0.2, 0: 0.7}
 vertex1 = Vertex.Vertex(1)
-vertex1.distribution = {2: 0.184, 5: 0.026, 6: 0.203, 4: 0.314}
+vertex1.distribution = {0: 1}
 vertex2 = Vertex.Vertex(2)
 vertex2.distribution = {10: 1}
 vertex3 = Vertex.Vertex(3)
-vertex3.distribution = {0: 0.112, 1: 0.076, 4: 0.327, 5: 0.296}
+vertex3.distribution = {1: 0.2, 0: 0.8}
 vertex4 = Vertex.Vertex(4)
-vertex4.distribution = {1: 0.238, 3: 0.072, 4: 0.139, 5: 0.364}
+vertex4.distribution = {0: 1}
 vertex5 = Vertex.Vertex(5)
 vertex5.distribution = {10: 1}
 vertex6 = Vertex.Vertex(6)
@@ -28,9 +28,9 @@ vertex5.neighbours = [vertex2, vertex4, vertex8]
 vertex6.neighbours = [vertex3, vertex7]
 vertex7.neighbours = [vertex4, vertex6, vertex8]
 vertex8.neighbours = [vertex5, vertex7]
-agent0 = Agent.Agent(0, vertex0, 3, 3)
+agent0 = Agent.Agent(0, vertex0, 2.6666666666666665, 4)
 map1 = [vertex0, vertex1, vertex2, 
         vertex3, vertex4, vertex5, 
         vertex6, vertex7, vertex8]
 agents = [agent0]
-instance1 = Instance.Instance(map1, agents, 3)
+instance1 = Instance.Instance(map1, agents, 4)

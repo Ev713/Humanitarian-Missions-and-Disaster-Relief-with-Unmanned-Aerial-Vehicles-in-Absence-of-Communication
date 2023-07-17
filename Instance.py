@@ -86,15 +86,13 @@ class DetInstance(Instance):
         self.horizon = instance.horizon
         self.initial_state = State.DetState(instance)
 
-    def get_agent_location(self, state, a_hash, time):
-        return self.map_map[state.path[a_hash][time]]
-
     def actions(self, state):
         # action: {p1: v_k, p2: v_m, ...  }
         agent_movements = {}
         time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
         for a_hash in state.path:
-            a_loc = self.map_map[state.path[a_hash][time]]
+            a_loc_hash = state.path[a_hash][time]
+            a_loc = self.map_map[a_loc_hash]
             agent_movements[a_hash] = [n.hash() for n in a_loc.neighbours]
         actions = [a for a in product_dict(agent_movements)]
         return actions
@@ -115,24 +113,26 @@ class DetInstance(Instance):
             new_state.path[a_hash][time] = action[a_hash]
         return new_state
 
-    def reward(self, state):
-        NUM_OF_SIM = 100
-        avg_reward = 0
-        for _ in range(NUM_OF_SIM):
+    def reward(self, state, NUM_OF_SIMS=5):
+        tot_reward = 0
+        for _ in range(NUM_OF_SIMS):
             self.regenerate_instance()
-            tot_reward = 0
+            round_reward = 0
             for t in range(self.horizon + 1):
                 for a in self.agents:
-                    if a.movement_budget <= t or a.utility_budget < 1:
+                    if a.current_movement_budget+1 <= t or a.current_utility_budget < 1:
                         continue
-                    a_loc = self.get_agent_location(state, a.hash(), t)
+                    a_loc_hash = state.path[a.hash()][t]
+                    if a_loc_hash == -1:
+                        continue
+                    a_loc = self.map_map[a_loc_hash]
                     if a_loc.is_empty:
                         continue
                     a_loc.is_empty = True
-                    tot_reward += a_loc.reward
+                    round_reward += a_loc.reward
                     a.current_utility_budget -= 1
-            avg_reward += tot_reward
-        return avg_reward / NUM_OF_SIM
+            tot_reward += round_reward
+        return tot_reward / NUM_OF_SIMS
 
 
 class StochInstance(Instance):

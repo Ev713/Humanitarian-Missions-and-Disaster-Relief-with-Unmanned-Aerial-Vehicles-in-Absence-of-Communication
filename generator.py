@@ -1,4 +1,6 @@
 import os
+import random
+
 import numpy as np
 
 
@@ -12,32 +14,40 @@ def generate_init_loc(agent_hash):
 
 class Generator:
     def __init__(self):
-        self.MAX_REWARD = 7
-        self.CORNERS = False
+        self.MAX_REWARD = 4
+        self.CORNERS = True
         self.SIMPLE = False
-        self.VERY_SIMPLE = True
-        self.M = 2
-        self.N = 1
-        self.NUM_OF_AGENTS = 1
-        self.HORIZON = 3
+        self.VERY_SIMPLE = False
+        self.M = 6
+        self.N = 6
+        self.NUM_OF_AGENTS = 2
+        self.HORIZON = 7
+        self.ACC = 1
 
     def generate_distr(self, vertex_hash):
         distr_size = np.random.randint(1, self.MAX_REWARD)
         distr = {}
-        probs = np.random.rand(distr_size)
-        probs /= probs.sum()
         if self.CORNERS and (vertex_hash % self.M == self.M - 1 or vertex_hash >= (self.N - 1) * self.M):
             return {10: 1}
         if self.SIMPLE:
-            return {0: 0.5, 1: 0.25, 2: 0.25}
+            p = round(random.random(), 1)
+            r = random.randint(0, self.MAX_REWARD)
+            if r == 0:
+                return {0: 1}
+            else:
+                return {r: p, 0: 1-p}
         if self.VERY_SIMPLE:
             return {1: 1}
-        for t in range(len(probs)):
-            distr[np.random.randint(0, self.MAX_REWARD)] = round(probs[t], 3)
+
+        if distr_size == 1:
+            return {0: 1}
+        for _ in range(distr_size-1):
+            distr[np.random.randint(1, self.MAX_REWARD)] = round(random.uniform(pow(1/10, self.ACC), 1 - sum(distr.values())), self.ACC)
+        distr[0] = round(1 - sum(distr.values()), self.ACC)
         return distr
 
     def generate_utility_budget(self, agent_hash):
-        return 1
+        return self.HORIZON*2/3
 
     def generate_movement_budget(self, agent_hash):
         return self.HORIZON
@@ -120,3 +130,4 @@ filename += ".py"
 f = open(filename, "w")
 G.gen_map()
 f.close()
+print(filename+" added.")

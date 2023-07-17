@@ -8,16 +8,26 @@ import Node
 import State
 import Vertex
 from matplotlib import pyplot as plt
+
 import grid6X6_CORNERS
 import grid1X3_SIMPLE
 import grid3X3_CORNERS_SIMPLE
 import grid3X3_CORNERS
 import grid1X3_CORNERS
 import grid3X3_SIMPLE
-import grid2X1_VERY_SIMPLE as map
+import grid2X1_VERY_SIMPLE
+import grid2X1_SIMPLE
+import grid2X2_SIMPLE
+import grid2X2_CORNERS
+import grid2X3_CORNERS
+import grid4X4_SIMPLE
+import grid5X5_CORNERS_SIMPLE
+import grid5X5_SIMPLE
+import grid2X2
+import grid5X5 as map
 
-NUMBER_OF_SIMULATIONS = 5000
-JUMP = NUMBER_OF_SIMULATIONS / 100
+NUMBER_OF_SIMULATIONS = 1000
+JUMP = NUMBER_OF_SIMULATIONS / min(NUMBER_OF_SIMULATIONS, 100)
 
 
 def mcts(def_inst, is_det=False):
@@ -75,16 +85,22 @@ def mcts(def_inst, is_det=False):
             node1 = root
             while not node.state.is_terminal() and len(node1.children) != 0:
                 node1 = node1.highest_value_child()
-            value = instance.reward(node1.state)
+            if is_det:
+                value = instance.reward(node1.state, NUM_OF_SIMS=1000)
+            else:
+                value = instance.reward(node1.state)
             values.append(value)
-    #root.get_tree()
+    # root.get_tree()
     # returning
     while not node.state.is_terminal():
         if not node.children:
             raise Exception("Note enough simulations. Increase number of simulations, lower the horizon ot try again.")
         node = node.most_visited_child()
         print(node.state)
-        print(instance.reward(node.state))
+        if is_det:
+            print(instance.reward(node.state, NUM_OF_SIMS=1000))
+        else:
+            print(instance.reward(node.state))
     # print(values)
     print("---------------------------------------------------------------------------")
     return values
