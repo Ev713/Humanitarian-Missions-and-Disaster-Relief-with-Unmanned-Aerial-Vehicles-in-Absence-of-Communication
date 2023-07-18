@@ -86,7 +86,7 @@ class Instance:
     def evaluate_path_with_matrices(self, path):
         instance = StochInstance(self)
         state = instance.initial_state.copy()
-        for t in range(1, self.horizon+1):
+        for t in range(1, len(list(path.values())[0])):
             action = {a: path[a][t] for a in path}
             state = instance.make_action(action, state)
         return instance.reward(state)
@@ -134,7 +134,7 @@ class DetInstance(Instance):
         for _ in range(NUM_OF_SIMS):
             self.regenerate_instance()
             round_reward = 0
-            for t in range(self.horizon + 1):
+            for t in range(len(list(state.path.values())[0])):
                 for a in self.agents:
                     if a.current_movement_budget+1 <= t or a.current_utility_budget < 1:
                         continue

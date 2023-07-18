@@ -36,10 +36,10 @@ class Node:
         return path
 
     def __str__(self):
-        return "TV:"+str(self.times_visited)+" R:"+str(round(self.value))+" "+str(self.state)
+        return " R:"+str(self.value)+" "+str(self.state)
 
     def uct(self, t, c):
-        uct = self.value / self.times_visited + 10 * math.sqrt(math.log(t) / self.times_visited)
+        uct = self.value / self.times_visited + c * math.sqrt(math.log(t) / self.times_visited)
         return uct
 
     def all_children_visited(self):
