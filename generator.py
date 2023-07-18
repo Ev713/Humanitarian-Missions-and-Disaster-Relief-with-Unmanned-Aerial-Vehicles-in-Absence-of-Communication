@@ -15,13 +15,15 @@ def generate_init_loc(agent_hash):
 class Generator:
     def __init__(self):
         self.MAX_REWARD = 4
-        self.CORNERS = True
+        self.CORNERS = False
         self.SIMPLE = False
         self.VERY_SIMPLE = False
-        self.M = 6
-        self.N = 6
-        self.NUM_OF_AGENTS = 2
-        self.HORIZON = 7
+        self.EMPTY = True
+
+        self.M = 4
+        self.N = 4
+        self.NUM_OF_AGENTS = 1
+        self.HORIZON = 3
         self.ACC = 1
 
     def generate_distr(self, vertex_hash):
@@ -38,6 +40,8 @@ class Generator:
                 return {r: p, 0: 1-p}
         if self.VERY_SIMPLE:
             return {1: 1}
+        if self.EMPTY:
+            return {0: 1}
 
         if distr_size == 1:
             return {0: 1}
@@ -47,7 +51,7 @@ class Generator:
         return distr
 
     def generate_utility_budget(self, agent_hash):
-        return self.HORIZON*2/3
+        return round(self.HORIZON*2/3)
 
     def generate_movement_budget(self, agent_hash):
         return self.HORIZON
@@ -94,7 +98,7 @@ class Generator:
         for i in range(self.NUM_OF_AGENTS):
             f.write(
                 "agent" + str(i) + " = Agent.Agent(" + str(i) + ", " + "vertex" + str(generate_init_loc(i)) + ", " +
-                str(self.generate_utility_budget(i)) + ", " + str(self.generate_movement_budget(i)) + ")\n")
+                str(self.generate_movement_budget(i)) + ", " + str(self.generate_utility_budget(i)) + ")\n")
             agents.append("agent" + str(i))
 
         f.write("map1 = [")
@@ -126,6 +130,8 @@ if G.SIMPLE:
     filename += "_SIMPLE"
 if G.VERY_SIMPLE:
     filename += "_VERY_SIMPLE"
+if G.EMPTY:
+    filename += "_EMPTY"
 filename += ".py"
 f = open(filename, "w")
 G.gen_map()

@@ -77,6 +77,22 @@ class Instance:
     def make_action(self, action, state):  # Abstract method
         pass
 
+    def evaluate_path_by_simulations(self, path, NUM_OF_SIMS):
+        instance = DetInstance(self)
+        state = State.DetState(instance)
+        state.path = path
+        return instance.reward(state, NUM_OF_SIMS)
+
+    def evaluate_path_with_matrices(self, path):
+        instance = StochInstance(self)
+        state = instance.initial_state.copy()
+        for t in range(1, self.horizon+1):
+            action = {a: path[a][t] for a in path}
+            state = instance.make_action(action, state)
+        return instance.reward(state)
+
+
+
 
 class DetInstance(Instance):
     def __init__(self, instance=None):
@@ -113,7 +129,7 @@ class DetInstance(Instance):
             new_state.path[a_hash][time] = action[a_hash]
         return new_state
 
-    def reward(self, state, NUM_OF_SIMS=5):
+    def reward(self, state, NUM_OF_SIMS=1):
         tot_reward = 0
         for _ in range(NUM_OF_SIMS):
             self.regenerate_instance()
@@ -165,7 +181,7 @@ class StochInstance(Instance):
         new_state.time_left -= 1
         new_state.a_locs = copy.deepcopy(action)
         for a_hash in self.agents_map:
-            if action[a_hash] == -1:
+            if action[a_hash] == -1 or self.agents_map[a_hash].movement_budget < self.horizon-new_state.time_left:
                 continue
             vertex_hash = action[a_hash]
             new_matrix = MatricesFunctions.new_matrix(state.matrices[a_hash], self.map_map[vertex_hash].distribution,
@@ -176,7 +192,7 @@ class StochInstance(Instance):
         return new_state
 
     def reward(self, state):
-        # if state.reward is not None:
-        #    return state.reward
+        if state.reward is not None:
+            return state.reward
         state.reward = MatricesFunctions.get_tot_reward(state.matrices)
         return state.reward

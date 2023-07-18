@@ -1,5 +1,5 @@
 import math
-
+import State
 
 class Node:
     def __init__(self, state, parent=None):
@@ -15,11 +15,32 @@ class Node:
         self.value = 0
         self.times_visited = 0
 
+    def get_path(self):
+        if isinstance(self.state, State.DetState):
+            return self.get_det_path()
+        elif isinstance(self.state, State.StochState):
+            return self.get_stoch_path()
+
+    def get_det_path(self):
+        return self.state.path
+
+    def get_stoch_path(self):
+        node = self
+        path = {a:[]for a in self.state.a_locs}
+        while True:
+            for a in self.state.a_locs:
+                path[a].insert(0, node.state.a_locs[a])
+            if node.parent is None:
+                break
+            node = node.parent
+        return path
+
     def __str__(self):
         return "TV:"+str(self.times_visited)+" R:"+str(round(self.value))+" "+str(self.state)
 
     def uct(self, t, c):
-        return self.value / self.times_visited + c * math.sqrt(math.log(t) / self.times_visited)
+        uct = self.value / self.times_visited + 10 * math.sqrt(math.log(t) / self.times_visited)
+        return uct
 
     def all_children_visited(self):
         if self.state.is_terminal():

@@ -13,12 +13,14 @@ vertex4 = Vertex.Vertex(4)
 vertex4.distribution = {10: 1}
 vertex5 = Vertex.Vertex(5)
 vertex5.distribution = {10: 1}
+
 vertex0.neighbours = [vertex3, vertex1]
-vertex1.neighbours = [vertex0, vertex4]
-vertex3.neighbours = [vertex0, vertex6, vertex4]
-vertex4.neighbours = [vertex1, vertex3, vertex7]
-vertex6.neighbours = [vertex3, vertex7]
-vertex7.neighbours = [vertex4, vertex6]
+vertex1.neighbours = [vertex0, vertex2, vertex4]
+vertex2.neighbours = [vertex1, vertex5]
+vertex3.neighbours = [vertex0, vertex4]
+vertex4.neighbours = [vertex1, vertex3, vertex5]
+vertex5.neighbours = [vertex3, vertex5]
+
 agent0 = Agent.Agent(0, vertex0, 2.6666666666666665, 4)
 map1 = [vertex0, vertex1, vertex2, 
         vertex3, vertex4, vertex5]

@@ -20,15 +20,20 @@ import grid2X1_SIMPLE
 import grid2X2_SIMPLE
 import grid2X2_CORNERS
 import grid2X3_CORNERS
-import grid4X4_SIMPLE
+import grid4X4_SIMPLE as map
 import grid5X5_CORNERS_SIMPLE
 import grid5X5_SIMPLE
+import grid6X6_CORNERS
 import grid2X2
-import grid5X5 as map
+import grid5X5
+import grid3X3_EMPTY
+import grid6X6_EMPTY
+import grid10X10
+import grid4X4_EMPTY
 
 NUMBER_OF_SIMULATIONS = 1000
 JUMP = NUMBER_OF_SIMULATIONS / min(NUMBER_OF_SIMULATIONS, 100)
-
+DISCOUNT = 1
 
 def mcts(def_inst, is_det=False):
     values = []
@@ -67,42 +72,44 @@ def mcts(def_inst, is_det=False):
             action = random.choice(instance.actions(rollout_state))
             rollout_state = instance.make_action(action, rollout_state)
         rollout_reward = instance.reward(rollout_state)
-
+        discounted_reward = rollout_reward*(DISCOUNT)*node.depth
         # backpropagation
         while True:
-            node.value += rollout_reward
+            node.value += discounted_reward
             if node is root:
                 break
             node = node.parent
-            rollout_reward *= 0.9
+            discounted_reward /= DISCOUNT
 
         # showing tree
 
         # root.get_tree()
         # checking mid-rewards
         if t % JUMP == 0:
-            #print("simulation " + str(t))
+            #print("simulation " + str(t+1))
             node1 = root
             while not node.state.is_terminal() and len(node1.children) != 0:
                 node1 = node1.highest_value_child()
             if is_det:
-                value = instance.reward(node1.state, NUM_OF_SIMS=1000)
+                value = instance.reward(node1.state, NUM_OF_SIMS=100)
             else:
                 value = instance.reward(node1.state)
             values.append(value)
-    # root.get_tree()
+    #root.get_tree()
     # returning
     while not node.state.is_terminal():
         if not node.children:
-            raise Exception("Note enough simulations. Increase number of simulations, lower the horizon ot try again.")
+            print("Note enough simulations. Increase number of simulations, lower the horizon ot try again.")
+            return values
         node = node.most_visited_child()
         print(node.state)
         if is_det:
-            print(instance.reward(node.state, NUM_OF_SIMS=1000))
+            print(instance.reward(node.state, NUM_OF_SIMS=100))
         else:
             print(instance.reward(node.state))
     # print(values)
     print("---------------------------------------------------------------------------")
+    return node.get_path()
     return values
 
 
@@ -110,6 +117,11 @@ i = map.instance1
 stoch = mcts(i, False)
 det = mcts(i, True)
 
+print("Deterministically calculated value of det:", i.evaluate_path_by_simulations(det, 1000))
+print("Stochastically calculated value of stoch:", i.evaluate_path_with_matrices(det))
+print("Deterministically calculated value of det:", i.evaluate_path_by_simulations(stoch, 1000))
+print("Stochastically calculated value of stoch:", i.evaluate_path_with_matrices(stoch))
+'''
 y1 = stoch
 y2 = det
 
@@ -122,4 +134,4 @@ plt.legend(["Stoch", 'Det'])
 plt.show()
 # matrix = MatricesFunctions.get_starting_matrix(a1, v1)
 # matrix = MatricesFunctions.new_matrix(np.array([[0.1, 0.2, 0.3, 0.4]]), {0: 0.5, 1: 0.3, 2: 0.2}, 1)
-# print(matrix)
+# print(matrix)'''

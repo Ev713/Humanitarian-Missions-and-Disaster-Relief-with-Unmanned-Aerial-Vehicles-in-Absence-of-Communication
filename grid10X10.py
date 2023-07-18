@@ -315,4 +315,4 @@ map1 = [vertex0, vertex1, vertex2, vertex3, vertex4, vertex5, vertex6, vertex7, 
         vertex80, vertex81, vertex82, vertex83, vertex84, vertex85, vertex86, vertex87, vertex88, vertex89, 
         vertex90, vertex91, vertex92, vertex93, vertex94, vertex95, vertex96, vertex97, vertex98, vertex99]
 agents = [agent0, agent1, agent2]
-instance1 = Instance.Instance(map1, agents, 6)
+instance1 = Instance.Instance(map1, agents, 10)
