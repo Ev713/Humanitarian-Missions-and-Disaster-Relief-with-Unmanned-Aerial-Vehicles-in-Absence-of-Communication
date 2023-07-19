@@ -21,7 +21,7 @@ vertex3.neighbours = [vertex0, vertex4]
 vertex4.neighbours = [vertex1, vertex3, vertex5]
 vertex5.neighbours = [vertex3, vertex5]
 
-agent0 = Agent.Agent(0, vertex0, 2.6666666666666665, 4)
+agent0 = Agent.Agent(0, vertex0, 2, 4)
 map1 = [vertex0, vertex1, vertex2, 
         vertex3, vertex4, vertex5]
 agents = [agent0]

@@ -13,7 +13,7 @@ vertex0.neighbours = [vertex2, vertex1]
 vertex1.neighbours = [vertex0, vertex3]
 vertex2.neighbours = [vertex0, vertex3]
 vertex3.neighbours = [vertex1, vertex2]
-agent0 = Agent.Agent(0, vertex0, 1.3333333333333333, 2)
+agent0 = Agent.Agent(0, vertex0, 1, 2)
 map1 = [vertex0, vertex1, 
         vertex2, vertex3]
 agents = [agent0]

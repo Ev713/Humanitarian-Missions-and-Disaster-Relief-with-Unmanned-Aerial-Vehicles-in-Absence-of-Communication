@@ -9,7 +9,6 @@ import State
 import Vertex
 from matplotlib import pyplot as plt
 
-import grid6X6_CORNERS
 import grid1X3_SIMPLE
 import grid3X3_CORNERS_SIMPLE
 import grid3X3_CORNERS
@@ -23,12 +22,12 @@ import grid2X3_CORNERS
 import grid4X4_SIMPLE
 import grid5X5_CORNERS_SIMPLE
 import grid5X5_SIMPLE
-import grid6X6_CORNERS
+import grid6X6_CORNERS as map
 import grid2X2
 import grid5X5
 import grid3X3_EMPTY
 import grid6X6_EMPTY
-import grid10X10 as map
+import grid10X10
 import grid4X4_EMPTY
 
 NUMBER_OF_SIMULATIONS = 10000

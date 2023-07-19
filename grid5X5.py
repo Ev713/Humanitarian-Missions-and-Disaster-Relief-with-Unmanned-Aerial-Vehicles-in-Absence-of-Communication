@@ -76,8 +76,8 @@ vertex21.neighbours = [vertex16, vertex20, vertex22]
 vertex22.neighbours = [vertex17, vertex21, vertex23]
 vertex23.neighbours = [vertex18, vertex22, vertex24]
 vertex24.neighbours = [vertex19, vertex23]
-agent0 = Agent.Agent(0, vertex0, 4.666666666666667, 7)
-agent1 = Agent.Agent(1, vertex0, 4.666666666666667, 7)
+agent0 = Agent.Agent(0, vertex0, 4, 7)
+agent1 = Agent.Agent(1, vertex0, 4, 7)
 map1 = [vertex0, vertex1, vertex2, vertex3, vertex4, 
         vertex5, vertex6, vertex7, vertex8, vertex9, 
         vertex10, vertex11, vertex12, vertex13, vertex14, 
