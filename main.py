@@ -16,13 +16,13 @@ import grid1X3_CORNERS
 import grid3X3_SIMPLE
 import grid2X1_VERY_SIMPLE
 import grid2X1_SIMPLE
-import grid2X2_SIMPLE
+import grid2X2_SIMPLE as map
 import grid2X2_CORNERS
 import grid2X3_CORNERS
 import grid4X4_SIMPLE
 import grid5X5_CORNERS_SIMPLE
 import grid5X5_SIMPLE
-import grid6X6_CORNERS as map
+import grid6X6_CORNERS
 import grid2X2
 import grid5X5
 import grid3X3_EMPTY

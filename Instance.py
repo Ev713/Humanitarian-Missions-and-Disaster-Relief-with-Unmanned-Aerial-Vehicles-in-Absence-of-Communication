@@ -92,8 +92,6 @@ class Instance:
         return instance.reward(state)
 
 
-
-
 class DetInstance(Instance):
     def __init__(self, instance=None):
         super().__init__(instance.map, instance.agents, instance.horizon)
@@ -104,13 +102,13 @@ class DetInstance(Instance):
 
     def actions(self, state):
         # action: {p1: v_k, p2: v_m, ...  }
-        agent_movements = {}
+        agent_pos = {}
         time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
         for a_hash in state.path:
-            a_loc_hash = state.path[a_hash][time]
+            a_loc_hash = state.path[a_hash][time].loc
             a_loc = self.map_map[a_loc_hash]
-            agent_movements[a_hash] = [n.hash() for n in a_loc.neighbours]
-        actions = [a for a in product_dict(agent_movements)]
+            agent_pos[a_hash] = [n.hash() for n in a_loc.neighbours]
+        actions = [a for a in product_dict(agent_pos)]
         return actions
 
     def regenerate_instance(self):
@@ -138,8 +136,8 @@ class DetInstance(Instance):
                 for a in self.agents:
                     if a.current_movement_budget+1 <= t or a.current_utility_budget < 1:
                         continue
-                    a_loc_hash = state.path[a.hash()][t]
-                    if a_loc_hash == -1:
+                    a_loc_hash = state.path[a.hash()][t].loc
+                    if a_loc_hash == -1 or state.path[a.hash()][t].flyby:
                         continue
                     a_loc = self.map_map[a_loc_hash]
                     if a_loc.is_empty:
@@ -163,27 +161,27 @@ class StochInstance(Instance):
 
     def actions(self, state):
         agent_movements = {}
-        for a_hash in state.a_locs:
-            a_loc = self.map_map[state.a_locs[a_hash]]
+        for a_hash in state.a_pos:
+            a_loc = self.map_map[state.a_pos[a_hash].loc]
             agent_movements[a_hash] = [n.hash() for n in a_loc.neighbours]
         actions = [a for a in product_dict(agent_movements)]
         return actions
 
-    def action_zero(self, false_init_state):
+    def action_zero(self, zero_state):
         action_zero = {}
-        for a_hash in false_init_state.a_locs:
-            action_zero[a_hash] = false_init_state.a_locs[a_hash]
+        for a_hash in zero_state.a_pos:
+            action_zero[a_hash] = State.Position(zero_state.a_pos[a_hash].loc, False)
         return action_zero
 
     def make_action(self, action, state):
-
         new_state = state.copy()
         new_state.time_left -= 1
-        new_state.a_locs = copy.deepcopy(action)
+        new_state.a_pos = copy.deepcopy(action)
         for a_hash in self.agents_map:
-            if action[a_hash] == -1 or self.agents_map[a_hash].movement_budget < self.horizon-new_state.time_left:
+            if action[a_hash].loc == -1 or action[a_hash].flyby or\
+                    self.agents_map[a_hash].movement_budget < self.horizon-new_state.time_left:
                 continue
-            vertex_hash = action[a_hash]
+            vertex_hash = action[a_hash].loc
             new_matrix = MatricesFunctions.new_matrix(state.matrices[a_hash], self.map_map[vertex_hash].distribution,
                                                       new_state.thetas[vertex_hash])
             new_theta = MatricesFunctions.update_theta(state.matrices[a_hash], new_state.thetas[vertex_hash])
