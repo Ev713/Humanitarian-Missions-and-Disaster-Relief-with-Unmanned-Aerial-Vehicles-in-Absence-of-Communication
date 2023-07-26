@@ -10,6 +10,9 @@ class Position:
 
     def __str__(self):
         return "( "+str(self.loc)+", "+str(self.flyby)+" )"
+    def __repr__(self):
+        return str(self)
+
 
 
 class State:
@@ -42,6 +45,7 @@ class DetState(State):
         return str((self.path, self.time_left))
 
 
+
 class StochState(State):
     def __init__(self, instance=None):
         super().__init__()
@@ -52,10 +56,11 @@ class StochState(State):
         if instance is not None:
             for a in instance.agents:
                 self.time_left = instance.horizon
-                self.a_pos[a.hash()] = Position(a.loc.hash(), True)  # a.hash(): v.hash()
+                self.a_pos[a.hash()] = Position(a.loc.hash(), False)  # a.hash(): v.hash()
                 self.matrices[a.hash()] = MatricesFunctions.get_starting_matrix(a, a.loc)
             for v_hash in instance.map_map:
                 self.thetas[v_hash] = 1
+
 
     def __str__(self):
         return str((self.a_pos, self.time_left))

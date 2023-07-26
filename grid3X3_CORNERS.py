@@ -28,9 +28,9 @@ vertex5.neighbours = [vertex2, vertex4, vertex8]
 vertex6.neighbours = [vertex3, vertex7]
 vertex7.neighbours = [vertex4, vertex6, vertex8]
 vertex8.neighbours = [vertex5, vertex7]
-agent0 = Agent.Agent(0, vertex0, 3, 5)
+agent0 = Agent.Agent(0, vertex0, 6, 6)
 map1 = [vertex0, vertex1, vertex2, 
         vertex3, vertex4, vertex5, 
         vertex6, vertex7, vertex8]
 agents = [agent0]
-instance1 = Instance.Instance(map1, agents, 4)
+instance1 = Instance.Instance(map1, agents, max([a.movement_budget for a in agents]))

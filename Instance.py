@@ -107,7 +107,7 @@ class DetInstance(Instance):
         for a_hash in state.path:
             a_loc_hash = state.path[a_hash][time].loc
             a_loc = self.map_map[a_loc_hash]
-            agent_pos[a_hash] = [n.hash() for n in a_loc.neighbours]
+            agent_pos[a_hash] = [State.Position(n.hash(), b) for n in a_loc.neighbours for b in [True, False]]
         actions = [a for a in product_dict(agent_pos)]
         return actions
 
@@ -134,7 +134,7 @@ class DetInstance(Instance):
             round_reward = 0
             for t in range(len(list(state.path.values())[0])):
                 for a in self.agents:
-                    if a.current_movement_budget+1 <= t or a.current_utility_budget < 1:
+                    if a.current_movement_budget+1 <= t or a.current_utility_budget < 1 or state.path[a.hash()][t] is None:
                         continue
                     a_loc_hash = state.path[a.hash()][t].loc
                     if a_loc_hash == -1 or state.path[a.hash()][t].flyby:
@@ -163,7 +163,7 @@ class StochInstance(Instance):
         agent_movements = {}
         for a_hash in state.a_pos:
             a_loc = self.map_map[state.a_pos[a_hash].loc]
-            agent_movements[a_hash] = [n.hash() for n in a_loc.neighbours]
+            agent_movements[a_hash] = [State.Position(n.hash(), b) for n in a_loc.neighbours for b in [True, False]]
         actions = [a for a in product_dict(agent_movements)]
         return actions
 
@@ -177,8 +177,9 @@ class StochInstance(Instance):
         new_state = state.copy()
         new_state.time_left -= 1
         new_state.a_pos = copy.deepcopy(action)
+
         for a_hash in self.agents_map:
-            if action[a_hash].loc == -1 or action[a_hash].flyby or\
+            if action[a_hash] is None or action[a_hash].flyby or\
                     self.agents_map[a_hash].movement_budget < self.horizon-new_state.time_left:
                 continue
             vertex_hash = action[a_hash].loc

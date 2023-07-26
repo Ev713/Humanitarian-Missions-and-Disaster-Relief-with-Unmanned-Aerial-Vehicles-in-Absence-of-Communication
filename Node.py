@@ -26,10 +26,10 @@ class Node:
 
     def get_stoch_path(self):
         node = self
-        path = {a:[]for a in self.state.a_locs}
+        path = {a:[]for a in self.state.a_pos}
         while True:
-            for a in self.state.a_locs:
-                path[a].insert(0, node.state.a_locs[a])
+            for a in self.state.a_pos:
+                path[a].insert(0, node.state.a_pos[a])
             if node.parent is None:
                 break
             node = node.parent
