@@ -15,6 +15,21 @@ class Node:
         self.value = 0
         self.times_visited = 0
 
+    def deep_expand(self, instance):
+        if self.state.is_terminal():
+            reward = instance.reward(self.state)
+            node1 = self
+            # backpropagation
+            while True:
+                node1.value = max(node1.value, reward)
+                if node1.parent is None:
+                    break
+                node1 = node1.parent
+        else:
+            self.expand([instance.make_action(action, self.state) for action in instance.actions(self.state)])
+        for c in self.children:
+            c.deep_expand(instance)
+
     def get_path(self):
         if isinstance(self.state, State.DetState):
             return self.get_det_path()

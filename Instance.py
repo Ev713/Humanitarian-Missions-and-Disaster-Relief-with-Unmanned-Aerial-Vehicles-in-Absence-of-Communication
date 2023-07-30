@@ -34,6 +34,7 @@ class Instance:
         self.agents_map = {a.hash(): a for a in agents}
         self.horizon = horizon  # int
         self.initial_state = (agents.copy(), map.copy())
+        self.flybys = True
 
     def make_det_map_and_det_map_map(self):
         det_map = []
@@ -99,15 +100,19 @@ class DetInstance(Instance):
         self.agents, self.agents_map = instance.make_agents_and_agents_map(self.map_map, Agent.DetAgent)
         self.horizon = instance.horizon
         self.initial_state = State.DetState(instance)
-
+        self.flybys = instance.flybys
     def actions(self, state):
         # action: {p1: v_k, p2: v_m, ...  }
         agent_pos = {}
+        if self.flybys:
+            fly_by_options = [True, False]
+        else:
+            fly_by_options = [False]
         time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
         for a_hash in state.path:
             a_loc_hash = state.path[a_hash][time].loc
             a_loc = self.map_map[a_loc_hash]
-            agent_pos[a_hash] = [State.Position(n.hash(), b) for n in a_loc.neighbours for b in [True, False]]
+            agent_pos[a_hash] = [State.Position(n.hash(), b) for n in a_loc.neighbours for b in fly_by_options]
         actions = [a for a in product_dict(agent_pos)]
         return actions
 
@@ -158,12 +163,17 @@ class StochInstance(Instance):
         default_state = State.StochState(instance)
         self.initial_state = self.make_action(self.action_zero(default_state), default_state)
         self.initial_state.time_left = self.horizon
+        self.flybys = instance.flybys
 
     def actions(self, state):
         agent_movements = {}
+        if self.flybys:
+            fly_by_options = [True, False]
+        else:
+            fly_by_options = [False]
         for a_hash in state.a_pos:
             a_loc = self.map_map[state.a_pos[a_hash].loc]
-            agent_movements[a_hash] = [State.Position(n.hash(), b) for n in a_loc.neighbours for b in [True, False]]
+            agent_movements[a_hash] = [State.Position(n.hash(), b) for n in a_loc.neighbours for b in fly_by_options]
         actions = [a for a in product_dict(agent_movements)]
         return actions
 
