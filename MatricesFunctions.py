@@ -112,22 +112,6 @@ def new_matrix(mtrx, prob, theta):
     return new_matrix
 
 
-'''
-def update_matrix(matrix, theta, dist):
-    if 0 not in dist:
-        dist[0] = 0
-    max_r = np.shape(matrix)[0] + max([r for r in dist]) - 1
-    max_u = np.shape(matrix)[1] - 1
-    if type(max_r) != int:
-        raise Exception("Reward must be an integer!")
-    stay_matrix = get_stay_matrix(matrix, max_r, max_u, dist, theta)
-    go_matrix = get_go_matrix(matrix, max_r, max_u, dist, theta)
-    # print_matrix(new_matrix)
-    new_matrix = np.add(stay_matrix, go_matrix)
-    return new_matrix
-'''
-
-
 def update_theta(matrix, theta):
     return theta * sum(matrix[:, matrix.shape[1] - 1])
 
@@ -142,24 +126,42 @@ def get_tot_reward(matrices):
     return sum
 
 
-'''
-def get_expected_value_of_path(instance, path):
-    matrices = []
-//    thetas = {}
-//    for agent_hash in instance.agents_map:
-//        matrices.append(get_starting_matrix(instance.agents[agent_hash], path[0][agent_hash][0]))
+def get_starting_vector(agent, v):
+    max_utility = agent.utility_budget
+    matrix = numpy.zeros((max_utility + 1))
+    matrix[0] = 1
+    return matrix
 
-//    for vertex in instance.map:
-//        thetas[vertex.name] = 1
+def accumulative_vector(v):
+    sorted_v = v.sort()
+    acc_v = {}
+    prev_k = None
+    for k in sorted_v:
+        if prev_k is not None:
+            acc_v[k] = v[k]+acc_v[prev_k]
+        else:
+            acc_v[k] = v[k]
+        prev_k = k
+    return acc_v
 
-//    for t in range(min(instance.get_horizon(), len(path))):
-//        for agent_index in range(len(instance.agents)):
-            # print(matrices[agent_index])
-            if path[t][agent_index][1]:
-                continue
-            vertex = path[t][agent_index][0]
-            new_matrix = update_matrix(matrices[agent_index], thetas[vertex.name], vertex.probability)
-            new_theta = update_theta(matrices[agent_index], thetas[vertex.name])
-            matrices[agent_index] = new_matrix
-            thetas[vertex.name] = new_theta
-    return get_tot_reward(matrices)'''
+
+def stoch_subtract(v1, v2):
+    if 0 not in v1:
+        v1[0] = 0
+    if 0 not in v2:
+        v2[0] = 0
+
+    new_vector1 = np.zeros(v1.shape)
+    for v1_left in v1:
+        if v1_left == 0:
+            pass
+        for v1_was in v1:
+            if v1_was < v1_left or v1_was - v1_left not in v2:
+                pass
+            new_vector1[v1_left] += v1[v1_was]*v2[v1_was - v1_left]
+    acc_v2 = accumulative_vector(v2)
+    for v1_was in v1:
+        if v1_was not in v2:
+            pass
+        new_vector1[0] += v1[v1_was] * acc_v2[v1_was]
+    return new_vector1
