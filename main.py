@@ -21,7 +21,8 @@ import grid2X1_SIMPLE
 import grid2X2_SIMPLE
 import grid2X2_CORNERS
 import grid2X3_CORNERS
-import grid4X4_SIMPLE as map
+import grid2X3 as map
+import grid4X4_SIMPLE
 import grid5X5_CORNERS_SIMPLE
 import grid5X5_SIMPLE
 import grid6X6_CORNERS
@@ -32,7 +33,7 @@ import grid6X6_EMPTY
 import grid10X10
 import grid4X4_EMPTY
 
-NUMBER_OF_SIMULATIONS = 1000
+NUMBER_OF_SIMULATIONS = 10000
 JUMP = NUMBER_OF_SIMULATIONS / min(NUMBER_OF_SIMULATIONS, 100)
 DISCOUNT = 1
 
@@ -49,20 +50,6 @@ class Solver:
         while not node.state.is_terminal() and len(node.children) != 0:
             node = node.highest_value_child()
         return node.get_path()
-
-    def evaluate_path_by_simulations(self, instance, path, NUM_OF_SIMS):
-        instance = Instance.DetInstance(instance)
-        state = State.DetState(instance)
-        state.path = path
-        return instance.reward(state, NUM_OF_SIMS)
-
-    def evaluate_path_with_matrices(self, i, path):
-        instance = StochInstance.U1StochInstance(i)
-        state = instance.initial_state.copy()
-        for t in range(1, len(list(path.values())[0])):
-            action = {a: path[a][t] for a in path}
-            state = instance.make_action(action, state)
-        return instance.reward(state)
 
     def mcts(self, def_inst):
         paths = []
@@ -129,46 +116,73 @@ class Solver:
         # returning
         return paths
 
+    def evaluate_path(self, def_inst, path, NUM_OF_SIMS=None):
+            if self.type=="D":
+                instance = Instance.DetInstance(def_inst)
+                state = State.DetState(instance)
+                state.path = path
+                return instance.reward(state, NUM_OF_SIMS)
+            if self.type=="U1R":
+                instance = StochInstance.U1StochInstance(def_inst)
+                state = instance.initial_state.copy()
+                for t in range(1, len(list(path.values())[0])):
+                    action = {a: path[a][t] for a in path}
+                    state = instance.make_action(action, state)
+                return instance.reward(state)
+            if self.type == "UR":
+                instance = StochInstance.UisRStochInstance(def_inst)
+                state = instance.initial_state.copy()
+                for t in range(1, len(list(path.values())[0])):
+                    action = {a: path[a][t] for a in path}
+                    state = instance.make_action(action, state)
+                return instance.reward(state)
+
 
 def is_sorted_ascending(lst):
     return all(lst[i] <= lst[i + 1] for i in range(len(lst) - 1))
 
 solver = Solver()
-i = map.instance1
-i.flybys = True
-solver.type = "U1S"
+inst = map.instance1
+inst.flybys = False
+#solver.type = "U1S"
+#stoch = solver.mcts(i)
 
+solver.type = "UR"
+stoch_ur = solver.mcts(inst)
 
 #bfs = solver.bfs(i)
 #print("Best path found with bfs is: ", bfs)
 #print("Value of the best path found with bfs is: ", i.evaluate_path_with_matrices(bfs))
 
+#solver.type = "D"
+#det = solver.mcts(i)
 
-stoch = solver.mcts(i)
-solver.type = "D"
-det = solver.mcts(i)
+for j in range(len(stoch_ur)):
+    print(stoch_ur[j])
+    print(solver.evaluate_path(inst, stoch_ur[j]))
+    print("-----------------")
 
-print("Deterministically calculated value of det:", solver.evaluate_path_by_simulations(i, det[-1], 10000))
-print("Stochastically calculated value of det:", solver.evaluate_path_with_matrices(i, det[-1]))
-print("Deterministically calculated value of stoch:", solver.evaluate_path_by_simulations(i, stoch[-1], 10000))
-print("Stochastically calculated value of stoch:", solver.evaluate_path_with_matrices(i, stoch[-1]))
+#print("Deterministically calculated value of det:", solver.evaluate_path_by_simulations(i, det[-1], 10000))
+#print("Stochastically calculated value of det:", solver.evaluate_path_with_matrices(i, det[-1]))
+#print("Deterministically calculated value of stoch:", solver.evaluate_path_by_simulations(i, stoch[-1], 10000))
+#print("Stochastically calculated value of stoch:", solver.evaluate_path_with_matrices(i, stoch[-1]))
 
-print("Best path found with matrices: ", stoch[-1])
-print("Best path found with simulations: ", det[-1])
-y1 = [solver.evaluate_path_with_matrices(i, path) for path in stoch]
-y2 = [solver.evaluate_path_with_matrices(i, path) for path in det]
-y3 = [solver.evaluate_path_by_simulations(i, path, 1000) for path in det]
-y4 = [solver.evaluate_path_by_simulations(i, path, 1000) for path in det]
+#print("Best path found with matrices: ", stoch[-1])
+#print("Best path found with simulations: ", det[-1])
+#y1 = [solver.evaluate_path_with_matrices(i, path) for path in stoch]
+#y2 = [solver.evaluate_path_with_matrices(i, path) for path in det]
+#y3 = [solver.evaluate_path_by_simulations(i, path, 1000) for path in det]
+#y4 = [solver.evaluate_path_by_simulations(i, path, 1000) for path in det]
 
-x1 = x2 = x3 = x4 = [JUMP * (i + 1) for i in range(len(y1))]
+#x1 = x2 = x3 = x4 = [JUMP * (j + 1) for j in range(len(y1))]
 
-plt.scatter(x1, y1)
-plt.scatter(x2, y2)
-plt.scatter(x3, y3)
-plt.scatter(x4, y4)
+#plt.scatter(x1, y1)
+#plt.scatter(x2, y2)
+#plt.scatter(x3, y3)
+#plt.scatter(x4, y4)
 # only Stoch:
 #plt.legend(["StochStoch", 'DetStoch'])  # , 'StochDet', 'DetDet'])
-#plt.show()
+plt.show()
 # matrix = MatricesFunctions.get_starting_matrix(a1, v1)
 # matrix = MatricesFunctions.new_matrix(np.array([[0.1, 0.2, 0.3, 0.4]]), {0: 0.5, 1: 0.3, 2: 0.2}, 1)
 # print(matrix)

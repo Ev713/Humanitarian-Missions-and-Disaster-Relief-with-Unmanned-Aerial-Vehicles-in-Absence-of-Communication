@@ -36,7 +36,10 @@ class GenStochInstance(Instance.Instance):
         return State.StochState(instance)
 
     def action_zero(self, zero_state):
-        raise NotImplementedError
+        action_zero = {}
+        for a_hash in zero_state.a_pos:
+            action_zero[a_hash] = State.Position(zero_state.a_pos[a_hash].loc, False)
+        return action_zero
 
     def make_action(self, action, state):
         raise NotImplementedError
@@ -49,11 +52,7 @@ class U1StochInstance(GenStochInstance):
     def __init__(self, instance):
         super().__init__(instance)
 
-    def action_zero(self, zero_state):
-        action_zero = {}
-        for a_hash in zero_state.a_pos:
-            action_zero[a_hash] = State.Position(zero_state.a_pos[a_hash].loc, False)
-        return action_zero
+
 
     def make_action(self, action, state):
         new_state = state.copy()
@@ -66,10 +65,10 @@ class U1StochInstance(GenStochInstance):
                 continue
             vertex_hash = action[a_hash].loc
             new_matrix = MatricesFunctions.new_matrix(state.matrices[a_hash], self.map_map[vertex_hash].distribution,
-                                                      new_state.thetas[vertex_hash])
-            new_theta = MatricesFunctions.update_theta(state.matrices[a_hash], new_state.thetas[vertex_hash])
+                                                      new_state.distr[vertex_hash])
+            new_theta = MatricesFunctions.update_theta(state.matrices[a_hash], new_state.distr[vertex_hash])
             new_state.matrices[a_hash] = new_matrix
-            new_state.thetas[vertex_hash] = new_theta
+            new_state.distr[vertex_hash] = new_theta
         return new_state
 
     def reward(self, state):
@@ -82,6 +81,9 @@ class U1StochInstance(GenStochInstance):
 class UisRStochInstance(GenStochInstance):
     def __init__(self, i):
         super().__init__(i)
+
+    def get_default_state(self, instance):
+        return State.StochUisRState(instance)
 
     def make_action(self, action, state):
         new_state = state.copy()
@@ -98,3 +100,9 @@ class UisRStochInstance(GenStochInstance):
             new_state.matrices[a_hash] = new_matrix
             new_state.distr[vertex_hash] = new_distr
         return new_state
+
+    def reward(self, state):
+        if state.reward is not None:
+            return state.reward
+        state.reward = MatricesFunctions.get_vectors_reward(state.matrices)
+        return state.reward

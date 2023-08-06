@@ -1,5 +1,7 @@
 import copy
 
+import numpy as np
+
 import MatricesFunctions
 
 
@@ -50,7 +52,7 @@ class StochState(State):
         super().__init__()
         self.a_pos = {}
         self.matrices = {}  # a.hash(): Matrix
-        self.thetas = {}  # v.hash(): probability
+        self.distr = {}  # v.hash(): probability
         self.reward = None
         if instance is not None:
             for a in instance.agents:
@@ -58,7 +60,7 @@ class StochState(State):
                 self.a_pos[a.hash()] = Position(a.loc.hash(), False)  # a.hash(): v.hash()
                 self.matrices[a.hash()] = MatricesFunctions.get_starting_matrix(a, a.loc)
             for v_hash in instance.map_map:
-                self.thetas[v_hash] = 1
+                self.distr[v_hash] = 1
 
     def __str__(self):
         return str((self.a_pos, self.time_left))
@@ -67,17 +69,33 @@ class StochState(State):
         copy_state = StochState()
         copy_state.a_pos = copy.deepcopy(self.a_pos)
         copy_state.matrices = copy.deepcopy(self.matrices)
-        copy_state.thetas = copy.deepcopy(self.thetas)
+        copy_state.distr = copy.deepcopy(self.distr)
         copy_state.time_left = self.time_left
         return copy_state
 
 
 class StochUisRState(StochState):
     def __init__(self, instance=None):
-        super().__init__()
+        super().__init__(instance)
         self.distr = {}
         if instance is not None:
             for a in instance.agents:
                 self.matrices[a.hash()] = MatricesFunctions.get_starting_vector(a, a.loc)
             for v_hash in instance.map_map:
-                self.distr[v_hash] = instance.map_map[v_hash].distribution.copy()
+                self.distr[v_hash] = self.dict_to_np_arr(instance.map_map[v_hash].distribution.copy())
+
+    def dict_to_np_arr(self, dict):
+        arr = np.zeros((max([k for k in dict if dict[k] != 0])+1))
+        for k in dict:
+            if round(k) != k:
+                raise Exception("Number of targets must be an integer!")
+            arr[k] = dict[k]
+        return arr
+
+    def copy(self):
+        copy_state = StochUisRState()
+        copy_state.a_pos = copy.deepcopy(self.a_pos)
+        copy_state.matrices = copy.deepcopy(self.matrices)
+        copy_state.distr = copy.deepcopy(self.distr)
+        copy_state.time_left = self.time_left
+        return copy_state
