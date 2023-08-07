@@ -85,11 +85,14 @@ class StochUisRState(StochState):
                 self.distr[v_hash] = self.dict_to_np_arr(instance.map_map[v_hash].distribution.copy())
 
     def dict_to_np_arr(self, dict):
+        if sum([dict[k] for k in dict if dict[k]]) != 1:
+            raise Exception("Sum of probabilities in distribution must be 1")
         arr = np.zeros((max([k for k in dict if dict[k] != 0])+1))
         for k in dict:
             if round(k) != k:
                 raise Exception("Number of targets must be an integer!")
-            arr[k] = dict[k]
+            if dict[k] != 0:
+                arr[k] = dict[k]
         return arr
 
     def copy(self):

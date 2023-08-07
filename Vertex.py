@@ -36,7 +36,7 @@ class DetVertex(Vertex):
                 return
 
     def __str__(self):
-        return "det_v" + str(self.number)
+        return "det_v" + str(self.number)+" "+str(self.reward)+" "+str(self.is_empty)
 
 
 class Stoch_Vertex(Vertex):

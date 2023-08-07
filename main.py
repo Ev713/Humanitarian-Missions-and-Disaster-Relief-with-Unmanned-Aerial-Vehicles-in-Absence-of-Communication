@@ -2,6 +2,7 @@ import random
 
 import Agent
 import Instance
+import DetInstance
 import Instances
 import MatricesFunctions
 import Node
@@ -33,7 +34,7 @@ import grid6X6_EMPTY
 import grid10X10
 import grid4X4_EMPTY
 
-NUMBER_OF_SIMULATIONS = 10000
+NUMBER_OF_SIMULATIONS = 10
 JUMP = NUMBER_OF_SIMULATIONS / min(NUMBER_OF_SIMULATIONS, 100)
 DISCOUNT = 1
 
@@ -43,29 +44,42 @@ class Solver:
 
     def bfs(self, def_inst):
         root = Node.Node(None)
-        instance = StochInstance.U1StochInstance(def_inst)
+        instance = self.make_instance(def_inst)
         root.state = instance.initial_state.copy()
-        root.deep_expand(instance)
-        node = root
-        while not node.state.is_terminal() and len(node.children) != 0:
-            node = node.highest_value_child()
-        return node.get_path()
+        que = []
+
+        while que:
+            node = que.pop()
+            node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state)])
+            for c in node.children:
+                # check for duplicates
+                que.append(c)
+            node = root
+            while not node.state.is_terminal() and len(node.children) != 0:
+                node = node.highest_value_child()
+            return node.get_path()
+
+    def make_instance(self, def_inst):
+        if self.type == "U1D":
+            instance = DetInstance.DetU1Instance(def_inst)
+        elif self.type == "URD":
+            instance = DetInstance.DetUisRInstance(def_inst)
+        elif self.type == "U1S":
+            instance = StochInstance.U1StochInstance(def_inst)
+        elif self.type == "URS":
+            instance = StochInstance.UisRStochInstance(def_inst)
+        else:
+            raise Exception("No recognised type!")
+        return instance
 
     def mcts(self, def_inst):
         paths = []
+        instance = None
         root = Node.Node(None)
-        if self.type == "D":
-            root.state = State.DetState(def_inst)
-            instance = Instance.DetInstance(def_inst)
-        elif self.type == "U1S":
-            instance = StochInstance.U1StochInstance(def_inst)
-            root.state = instance.initial_state.copy()
-        elif self.type == "UR":
-            instance = StochInstance.UisRStochInstance(def_inst)
-            root.state = instance.initial_state.copy()
-        else:
-            raise Exception("No recognised type")
 
+        instance = self.make_instance()
+
+        root.state = instance.initial_state.copy()
         node = root
         for t in range(NUMBER_OF_SIMULATIONS):
 
@@ -117,25 +131,27 @@ class Solver:
         return paths
 
     def evaluate_path(self, def_inst, path, NUM_OF_SIMS=None):
-            if self.type=="D":
-                instance = Instance.DetInstance(def_inst)
+            if self.type == "U1D":
+                instance = DetInstance.DetU1Instance(def_inst)
                 state = State.DetState(instance)
                 state.path = path
                 return instance.reward(state, NUM_OF_SIMS)
-            if self.type=="U1R":
+            if self.type == "U1S":
                 instance = StochInstance.U1StochInstance(def_inst)
                 state = instance.initial_state.copy()
                 for t in range(1, len(list(path.values())[0])):
                     action = {a: path[a][t] for a in path}
                     state = instance.make_action(action, state)
                 return instance.reward(state)
-            if self.type == "UR":
+            if self.type == "URS":
                 instance = StochInstance.UisRStochInstance(def_inst)
                 state = instance.initial_state.copy()
                 for t in range(1, len(list(path.values())[0])):
                     action = {a: path[a][t] for a in path}
                     state = instance.make_action(action, state)
                 return instance.reward(state)
+            else:
+                raise Exception("No recognised type!")
 
 
 def is_sorted_ascending(lst):
@@ -147,20 +163,37 @@ inst.flybys = False
 #solver.type = "U1S"
 #stoch = solver.mcts(i)
 
-solver.type = "UR"
-stoch_ur = solver.mcts(inst)
-
 #bfs = solver.bfs(i)
 #print("Best path found with bfs is: ", bfs)
 #print("Value of the best path found with bfs is: ", i.evaluate_path_with_matrices(bfs))
+solver.type = "U1D"
+det_u1 = solver.mcts(inst)
+solver.type = "U1S"
+stoch_u1 = solver.mcts(inst)
+solver.type = "URS"
+stoch_ur = solver.mcts(inst)
+solver.type = "URD"
+det_ur = solver.mcts(inst)
 
-#solver.type = "D"
-#det = solver.mcts(i)
+solver.type = "URS"
+print("-------URS-------")
+print(stoch_ur[-1])
+print(solver.evaluate_path(inst, stoch_ur[-1]))
+print("-------URD-------")
+print(det_ur[-1])
+print(solver.evaluate_path(inst, det_ur[-1]))
 
-for j in range(len(stoch_ur)):
-    print(stoch_ur[j])
-    print(solver.evaluate_path(inst, stoch_ur[j]))
-    print("-----------------")
+
+solver.type = "U1S"
+print(stoch_u1[-1])
+print(solver.evaluate_path(inst, stoch_u1[-1]))
+print("-------U1S-------")
+print(det_u1[-1])
+print(solver.evaluate_path(inst, det_u1[-1]))
+print("-------U1D-------")
+
+
+
 
 #print("Deterministically calculated value of det:", solver.evaluate_path_by_simulations(i, det[-1], 10000))
 #print("Stochastically calculated value of det:", solver.evaluate_path_with_matrices(i, det[-1]))

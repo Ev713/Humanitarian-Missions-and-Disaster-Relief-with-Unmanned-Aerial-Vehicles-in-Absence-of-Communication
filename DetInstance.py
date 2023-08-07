@@ -1,0 +1,108 @@
+import itertools
+import random
+import copy
+import Agent
+import MatricesFunctions
+import State
+import Vertex
+import Instance
+
+
+class DetInstance(Instance.Instance):
+    def __init__(self, instance=None):
+        super().__init__(instance.map, instance.agents, instance.horizon)
+        self.map, self.map_map = instance.make_special_map_and_map_map(Vertex.DetVertex)
+        self.agents, self.agents_map = instance.make_agents_and_agents_map(self.map_map, Agent.DetAgent)
+        self.horizon = instance.horizon
+        self.initial_state = State.DetState(instance)
+        self.flybys = instance.flybys
+
+    def actions(self, state):
+        # action: {p1: v_k, p2: v_m, ...  }
+        agent_pos = {}
+        if self.flybys:
+            fly_by_options = [True, False]
+        else:
+            fly_by_options = [False]
+        time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
+        for a_hash in state.path:
+            a_loc_hash = state.path[a_hash][time].loc
+            a_loc = self.map_map[a_loc_hash]
+            agent_pos[a_hash] = [State.Position(n.hash(), b) for n in a_loc.neighbours for b in fly_by_options]
+        actions = [a for a in Instance.product_dict(agent_pos)]
+        return actions
+
+    def regenerate_instance(self):
+        for v in self.map:
+            v.generate_reward()
+        for a in self.agents:
+            a.current_movement_budget = a.movement_budget
+            a.current_utility_budget = a.utility_budget
+
+    def make_action(self, action, state):
+        new_state = state.copy()
+        new_state.time_left -= 1
+        time = self.horizon - new_state.time_left
+        for a_hash in action.keys():
+            new_state.path[a_hash][time] = action[a_hash]
+        return new_state
+
+    def reward(self, state, NUM_OF_SIMS=1):
+        raise NotImplementedError
+
+
+class DetU1Instance(DetInstance):
+    def reward(self, state, NUM_OF_SIMS=1):
+        tot_reward = 0
+        for _ in range(NUM_OF_SIMS):
+            self.regenerate_instance()
+            round_reward = 0
+            for t in range(len(list(state.path.values())[0])):
+                for a in self.agents:
+                    if a.current_movement_budget + 1 <= t or \
+                            a.current_utility_budget < 1 or \
+                            state.path[a.hash()][t] is None:
+                        continue
+                    a_loc_hash = state.path[a.hash()][t].loc
+                    if a_loc_hash == -1 or state.path[a.hash()][t].flyby:
+                        continue
+                    a_loc = self.map_map[a_loc_hash]
+                    if a_loc.is_empty:
+                        continue
+                    a_loc.is_empty = True
+                    round_reward += a_loc.reward
+                    a.current_utility_budget -= 1
+            tot_reward += round_reward
+        return tot_reward / NUM_OF_SIMS
+
+
+class DetUisRInstance(DetInstance):
+    def reward(self, state, NUM_OF_SIMS=1):
+        tot_reward = 0
+        for _ in range(NUM_OF_SIMS):
+            self.regenerate_instance()
+            round_reward = 0
+            for t in range(len(list(state.path.values())[0])):
+                for a in self.agents:
+                    print(type(a), str(a))
+                    if a not in self.agents:
+                        breakpoint()
+                    try:
+                        if a.current_movement_budget + 1 <= t or \
+                            a.current_utility_budget < 1 or \
+                            state.path[a.hash()][t] is None:
+                            continue
+                    except:
+                        breakpoint()
+                    a_loc_hash = state.path[a.hash()][t].loc
+                    if a_loc_hash == -1 or state.path[a.hash()][t].flyby:
+                        continue
+                    a_loc = self.map_map[a_loc_hash]
+                    if a_loc.reward == 0:
+                        continue
+                    a_loc.reward -= min(a_loc.reward, a.current_utility_budget)
+                    a.current_utility_budget -= min(a_loc.reward, a.current_utility_budget)
+
+                    round_reward += a_loc.reward
+            tot_reward += round_reward
+        return tot_reward / NUM_OF_SIMS

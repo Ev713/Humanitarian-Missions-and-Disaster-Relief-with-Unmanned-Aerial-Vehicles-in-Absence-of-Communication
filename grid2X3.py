@@ -2,15 +2,15 @@ import Instance
 import Vertex
 import Agent
 vertex0 = Vertex.Vertex(0)
-vertex0.distribution = {0: 0.9, 1:0.1}
+vertex0.distribution = {0: 1.0, 1: 0.0}
 vertex1 = Vertex.Vertex(1)
-vertex1.distribution = {0: 0.9, 1:0.1}
+vertex1.distribution = {0: 1, 1: 0}
 vertex2 = Vertex.Vertex(2)
-vertex2.distribution = {0: 0.9, 1:0.1}
+vertex2.distribution = {0: 1, 1: 0}
 vertex3 = Vertex.Vertex(3)
-vertex3.distribution = {0: 0.9, 1:0.1}
+vertex3.distribution = {0: 1, 1: 0}
 vertex4 = Vertex.Vertex(4)
-vertex4.distribution = {0: 0.9, 1:0.1}
+vertex4.distribution = {0: 1, 1: 0}
 vertex5 = Vertex.Vertex(5)
 vertex5.distribution = {6: 1}
 

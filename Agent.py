@@ -29,4 +29,4 @@ class DetAgent(Agent):
         self.current_utility_budget = utility_budget
 
     def __str__(self):
-        return "det_a" + self.number
+        return "det_a" + str(self.number)
