@@ -26,7 +26,7 @@ vertex10.distribution = {0: 1}
 vertex11 = Vertex.Vertex(11)
 vertex11.distribution = {2: 0.627, 0: 0.373}
 vertex12 = Vertex.Vertex(12)
-vertex12.distribution = {4: 0.993, 0: 0.007000000000000006}
+vertex12.distribution = {4: 0.993, 0: 0.007}
 vertex13 = Vertex.Vertex(13)
 vertex13.distribution = {0: 1}
 vertex14 = Vertex.Vertex(14)
@@ -49,11 +49,11 @@ vertex12.neighbours = [vertex8, vertex13]
 vertex13.neighbours = [vertex9, vertex12, vertex14]
 vertex14.neighbours = [vertex10, vertex13, vertex15]
 vertex15.neighbours = [vertex11, vertex14]
-agent0 = Agent.Agent(0, vertex0, 3, 3)
-agent1 = Agent.Agent(1, vertex0, 5, 3)
+agent0 = Agent.Agent(0, vertex0, 6, 3)
+agent1 = Agent.Agent(1, vertex0, 6, 3)
 map1 = [vertex0, vertex1, vertex2, vertex3, 
         vertex4, vertex5, vertex6, vertex7, 
         vertex8, vertex9, vertex10, vertex11, 
         vertex12, vertex13, vertex14, vertex15]
 agents = [agent0, agent1]
-instance1 = Instance.Instance(map1, agents, 3)
+instance1 = Instance.Instance(map1, agents, 6)

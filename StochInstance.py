@@ -21,15 +21,18 @@ class GenStochInstance(Instance.Instance):
         self.flybys = instance.flybys
 
     def actions(self, state):
-        agent_movements = {}
+        agent_actions = {}
         if self.flybys:
             fly_by_options = [True, False]
         else:
             fly_by_options = [False]
         for a_hash in state.a_pos:
+
             a_loc = self.map_map[state.a_pos[a_hash].loc]
-            agent_movements[a_hash] = [State.Position(n.hash(), b) for n in a_loc.neighbours for b in fly_by_options]
-        actions = [a for a in Instance.product_dict(agent_movements)]
+            agent_actions[a_hash] = [State.Position(a_loc.hash(), b) for b in fly_by_options] +\
+                                    [State.Position(n.hash(), b) for n in a_loc.neighbours for b in fly_by_options]
+
+        actions = [a for a in Instance.product_dict(agent_actions)]
         return actions
 
     def get_default_state(self, instance):

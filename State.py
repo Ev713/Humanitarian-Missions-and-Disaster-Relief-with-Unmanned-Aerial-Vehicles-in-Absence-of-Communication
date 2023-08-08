@@ -16,6 +16,9 @@ class Position:
     def __repr__(self):
         return str(self)
 
+    def hash(self):
+        return self.loc, self.flyby
+
 
 class State:
     # Info held by every node. The info is gathered using agents actions only therefore is deterministic.
@@ -73,6 +76,11 @@ class StochState(State):
         copy_state.time_left = self.time_left
         return copy_state
 
+    def hash(self):
+        return tuple([(key, str(self.a_pos[key])) for key in self.a_pos]),\
+               tuple([(key, str(self.matrices[key])) for key in self.matrices]),\
+               tuple([(key, str(self.distr[key])) for key in self.distr]),\
+               self.time_left
 
 class StochUisRState(StochState):
     def __init__(self, instance=None):
@@ -85,7 +93,8 @@ class StochUisRState(StochState):
                 self.distr[v_hash] = self.dict_to_np_arr(instance.map_map[v_hash].distribution.copy())
 
     def dict_to_np_arr(self, dict):
-        if sum([dict[k] for k in dict if dict[k]]) != 1:
+
+        if round(sum(dict.values()), 5) != 1:
             raise Exception("Sum of probabilities in distribution must be 1")
         arr = np.zeros((max([k for k in dict if dict[k] != 0])+1))
         for k in dict:

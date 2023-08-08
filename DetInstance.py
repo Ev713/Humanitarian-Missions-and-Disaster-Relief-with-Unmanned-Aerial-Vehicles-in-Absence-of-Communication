@@ -18,18 +18,25 @@ class DetInstance(Instance.Instance):
         self.flybys = instance.flybys
 
     def actions(self, state):
-        # action: {p1: v_k, p2: v_m, ...  }
-        agent_pos = {}
+        # action: {a1: v_k, a2: v_m, ...  }
+        agent_actions = {}
         if self.flybys:
-            fly_by_options = [True, False]
+            fly_by_options = [False, True]
         else:
             fly_by_options = [False]
-        time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
+        #time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
+        time = self.horizon - state.time_left
         for a_hash in state.path:
-            a_loc_hash = state.path[a_hash][time].loc
-            a_loc = self.map_map[a_loc_hash]
-            agent_pos[a_hash] = [State.Position(n.hash(), b) for n in a_loc.neighbours for b in fly_by_options]
-        actions = [a for a in Instance.product_dict(agent_pos)]
+            if self.agents_map[a_hash].movement_budget <= time:
+                agent_actions[a_hash] = [None]
+            else:
+                a_loc_hash = state.path[a_hash][time].loc
+                a_loc = self.map_map[a_loc_hash]
+                agent_actions[a_hash] = [State.Position(a_hash, b) for b in fly_by_options] +\
+                                        [State.Position(n.hash(), b) for n in a_loc.neighbours for b in fly_by_options]
+
+
+        actions = [a for a in Instance.product_dict(agent_actions)]
         return actions
 
     def regenerate_instance(self):
@@ -83,26 +90,22 @@ class DetUisRInstance(DetInstance):
             self.regenerate_instance()
             round_reward = 0
             for t in range(len(list(state.path.values())[0])):
-                for a in self.agents:
-                    print(type(a), str(a))
-                    if a not in self.agents:
-                        breakpoint()
-                    try:
-                        if a.current_movement_budget + 1 <= t or \
-                            a.current_utility_budget < 1 or \
-                            state.path[a.hash()][t] is None:
-                            continue
-                    except:
-                        breakpoint()
-                    a_loc_hash = state.path[a.hash()][t].loc
-                    if a_loc_hash == -1 or state.path[a.hash()][t].flyby:
+                for a_hash in self.agents_map:
+                    if a_hash not in self.agents_map:
+                        raise Exception("The weird error :(")
+                    if state.path[a_hash][t] is None:
+                        continue
+                    a_loc_hash = state.path[a_hash][t].loc
+                    if a_loc_hash == -1 or state.path[a_hash][t].flyby:
                         continue
                     a_loc = self.map_map[a_loc_hash]
-                    if a_loc.reward == 0:
+                    a = self.agents_map[a_hash]
+                    if a_loc.reward == 0 or a.current_utility_budget == 0:
                         continue
-                    a_loc.reward -= min(a_loc.reward, a.current_utility_budget)
-                    a.current_utility_budget -= min(a_loc.reward, a.current_utility_budget)
+                    utility_used = min(a_loc.reward, a.current_utility_budget)
+                    a_loc.reward -= utility_used
+                    a.current_utility_budget -= utility_used
+                    round_reward += utility_used
 
-                    round_reward += a_loc.reward
             tot_reward += round_reward
         return tot_reward / NUM_OF_SIMS
