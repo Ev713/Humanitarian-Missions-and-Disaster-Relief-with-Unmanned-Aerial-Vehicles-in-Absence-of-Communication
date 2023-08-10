@@ -35,6 +35,13 @@ class Instance:
         self.horizon = horizon  # int
         self.initial_state = (agents.copy(), map.copy())
         self.flybys = True
+        self.check_sums_of_probs_is_0()
+    def check_sums_of_probs_is_0(self):
+        for v in self.map:
+            if 0 not in v.distribution:
+                v.distribution[0] = 0
+            if round(sum(v.distribution.values()), 7)!=1:
+                raise Exception("Sum of vertex "+str(v)+"'s probabilities is not 0!")
 
     def make_det_map_and_det_map_map(self):
         det_map = []

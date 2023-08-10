@@ -3,90 +3,136 @@ import random
 
 import numpy as np
 
-
-def generate_mountains():
-    return []
-
-
-def generate_init_loc(agent_hash):
-    return 0
-
-
 class Generator:
     def __init__(self):
         self.MAX_REWARD = 4
-        self.CORNERS = False
-        self.SIMPLE = False
-        self.VERY_SIMPLE = False
-        self.EMPTY = True
+        self.cols = 8
+        self.rows = 8
+        self.NUM_OF_AGENTS = 2
+        self.HORIZON = 4
+        self.ACC = 3  # accuracy
 
-        self.M = 4
-        self.N = 4
-        self.NUM_OF_AGENTS = 1
-        self.HORIZON = 3
-        self.ACC = 1
+        self.NUM_OF_CENTERS = 5  # for mountain-top domain
+        self.decrease = 0.25
+        self.centers = None
+        self.dist_to_center = {}
+
+        # types: FR, MT, IRL, AG, SC, 'EMPTY'
+        self.type = 'MT'
+
+    def generate_mountains(self):
+        return []
+
+    def generate_init_loc(self, agent_hash):
+        return 1
+
+    def generate_full_random_distr(self, vertex_hash):
+        distr_size = np.random.randint(1, self.MAX_REWARD)
+        distr = {}
+
+        if distr_size == 1:
+            return {0: 1}
+        for _ in range(distr_size - 1):
+            distr[np.random.randint(1, self.MAX_REWARD)] = round(
+                random.uniform(pow(1 / 10, self.ACC), 1 - sum(distr.values())), self.ACC)
+        distr[0] = round(1 - sum(distr.values()), self.ACC)
+        return distr
+
+    def generate_empty_distr(self):
+        return {0: 1}
+
+    def generate_centers_and_distances(self):
+        self.centers = set()
+        while len(self.centers) != self.NUM_OF_CENTERS:
+            self.centers.add(random.randint(1, self.rows * self.cols))
+        level = 0
+        next_level = self.centers
+        for c in self.centers:
+            self.dist_to_center[c] = level
+
+        while len(self.dist_to_center.keys()) != self.rows * self.cols:
+            level += 1
+            prev_level = next_level.copy()
+            next_level = set()
+            for c in prev_level:
+                ngbrs = self.get_neighbours(*self.num_to_xy(c))
+                pass
+                for n in ngbrs:
+                    next_level.add(int(n))
+            for v in next_level:
+                if v not in self.dist_to_center:
+                    self.dist_to_center[v] = level
+
+    def distance_to_center_to_distr(self, x):
+        return 1/(x+1)
+
+    def generate_mountain_top_distr(self, vertex_hash):
+        if self.centers is None:
+            self.generate_centers_and_distances()
+        return {1: round(self.distance_to_center_to_distr(self.dist_to_center[vertex_hash]), self.ACC)}
 
     def generate_distr(self, vertex_hash):
         distr_size = np.random.randint(1, self.MAX_REWARD)
         distr = {}
-        if self.CORNERS and (vertex_hash % self.M == self.M - 1 or vertex_hash >= (self.N - 1) * self.M):
-            return {10: 1}
-        if self.SIMPLE:
-            p = round(random.random(), 1)
-            r = random.randint(0, self.MAX_REWARD)
-            if r == 0:
-                return {0: 1}
-            else:
-                return {r: p, 0: 1-p}
-        if self.VERY_SIMPLE:
-            return {1: 1}
-        if self.EMPTY:
-            return {0: 1}
 
-        if distr_size == 1:
-            return {0: 1}
-        for _ in range(distr_size-1):
-            distr[np.random.randint(1, self.MAX_REWARD)] = round(random.uniform(pow(1/10, self.ACC), 1 - sum(distr.values())), self.ACC)
-        distr[0] = round(1 - sum(distr.values()), self.ACC)
-        return distr
+        match self.type:
+            case 'FR':
+                return self.generate_full_random_distr(vertex_hash)
+            case 'EMPTY':
+                self.generate_empty_distr()
+            case 'MT':
+                return self.generate_mountain_top_distr(vertex_hash)
 
     def generate_utility_budget(self, agent_hash):
-        return round(self.HORIZON*2/3)
+        return round(self.HORIZON * 2 / 3)
 
     def generate_movement_budget(self, agent_hash):
         return self.HORIZON
 
+    def xy_to_num(self, x, y):
+        num = y * self.cols + x + 1
+        return num
+
+    def get_neighbours(self, x, y):
+        neighbours = []
+        potential_neighbours = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+        n = [int(self.xy_to_num(m, n)) for (m, n) in potential_neighbours if self.xy_is_legal(m, n)]
+        return n
+
+    def num_is_legal(self, num):
+        return 0 < num <= self.cols * self.rows
+
+    def xy_is_legal(self, x, y):
+        b = 0 <= x < self.cols and 0 <= y < self.rows
+        return b
+
+    def num_to_xy(self, num):
+        x, y = (num - 1) % self.cols, (num - 1) // self.cols
+        return x, y
+
     def gen_map(self):
         f.write("import Instance \nimport Vertex\nimport Agent\n")
-        mountns = generate_mountains()  # (np.random.rand(dense) * n * m).round()
+        mountns = self.generate_mountains()  # (np.random.rand(dense) * n * m).round()
         # f.write(mountns)
         map1 = []
-        for i in range(self.N):
-            for j in range(self.M):
-                vertex_hash = i * self.M + j
+        for y in range(self.rows):
+            for x in range(self.cols):
+                vertex_hash = self.xy_to_num(x, y)
                 if vertex_hash in mountns:
                     continue
                 map1.append("vertex" + str(vertex_hash))
-                f.write("vertex" + str(vertex_hash) + " = Vertex.Vertex("+str(vertex_hash) + ")\n")
+                f.write("vertex" + str(vertex_hash) + " = Vertex.Vertex(" + str(vertex_hash) + ")\n")
                 f.write("vertex" + str(vertex_hash) + ".distribution = ")
                 f.write(str(self.generate_distr(vertex_hash)) + "\n")
 
-        for i in range(self.N):
-            for j in range(self.M):
-                vertex_hash = i * self.N + j
+        for y in range(self.rows):
+            for x in range(self.cols):
+                vertex_hash = self.xy_to_num(x, y)
                 if vertex_hash in mountns:
                     continue
                 else:
                     f.write("vertex" + str(vertex_hash) + ".neighbours = [")
-                    ngbrs = []
-                    if i > 0 and ((vertex_hash - self.N) not in mountns):
-                        ngbrs.append(vertex_hash - self.N)
-                    if j > 0 and ((vertex_hash - 1) not in mountns):
-                        ngbrs.append(vertex_hash - 1)
-                    if i < self.N - 1 and ((vertex_hash + self.N) not in mountns):
-                        ngbrs.append(vertex_hash + self.N)
-                    if j < self.M - 1 and ((vertex_hash + 1) not in mountns):
-                        ngbrs.append(vertex_hash + 1)
+                    ngbrs = self.get_neighbours(x, y)
                     for t in range(len(ngbrs)):
                         if t < len(ngbrs) - 1:
                             f.write("vertex" + str(ngbrs[t]) + ", ")
@@ -95,45 +141,38 @@ class Generator:
                     f.write("]\n")
 
         agents = []
-        for i in range(self.NUM_OF_AGENTS):
+        for y in range(self.NUM_OF_AGENTS):
             f.write(
-                "agent" + str(i) + " = Agent.Agent(" + str(i) + ", " + "vertex" + str(generate_init_loc(i)) + ", " +
-                str(self.generate_movement_budget(i)) + ", " + str(self.generate_utility_budget(i)) + ")\n")
-            agents.append("agent" + str(i))
+                "agent" + str(y) + " = Agent.Agent(" + str(y) + ", " + "vertex" + str(self.generate_init_loc(y)) + ", " +
+                str(self.generate_movement_budget(y)) + ", " + str(self.generate_utility_budget(y)) + ")\n")
+            agents.append("agent" + str(y))
 
         f.write("map1 = [")
-        for i in range(len(map1)):
-            if i < len(map1) - 1:
-                f.write(map1[i] + ", ")
-                if (i + 1) % self.N == 0:
+        for y in range(len(map1)):
+            if y < len(map1) - 1:
+                f.write(map1[y] + ", ")
+                if (y + 1) % self.cols == 0:
                     f.write("\n        ")
             else:
-                f.write(map1[i])
+                f.write(map1[y])
         f.write("]\n")
 
         f.write("agents = [")
-        for i in range(self.NUM_OF_AGENTS):
-            if i < self.NUM_OF_AGENTS - 1:
-                f.write(agents[i] + ", ")
+        for y in range(self.NUM_OF_AGENTS):
+            if y < self.NUM_OF_AGENTS - 1:
+                f.write(agents[y] + ", ")
             else:
-                f.write(agents[i])
+                f.write(agents[y])
         f.write("]\n")
 
         f.write("instance1 = Instance.Instance(map1, agents, " + str(self.HORIZON) + ")\n")
 
 
 G = Generator()
-filename = "grid" + str(G.M) + "X" + str(G.N)
-if G.CORNERS:
-    filename += "_CORNERS"
-if G.SIMPLE:
-    filename += "_SIMPLE"
-if G.VERY_SIMPLE:
-    filename += "_VERY_SIMPLE"
-if G.EMPTY:
-    filename += "_EMPTY"
+filename = "grid" + str(G.cols) + "X" + str(G.rows)
+filename += G.type
 filename += ".py"
 f = open(filename, "w")
 G.gen_map()
 f.close()
-print(filename+" added.")
+print(filename + " added.")

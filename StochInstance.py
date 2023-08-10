@@ -69,7 +69,7 @@ class U1StochInstance(GenStochInstance):
             vertex_hash = action[a_hash].loc
             new_matrix = MatricesFunctions.new_matrix(state.matrices[a_hash], self.map_map[vertex_hash].distribution,
                                                       new_state.distr[vertex_hash])
-            new_theta = MatricesFunctions.update_theta(state.matrices[a_hash], new_state.distr[vertex_hash])
+            new_theta = MatricesFunctions.update_distr_u1(state.matrices[a_hash], new_state.distr[vertex_hash])
             new_state.matrices[a_hash] = new_matrix
             new_state.distr[vertex_hash] = new_theta
         return new_state

@@ -7,6 +7,7 @@ import Instances
 import MatricesFunctions
 import Node
 import State
+from State import Position as p
 import Vertex
 import StochInstance
 from matplotlib import pyplot as plt
@@ -23,7 +24,9 @@ import grid2X2_SIMPLE
 import grid2X2_CORNERS
 import grid2X3_CORNERS
 import grid2X3
-import grid4X4_SIMPLE as map
+import grid4X4_SIMPLE
+import WHY_FLYBYS_NEEDED
+import WHY_CONFIRMING_IS_USEFUL as map
 import grid5X5_CORNERS_SIMPLE
 import grid5X5_SIMPLE
 import grid6X6_CORNERS
@@ -40,7 +43,7 @@ DISCOUNT = 1
 
 
 def zero(state):
-    return 0
+    return 100
 
 
 class Solver:
@@ -59,10 +62,9 @@ class Solver:
         que = [root]
         visited_states = set()
         num_of_states = 0
+        best_value = instance.reward(root.state)
         while que:
             node = que.pop()
-
-            best_value = instance.reward(node.state)
             if not node.state.is_terminal():
                 node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state)])
                 for c in node.children:
@@ -73,13 +75,13 @@ class Solver:
                             continue
                         visited_states.add(hash)
                     v = instance.reward(c.state)
-                    if v+heur(c.state) < best_value:
+                    if v + heur(c.state) < best_value:
                         continue
                     if v > best_value:
                         best_value = v
                         best_node = c
-                    que.insert(0, c)
-                    
+                    que = [c]+que
+
         if self.dup_det:
             print("Checked states", len(visited_states))
         else:
@@ -191,10 +193,8 @@ inst = map.instance1
 inst.flybys = False
 # solver.type = "U1S"
 # stoch = solver.mcts(i)
-
-solver.dup_det = True
-
-solver.type = "URS"
+solver.type = "U1S"
+solver.dup_det = True 
 bfs = solver.bfs(inst)
 print("Best path found with bfs is: ", bfs)
 print("Value of the best path found with bfs is: ", solver.evaluate_path(inst, bfs))
@@ -231,10 +231,10 @@ print(solver.evaluate_path(inst, det_u1[-1]))'''
 
 # print("Best path found with matrices: ", stoch[-1])
 # print("Best path found with simulations: ", det[-1])
-# y1 = [solver.evaluate_path_with_matrices(i, path) for path in stoch]
-# y2 = [solver.evaluate_path_with_matrices(i, path) for path in det]
-# y3 = [solver.evaluate_path_by_simulations(i, path, 1000) for path in det]
-# y4 = [solver.evaluate_path_by_simulations(i, path, 1000) for path in det]
+# y1 = [solver.evaluate_path(i, path) for path in stoch]
+# y2 = [solver.evaluate_path(i, path) for path in det]
+# y3 = [solver.evaluate_path(i, path, 1000) for path in det]
+# y4 = [solver.evaluate_path(i, path, 1000) for path in det]
 
 # x1 = x2 = x3 = x4 = [JUMP * (j + 1) for j in range(len(y1))]
 
@@ -244,7 +244,4 @@ print(solver.evaluate_path(inst, det_u1[-1]))'''
 # plt.scatter(x4, y4)
 # only Stoch:
 # plt.legend(["StochStoch", 'DetStoch'])  # , 'StochDet', 'DetDet'])
-plt.show()
-# matrix = MatricesFunctions.get_starting_matrix(a1, v1)
-# matrix = MatricesFunctions.new_matrix(np.array([[0.1, 0.2, 0.3, 0.4]]), {0: 0.5, 1: 0.3, 2: 0.2}, 1)
-# print(matrix)
+# plt.show()
