@@ -5,9 +5,9 @@ import Node
 import State
 import StochInstance
 
-from ready_maps import WHY_CONFIRMING_IS_USEFUL as map
+from ready_maps import _8X5MTorz107d as map
 
-NUMBER_OF_SIMULATIONS = 1000
+NUMBER_OF_SIMULATIONS = 50000
 JUMP = NUMBER_OF_SIMULATIONS / min(NUMBER_OF_SIMULATIONS, 100)
 DISCOUNT = 1
 
@@ -98,8 +98,9 @@ class Solver:
 
     def mcts(self, def_inst):
         paths = []
-        instance = None
         root = Node.Node(None)
+        best_value = 0
+        best_path  = None
 
         instance = self.make_instance(def_inst)
 
@@ -128,10 +129,16 @@ class Solver:
 
             # simulation
             rollout_state = node.state.copy()
+            path = {a: [] for a in instance.agents_map}
             while not rollout_state.is_terminal():
                 action = random.choice(instance.actions(rollout_state))
+                for a in path:
+                    path[a].append(action[a])
                 rollout_state = instance.make_action(action, rollout_state)
             rollout_reward = instance.reward(rollout_state)
+            if rollout_reward > best_value:
+                best_value = rollout_reward
+                best_path = path
             discounted_reward = rollout_reward * pow(DISCOUNT, node.depth)
             # backpropagation
             while True:
@@ -146,16 +153,20 @@ class Solver:
             # root.get_tree()
             # checking mid-rewards
             if t % JUMP == 0 or t == NUMBER_OF_SIMULATIONS - 1:
-                # print(str(round(t / NUMBER_OF_SIMULATIONS * 100, 2)) + "%")
+                print(str(round(t / NUMBER_OF_SIMULATIONS * 100, 2)) + "%")
                 node = root
                 while not node.state.is_terminal() and len(node.children) != 0:
                     node = node.highest_value_child()
-                paths.append(node.get_path())
+
+                if node.value < best_value:
+                    paths.append(best_path)
+                else:
+                    paths.append(node.get_path())
         # root.get_tree()
         # returning
         return paths
 
-    def evaluate_path(self, def_inst, path, NUM_OF_SIMS=None):
+    def evaluate_path(self, def_inst, path, NUM_OF_SIMS=1000):
         if self.type == "U1D":
             instance = DetInstance.DetU1Instance(def_inst)
             state = State.DetState(instance)
@@ -188,12 +199,25 @@ inst = map.instance1
 inst.flybys = False
 # solver.type = "U1S"
 # stoch = solver.mcts(i)
+
 solver.type = "U1S"
-solver.dup_det = True 
-#bfs = solver.bfs(inst)
-bfs = solver.bnb(inst, solver.Heuristics_U1)
-print("Best path found with bfs is: ", bfs)
-print("Value of the best path found with bfs is: ", solver.evaluate_path(inst, bfs))
+solver.dup_det = True
+
+det = solver.mcts(inst)
+print("Best path found with det mcts is: ", det[-1])
+print("Value of the best path found with det mcts is: ", solver.evaluate_path(inst, det[-1]))
+
+bnb = solver.bnb(inst, solver.Heuristics_U1)
+print("Best path found with bfs is: ", bnb)
+print("Value of the best path found with bfs is: ", solver.evaluate_path(inst, bnb))
+
+solver.type = "U1D"
+
+sam = solver.mcts(inst)
+print("Best path found with det mcts is: ", sam[-1])
+print("Value of the best path found with det mcts is: ", solver.evaluate_path(inst, sam[-1]))
+
+
 
 '''solver.type = "U1D"
 det_u1 = solver.mcts(inst)

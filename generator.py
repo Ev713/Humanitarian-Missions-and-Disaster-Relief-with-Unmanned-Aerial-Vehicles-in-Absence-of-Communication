@@ -10,15 +10,15 @@ class Generator:
         self.cols = 8
         self.rows = 8
         self.NUM_OF_AGENTS = 2
-        self.HORIZON = 4
-        self.ACC = 3  # accuracy
+        self.HORIZON = 6
+        self.ACC = 2 # accuracy
         # types: FR, MT, IRL, AG, SC, 'EMPTY'
         self.type = type
         self.unpassable = None
         if self.type == 'MT':
-            self.NUM_OF_CENTERS = 5  # for mountain-top domain
-            self.decrease = 0.25
-            self.centers = None
+            self.NUM_OF_CENTERS = 2  # for mountain-top domain
+            self.decrease = 0.5
+            self.centers = [13, 32]  # self.generate_centers()
             self.dist_to_center = {}
         self.name = "grid" + str(self.cols) + "X" + str(self.rows) + self.type + ".py"
 
@@ -53,8 +53,10 @@ class Generator:
         next_level = self.centers
         for c in self.centers:
             self.dist_to_center[c] = level
+            if c in self.unpassable or not self.num_is_legal(c):
+                raise Exception("Center "+str(c)+" assigned incorectly")
 
-        while len(self.dist_to_center.keys()) != self.rows * self.cols:
+        while len(self.dist_to_center.keys()) != self.rows * self.cols - len(self.unpassable):
             level += 1
             prev_level = next_level.copy()
             next_level = set()
@@ -68,11 +70,12 @@ class Generator:
                     self.dist_to_center[v] = level
 
     def distance_to_center_to_distr(self, x):
-        return {1: round(1 / (x + 1), self.ACC), 0: round(x / (x + 1), self.ACC)}
+        return {1: round(1 * pow(self.decrease, (x + 1)), self.ACC), 0: round(1-pow(self.decrease, (x + 1)), self.ACC)}
 
     def generate_mountain_top_distr(self, vertex_hash):
         if self.centers is None:
             self.generate_centers()
+        if not self.dist_to_center:
             self.generate_distances()
         return self.distance_to_center_to_distr(self.dist_to_center[vertex_hash])
 
@@ -115,13 +118,11 @@ class Generator:
         f.write("import Instance \nimport Vertex\nimport Agent\n")
         mountns = self.unpassable
         # f.write(mountns)
-        map1 = []
         for y in range(self.rows):
             for x in range(self.cols):
                 vertex_hash = self.xy_to_num(x, y)
                 if vertex_hash in mountns:
                     continue
-                map1.append("vertex" + str(vertex_hash))
                 f.write("vertex" + str(vertex_hash) + " = Vertex.Vertex(" + str(vertex_hash) + ")\n")
                 f.write("vertex" + str(vertex_hash) + ".distribution = ")
                 f.write(str(self.generate_distr(vertex_hash)) + "\n")
@@ -150,13 +151,17 @@ class Generator:
             agents.append("agent" + str(y))
 
         f.write("map1 = [")
-        for y in range(len(map1)):
-            if y < len(map1) - 1:
-                f.write(map1[y] + ", ")
-                if (y + 1) % self.cols == 0:
+        for y in range(self.rows):
+            for x in range(self.cols):
+                if x == 0:
                     f.write("\n        ")
-            else:
-                f.write(map1[y])
+                vertex_hash = self.xy_to_num(x, y)
+                vertex_str = "vertex" + str(vertex_hash) + ' ' * (
+                        len(str(self.rows * self.cols)) - len(str(vertex_hash)))
+                if vertex_hash in mountns:
+                    f.write(' '*len(vertex_str)+'  ')
+                else:
+                    f.write(vertex_str + ", ")
         f.write("]\n")
 
         f.write("agents = [")

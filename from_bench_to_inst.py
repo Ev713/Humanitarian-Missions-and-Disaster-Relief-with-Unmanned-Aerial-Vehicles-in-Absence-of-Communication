@@ -8,16 +8,16 @@ import os
 class BenchToMapGenerator(Generator):
 
     def __init__(self, path):
-        super().__init__('EMPTY')
+        super().__init__('MT')
         self.file = open(path)
         self.lines = [line for line in self.file]
         self.rows = int(self.lines[1].split(" ")[1])
         self.cols = int(self.lines[2].split(" ")[1])
         self.map = self.extract_map()
-        self.FACTOR = 8
+        self.FACTOR = 6
         self.reduce_map()
         self.unpassable = self.get_unpassable()
-        self.name = str(self.rows)+"X"+str(self.cols)+os.path.basename(path).split('.')[0]+".py"
+        self.name = '_'+str(self.rows)+"X"+str(self.cols)+self.type+os.path.basename(path).split('.')[0]+".py"
         self.file.close()
 
     def map_to_string(self):
@@ -28,11 +28,12 @@ class BenchToMapGenerator(Generator):
                     string += ' '
                 else:
                     string += '■'
-            string += '\n'
+            string += '■\n'
         return string
 
+
     def generate_init_loc(self, agent_hash):
-        for l in range(self.rows*self.cols):
+        for l in range(1, self.rows*self.cols):
             if l not in self.unpassable:
                 return l
 
@@ -72,12 +73,12 @@ class BenchToMapGenerator(Generator):
         unpassable = []
         for y in range(len(self.map)):
             for x in range(len(self.map[y])):
-                if self.map[y][x] == 'T':
+                if self.map[y][x] != '.':
                     unpassable.append(self.xy_to_num(x, y))
         return unpassable
 
 
-G = BenchToMapGenerator("maps/hillsofglory.map")
+G = BenchToMapGenerator("maps/orz107d.map")
 
 f = open("ready_maps/"+G.name, "w")
 G.gen_map(f)

@@ -9199,8 +9199,8 @@ vertex4093.neighbours = [vertex4094, vertex4092, vertex4029]
 vertex4094.neighbours = [vertex4095, vertex4093, vertex4030]
 vertex4095.neighbours = [vertex4096, vertex4094, vertex4031]
 vertex4096.neighbours = [vertex4095, vertex4032]
-agent0 = Agent.Agent(0, vertex0, 4, 3)
-agent1 = Agent.Agent(1, vertex0, 4, 3)
+agent0 = Agent.Agent(0, vertex65, 4, 3)
+agent1 = Agent.Agent(1, vertex65, 4, 3)
 map1 = [vertex65, vertex66, vertex67, vertex68, vertex69, vertex70, vertex71, vertex72, vertex73, vertex74, vertex75, vertex76, vertex77, vertex78, vertex79, vertex80, vertex81, vertex82, vertex83, vertex84, vertex85, vertex86, vertex87, vertex88, vertex89, vertex90, vertex91, vertex92, vertex93, vertex94, vertex95, vertex96, vertex97, vertex98, vertex99, vertex100, vertex101, vertex102, vertex103, vertex104, vertex105, vertex106, vertex107, vertex108, vertex109, vertex110, vertex111, vertex112, vertex113, vertex114, vertex115, vertex116, vertex117, vertex118, vertex119, vertex120, vertex121, vertex122, vertex123, vertex124, vertex125, vertex126, vertex127, vertex128, 
         vertex129, vertex130, vertex138, vertex139, vertex140, vertex145, vertex146, vertex147, vertex148, vertex149, vertex150, vertex151, vertex153, vertex154, vertex155, vertex156, vertex157, vertex158, vertex159, vertex160, vertex163, vertex164, vertex167, vertex169, vertex170, vertex173, vertex174, vertex175, vertex176, vertex177, vertex178, vertex180, vertex181, vertex182, vertex183, vertex184, vertex185, vertex186, vertex187, vertex188, vertex189, vertex190, vertex191, vertex192, vertex193, vertex194, vertex199, vertex204, vertex205, vertex208, vertex209, vertex210, vertex211, vertex216, vertex217, vertex218, vertex219, vertex220, vertex223, vertex224, vertex226, vertex233, vertex237, vertex238, 
         vertex239, vertex240, vertex242, vertex245, vertex246, vertex247, vertex248, vertex249, vertex250, vertex251, vertex252, vertex253, vertex254, vertex255, vertex256, vertex257, vertex258, vertex308, vertex309, vertex310, vertex311, vertex312, vertex313, vertex314, vertex315, vertex316, vertex317, vertex318, vertex319, vertex320, vertex321, vertex322, vertex367, vertex373, vertex374, vertex375, vertex376, vertex377, vertex378, vertex379, vertex380, vertex381, vertex382, vertex383, vertex384, vertex385, vertex386, vertex428, vertex429, vertex430, vertex431, vertex432, vertex433, vertex437, vertex438, vertex439, vertex440, vertex441, vertex442, vertex443, vertex444, vertex445, vertex446, vertex447, 
@@ -9251,3 +9251,70 @@ map1 = [vertex65, vertex66, vertex67, vertex68, vertex69, vertex70, vertex71, ve
         vertex4039, vertex4040, vertex4041, vertex4042, vertex4043, vertex4044, vertex4045, vertex4046, vertex4047, vertex4048, vertex4049, vertex4050, vertex4051, vertex4052, vertex4053, vertex4054, vertex4055, vertex4056, vertex4057, vertex4058, vertex4059, vertex4060, vertex4061, vertex4062, vertex4063, vertex4064, vertex4065, vertex4066, vertex4067, vertex4068, vertex4069, vertex4070, vertex4071, vertex4072, vertex4073, vertex4074, vertex4075, vertex4076, vertex4077, vertex4078, vertex4079, vertex4080, vertex4081, vertex4082, vertex4083, vertex4084, vertex4085, vertex4086, vertex4087, vertex4088, vertex4089, vertex4090, vertex4091, vertex4092, vertex4093, vertex4094, vertex4095, vertex4096]
 agents = [agent0, agent1]
 instance1 = Instance.Instance(map1, agents, 4)
+'''
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ ■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■      ■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ ■■■      ■■■■■■■■■■■■■■
+■■■■■■■■■ ■■  ■■■■■■■■■■■■■■■■■■■■■■■  ■          ■■■■■■■■■■■■■■
+■■■■■■■         ■■■■■■■■■■■■■■■■■■■■■■            ■■■■■■■■■■■■■■
+■■■■■■■■        ■■■■■     ■■■■■■■ ■■■■            ■■■■■■■■■■■■■■
+■■■■■■■■        ■■■■      ■■■■■■    ■■            ■■■■■■■■■■■■■■
+■■■■■■■■        ■■■         ■■■■            ■      ■■■■■■■■■■■■■
+■■■■■■■■        ■■■■         ■■■■          ■       ■■■■■■■■■■■■■
+■■■■■■■■■       ■■            ■■■                  ■■■■■■■■■■■■■
+■■■■■■■■■       ■■            ■■■■                 ■■■■■■■■■■■■■
+■■■■■■■■■■■                   ■■■■■■         ■     ■■■■■■■■■■■■■
+■■■■■■■■■■■                    ■■■■■         ■■    ■■■■■■■■■■■■■
+■■■■■■■■■■                      ■ ■         ■ ■ ■■■■■■■■■■■■■■■■
+■■■■■■■■■                                   ■■  ■■■■■■■■■■■■■■■■
+■■■■■■■■■■        ■■■■■■                ■   ■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■    ■■■■■■■■■               ■   ■■■■■■■■■■■■■■■■■■■■
+■■■■■■  ■■■■      ■ ■■■■■■             ■    ■■■■■■■■■■■■■■■■■■■■
+■■■■■   ■■■■           ■■■■■           ■■    ■■■■■■■■■■■■■■■■■■■
+■■■■■  ■■■■■              ■■■■          ■     ■■■■■■■■■■■■■■■■■■
+■■■■■■  ■■■■■■            ■■ ■    ■■          ■■■■■■■■■■■■■■■■■■
+■■■■■■■   ■■■■              ■■■■■ ■         ■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■ ■■■■■               ■■■■■■■         ■■■■■■■■■■■■■■■■■■■
+■■■■■■■■   ■       ■           ■■■          ■■■ ■■■■■■■■■■■■■■■■
+■■■■■■■■          ■■                        ■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■                ■■           ■■■     ■■■■■■■■■■■■■■■■■■■
+■■■■■■■■                ■■           ■■■      ■■■■■■■■■■■■■■■■■■
+■■■■■■■■                ■■          ■          ■■■■■■■■■■■■■■■■■
+■■■■■■                  ■■          ■■         ■■■■■■■■■■■■■■■■■
+■■■■■■■■■■          ■■  ■■■         ■■        ■    ■■■■■■■■■■■■■
+■■■■■■■■■■          ■■  ■■■■        ■■■■     ■■■■■ ■■■■■■■■■■■■■
+■■■■■■   ■■■■■■      ■■■■■■■■■       ■■■    ■■■■■■ ■■■■■■■■■■■■■
+■■■■■■■■ ■■■■■■       ■■■■■■■■      ■■■     ■■■■■■ ■■■■■■■■■■■■■
+■■■■■     ■             ■■  ■■■■                ■■■■■■■■■■■■■■■■
+■■■■                         ■■■                ■■■■■■■■■■■■■■■■
+■■■■            ■■            ■■■■              ■■■■■■■■■■■■■■■■
+■■■■           ■■■■  ■         ■■■■           ■■■■■■■■■■■■■■■■■■
+■■■■           ■■■■■■■■         ■■■■          ■■■■■■■■■■■■■■■■■■
+■■■■           ■■■■■■■          ■■■■           ■■■■■■■■■■■■■■■■■
+■■■■            ■■■■■■                          ■■■■■■■■■■■■■■■■
+■■■■■           ■■■■■■                         ■■■■■■■■■■■■■■■■■
+■■■■■           ■■■■■■                  ■■      ■■■■■■■■■■■■■■■■
+■■■■■           ■■■■■■■■                ■■     ■■■■■■■■■■■■■■■■■
+■■■■■■      ■■■■■■■■■■■■■■■■■   ■■■■   ■■■■■ ■  ■■■■■■■■■■■■■■■■
+■■■■■■■■  ■■■■■■■■■■■■■■■■■■■   ■■■■  ■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+'''

@@ -32,7 +32,7 @@ class DetInstance(Instance.Instance):
             else:
                 a_loc_hash = state.path[a_hash][time].loc
                 a_loc = self.map_map[a_loc_hash]
-                agent_actions[a_hash] = [State.Position(a_hash, b) for b in fly_by_options] +\
+                agent_actions[a_hash] = [State.Position(a_loc_hash, b) for b in fly_by_options] +\
                                         [State.Position(n.hash(), b) for n in a_loc.neighbours for b in fly_by_options]
 
 
