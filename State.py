@@ -54,60 +54,79 @@ class StochState(State):
     def __init__(self, instance=None):
         super().__init__()
         self.a_pos = {}
-        self.matrices = {}  # a.hash(): Matrix
-        self.distr = {}  # v.hash(): probability
         self.reward = None
         if instance is not None:
             for a in instance.agents:
                 self.time_left = instance.horizon
                 self.a_pos[a.hash()] = Position(a.loc.hash(), False)  # a.hash(): v.hash()
-                self.matrices[a.hash()] = MatricesFunctions.get_starting_matrix(a, a.loc)
-            for v_hash in instance.map_map:
-                self.distr[v_hash] = 1
 
     def __str__(self):
         return str((self.a_pos, self.time_left))
 
-    def copy(self):
-        copy_state = StochState()
-        copy_state.a_pos = copy.deepcopy(self.a_pos)
-        copy_state.matrices = copy.deepcopy(self.matrices)
-        copy_state.distr = copy.deepcopy(self.distr)
-        copy_state.time_left = self.time_left
-        return copy_state
-
     def hash(self):
-        return tuple([(key, str(self.a_pos[key])) for key in self.a_pos]),\
-               tuple([(key, str(self.matrices[key])) for key in self.matrices]),\
-               tuple([(key, str(self.distr[key])) for key in self.distr]),\
-               self.time_left
+        pass
+
+
+def dict_to_np_arr(dict):
+    if round(sum(dict.values()), 5) != 1:
+        raise Exception("Sum of probabilities in distribution must be 1")
+    arr = np.zeros((max([k for k in dict if dict[k] != 0]) + 1))
+    for k in dict:
+        if round(k) != k:
+            raise Exception("Number of targets must be an integer!")
+        if dict[k] != 0:
+            arr[k] = dict[k]
+    return arr
+
 
 class StochUisRState(StochState):
     def __init__(self, instance=None):
         super().__init__(instance)
         self.distr = {}
+        self.vectors = {}
         if instance is not None:
             for a in instance.agents:
-                self.matrices[a.hash()] = MatricesFunctions.get_starting_vector(a, a.loc)
+                self.vectors[a.hash()] = MatricesFunctions.get_starting_vector(a, a.loc)
             for v_hash in instance.map_map:
-                self.distr[v_hash] = self.dict_to_np_arr(instance.map_map[v_hash].distribution.copy())
-
-    def dict_to_np_arr(self, dict):
-
-        if round(sum(dict.values()), 5) != 1:
-            raise Exception("Sum of probabilities in distribution must be 1")
-        arr = np.zeros((max([k for k in dict if dict[k] != 0])+1))
-        for k in dict:
-            if round(k) != k:
-                raise Exception("Number of targets must be an integer!")
-            if dict[k] != 0:
-                arr[k] = dict[k]
-        return arr
+                self.distr[v_hash] = dict_to_np_arr(instance.map_map[v_hash].distribution.copy())
 
     def copy(self):
         copy_state = StochUisRState()
         copy_state.a_pos = copy.deepcopy(self.a_pos)
-        copy_state.matrices = copy.deepcopy(self.matrices)
+        copy_state.matrices = copy.deepcopy(self.vectors)
         copy_state.distr = copy.deepcopy(self.distr)
         copy_state.time_left = self.time_left
         return copy_state
+
+    def hash(self):
+        return str(self), tuple([(a, str(self.vectors[a])) for a in self.vectors]), \
+               tuple([(v, str(self.distr[v])) for v in self.distr])
+
+
+class StochU1RState(StochState):
+    def __init__(self, instance=None):
+        super().__init__(instance)
+        self.thetas = {}  # v_hash: [0, 1]
+        self.matrices = {}  # a_hash: np.array((max_r, max_u))
+        if instance is not None:
+            for a in instance.agents:
+                self.matrices[a.hash()] = MatricesFunctions.get_starting_matrix(a, a.loc)
+            for v_hash in instance.map_map:
+                self.thetas[v_hash] = 1
+
+    def calculate_vertex_estimate(self, vrtx, instance=None):
+        theta = self.thetas[vrtx.hash()]
+        probs = instance.map_map[vrtx.hash()].distribution
+        return sum([theta * probs[i] * i for i in probs.keys()])
+
+    def copy(self):
+        copy_state = StochU1RState()
+        copy_state.a_pos = copy.deepcopy(self.a_pos)
+        copy_state.matrices = copy.deepcopy(self.matrices)
+        copy_state.thetas = copy.deepcopy(self.thetas)
+        copy_state.time_left = self.time_left
+        return copy_state
+
+    def hash(self):
+        return str(self), tuple([(a, str(self.matrices[a])) for a in self.matrices]), \
+               tuple([(v, str(self.thetas[v])) for v in self.thetas])

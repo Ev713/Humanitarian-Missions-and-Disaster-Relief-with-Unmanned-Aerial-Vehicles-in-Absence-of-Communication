@@ -3,24 +3,26 @@ import random
 
 import numpy as np
 
+
 class Generator:
-    def __init__(self):
+    def __init__(self, type):
         self.MAX_REWARD = 4
         self.cols = 8
         self.rows = 8
         self.NUM_OF_AGENTS = 2
         self.HORIZON = 4
         self.ACC = 3  # accuracy
-
-        self.NUM_OF_CENTERS = 5  # for mountain-top domain
-        self.decrease = 0.25
-        self.centers = None
-        self.dist_to_center = {}
-
         # types: FR, MT, IRL, AG, SC, 'EMPTY'
-        self.type = 'MT'
+        self.type = type
+        self.unpassable = None
+        if self.type == 'MT':
+            self.NUM_OF_CENTERS = 5  # for mountain-top domain
+            self.decrease = 0.25
+            self.centers = None
+            self.dist_to_center = {}
+        self.name = "grid" + str(self.cols) + "X" + str(self.rows) + self.type + ".py"
 
-    def generate_mountains(self):
+    def get_unpassable(self):
         return []
 
     def generate_init_loc(self, agent_hash):
@@ -41,10 +43,12 @@ class Generator:
     def generate_empty_distr(self):
         return {0: 1}
 
-    def generate_centers_and_distances(self):
+    def generate_centers(self):
         self.centers = set()
         while len(self.centers) != self.NUM_OF_CENTERS:
             self.centers.add(random.randint(1, self.rows * self.cols))
+
+    def generate_distances(self):
         level = 0
         next_level = self.centers
         for c in self.centers:
@@ -64,22 +68,20 @@ class Generator:
                     self.dist_to_center[v] = level
 
     def distance_to_center_to_distr(self, x):
-        return 1/(x+1)
+        return {1: round(1 / (x + 1), self.ACC), 0: round(x / (x + 1), self.ACC)}
 
     def generate_mountain_top_distr(self, vertex_hash):
         if self.centers is None:
-            self.generate_centers_and_distances()
-        return {1: round(self.distance_to_center_to_distr(self.dist_to_center[vertex_hash]), self.ACC)}
+            self.generate_centers()
+            self.generate_distances()
+        return self.distance_to_center_to_distr(self.dist_to_center[vertex_hash])
 
     def generate_distr(self, vertex_hash):
-        distr_size = np.random.randint(1, self.MAX_REWARD)
-        distr = {}
-
         match self.type:
             case 'FR':
                 return self.generate_full_random_distr(vertex_hash)
             case 'EMPTY':
-                self.generate_empty_distr()
+                return self.generate_empty_distr()
             case 'MT':
                 return self.generate_mountain_top_distr(vertex_hash)
 
@@ -103,16 +105,15 @@ class Generator:
         return 0 < num <= self.cols * self.rows
 
     def xy_is_legal(self, x, y):
-        b = 0 <= x < self.cols and 0 <= y < self.rows
-        return b
+        return 0 <= x < self.cols and 0 <= y < self.rows and self.xy_to_num(x, y) not in self.unpassable
 
     def num_to_xy(self, num):
         x, y = (num - 1) % self.cols, (num - 1) // self.cols
         return x, y
 
-    def gen_map(self):
+    def gen_map(self, f):
         f.write("import Instance \nimport Vertex\nimport Agent\n")
-        mountns = self.generate_mountains()  # (np.random.rand(dense) * n * m).round()
+        mountns = self.unpassable
         # f.write(mountns)
         map1 = []
         for y in range(self.rows):
@@ -143,7 +144,8 @@ class Generator:
         agents = []
         for y in range(self.NUM_OF_AGENTS):
             f.write(
-                "agent" + str(y) + " = Agent.Agent(" + str(y) + ", " + "vertex" + str(self.generate_init_loc(y)) + ", " +
+                "agent" + str(y) + " = Agent.Agent(" + str(y) + ", " + "vertex" + str(
+                    self.generate_init_loc(y)) + ", " +
                 str(self.generate_movement_budget(y)) + ", " + str(self.generate_utility_budget(y)) + ")\n")
             agents.append("agent" + str(y))
 
@@ -168,11 +170,13 @@ class Generator:
         f.write("instance1 = Instance.Instance(map1, agents, " + str(self.HORIZON) + ")\n")
 
 
-G = Generator()
+'''
+G = Generator('MT')
 filename = "grid" + str(G.cols) + "X" + str(G.rows)
 filename += G.type
 filename += ".py"
 f = open(filename, "w")
-G.gen_map()
+G.gen_map(f)
 f.close()
 print(filename + " added.")
+'''

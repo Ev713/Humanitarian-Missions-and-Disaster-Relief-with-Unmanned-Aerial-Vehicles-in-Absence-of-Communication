@@ -112,11 +112,11 @@ def new_matrix(mtrx, prob, theta):
     return new_matrix
 
 
-def update_distr_u1(matrix, distr):
-    return distr * sum(matrix[:, matrix.shape[1] - 1])
+def update_theta(matrix, theta):
+    return theta * sum(matrix[:, matrix.shape[1] - 1])
 
 
-def get_tot_reward(matrices):
+def get_matrices_reward(matrices):
     sum = 0
     for a_hash in matrices:
         m = matrices[a_hash]

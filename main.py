@@ -1,48 +1,18 @@
 import random
 
-import Agent
-import Instance
 import DetInstance
-import Instances
-import MatricesFunctions
 import Node
 import State
-from State import Position as p
-import Vertex
 import StochInstance
-from matplotlib import pyplot as plt
-import numpy as np
 
-import grid1X3_SIMPLE
-import grid3X3_CORNERS_SIMPLE
-import grid3X3_CORNERS
-import grid1X3_CORNERS
-import grid3X3_SIMPLE
-import grid2X1_VERY_SIMPLE
-import grid2X1_SIMPLE
-import grid2X2_SIMPLE
-import grid2X2_CORNERS
-import grid2X3_CORNERS
-import grid2X3
-import grid4X4_SIMPLE
-import WHY_FLYBYS_NEEDED
-import WHY_CONFIRMING_IS_USEFUL as map
-import grid5X5_CORNERS_SIMPLE
-import grid5X5_SIMPLE
-import grid6X6_CORNERS
-import grid2X2
-import grid5X5
-import grid3X3_EMPTY
-import grid6X6_EMPTY
-import grid10X10
-import grid4X4_EMPTY
+from ready_maps import WHY_CONFIRMING_IS_USEFUL as map
 
 NUMBER_OF_SIMULATIONS = 1000
 JUMP = NUMBER_OF_SIMULATIONS / min(NUMBER_OF_SIMULATIONS, 100)
 DISCOUNT = 1
 
 
-def zero(state):
+def zero(state, instance):
     return 100
 
 
@@ -51,6 +21,29 @@ class Solver:
         self.type = None
         self.dup_det = False
 
+    def Heuristics_U1(self, state, instance):
+        if self.type != 'U1S':
+            raise Exception("U1S type required!")
+        estimate_sum = 0
+        for agent in instance.agents:
+            current_vertex = state.a_pos[agent.hash()].loc
+            winner_list = []
+            for v in instance.map:
+                if v.hash() == current_vertex or instance.distance[(v.hash(), current_vertex)] > (
+                        agent.movement_budget - (instance.horizon - state.time_left)):
+                    continue
+                winner_list += [state.calculate_vertex_estimate(v, instance)]
+            winner_list = sorted(winner_list, reverse=True)
+
+            matrix = state.matrices[agent.hash()]
+            ##print(matrix)
+            for j in range(matrix.shape[0]):
+                for k in range(matrix.shape[1] - 1):
+                    for t in range(min(matrix.shape[1] - 1, len(winner_list) - k)):
+                        estimate_sum += matrix[j][k] * winner_list[t]
+            ##estimate_sum += state.calculate_estimate(winner_list[i])
+        return estimate_sum
+
     def bfs(self, def_inst):
         return self.bnb(def_inst, zero)
 
@@ -58,6 +51,7 @@ class Solver:
         root = Node.Node(None)
         best_node = root
         instance = self.make_instance(def_inst)
+        instance.calculate_distance_between_vertices()
         root.state = instance.initial_state.copy()
         que = [root]
         visited_states = set()
@@ -75,7 +69,8 @@ class Solver:
                             continue
                         visited_states.add(hash)
                     v = instance.reward(c.state)
-                    if v + heur(c.state) < best_value:
+                    h = heur(c.state, instance)
+                    if v + h < best_value:
                         continue
                     if v > best_value:
                         best_value = v
@@ -195,7 +190,8 @@ inst.flybys = False
 # stoch = solver.mcts(i)
 solver.type = "U1S"
 solver.dup_det = True 
-bfs = solver.bfs(inst)
+#bfs = solver.bfs(inst)
+bfs = solver.bnb(inst, solver.Heuristics_U1)
 print("Best path found with bfs is: ", bfs)
 print("Value of the best path found with bfs is: ", solver.evaluate_path(inst, bfs))
 

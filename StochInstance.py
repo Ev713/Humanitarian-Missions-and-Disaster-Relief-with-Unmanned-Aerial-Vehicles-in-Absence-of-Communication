@@ -27,16 +27,15 @@ class GenStochInstance(Instance.Instance):
         else:
             fly_by_options = [False]
         for a_hash in state.a_pos:
-
             a_loc = self.map_map[state.a_pos[a_hash].loc]
-            agent_actions[a_hash] = [State.Position(a_loc.hash(), b) for b in fly_by_options] +\
+            agent_actions[a_hash] = [State.Position(a_loc.hash(), b) for b in fly_by_options] + \
                                     [State.Position(n.hash(), b) for n in a_loc.neighbours for b in fly_by_options]
 
         actions = [a for a in Instance.product_dict(agent_actions)]
         return actions
 
     def get_default_state(self, instance):
-        return State.StochState(instance)
+        raise Exception("This method is abstract")
 
     def action_zero(self, zero_state):
         action_zero = {}
@@ -55,7 +54,8 @@ class U1StochInstance(GenStochInstance):
     def __init__(self, instance):
         super().__init__(instance)
 
-
+    def get_default_state(self, instance):
+        return State.StochU1RState(instance)
 
     def make_action(self, action, state):
         new_state = state.copy()
@@ -68,16 +68,16 @@ class U1StochInstance(GenStochInstance):
                 continue
             vertex_hash = action[a_hash].loc
             new_matrix = MatricesFunctions.new_matrix(state.matrices[a_hash], self.map_map[vertex_hash].distribution,
-                                                      new_state.distr[vertex_hash])
-            new_theta = MatricesFunctions.update_distr_u1(state.matrices[a_hash], new_state.distr[vertex_hash])
+                                                      new_state.thetas[vertex_hash])
+            new_theta = MatricesFunctions.update_theta(state.matrices[a_hash], new_state.thetas[vertex_hash])
             new_state.matrices[a_hash] = new_matrix
-            new_state.distr[vertex_hash] = new_theta
+            new_state.thetas[vertex_hash] = new_theta
         return new_state
 
     def reward(self, state):
         if state.reward is not None:
             return state.reward
-        state.reward = MatricesFunctions.get_tot_reward(state.matrices)
+        state.reward = MatricesFunctions.get_matrices_reward(state.matrices)
         return state.reward
 
 
@@ -98,9 +98,9 @@ class UisRStochInstance(GenStochInstance):
                     self.agents_map[a_hash].movement_budget < self.horizon - new_state.time_left:
                 continue
             vertex_hash = action[a_hash].loc
-            new_matrix = MatricesFunctions.stoch_subtract(state.matrices[a_hash], new_state.distr[vertex_hash])
+            new_vector = MatricesFunctions.stoch_subtract(state.matrices[a_hash], new_state.distr[vertex_hash])
             new_distr = MatricesFunctions.stoch_subtract(new_state.distr[vertex_hash], state.matrices[a_hash])
-            new_state.matrices[a_hash] = new_matrix
+            new_state.vectors[a_hash] = new_vector
             new_state.distr[vertex_hash] = new_distr
         return new_state
 
