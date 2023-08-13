@@ -11,19 +11,27 @@ class Generator:
         self.rows = 8
         self.NUM_OF_AGENTS = 2
         self.HORIZON = 6
-        self.ACC = 2 # accuracy
+        self.ACC = 2  # accuracy
         # types: FR, MT, IRL, AG, SC, 'EMPTY'
         self.type = type
         self.unpassable = None
-        if self.type == 'MT':
-            self.NUM_OF_CENTERS = 2  # for mountain-top domain
-            self.decrease = 0.5
-            self.centers = [13, 32]  # self.generate_centers()
-            self.dist_to_center = {}
+        match self.type:
+            case 'MT':
+                self.NUM_OF_CENTERS = 2  # for mountain-top domain
+                self.decrease = 0.5
+                self.centers = [13, 32]  # self.generate_centers()
+                self.dist_to_center = self.generate_dists(self.centers)
+            case 'AG':
+                self.unpassable = []
+                self.max_value = 10
+                self.min_value = 1
+                self.num_of_min_values = 9
+                a_locs = set([self.generate_init_loc(a) for a in range(self.NUM_OF_AGENTS)])
+                self.dists_to_agents = self.generate_dists(a_locs)
+                self.sorted_by_dists = sorted(self.dists_to_agents.keys(), key=lambda x:self.dists_to_agents[x])
+                self.big_vertex = self.sorted_by_dists[-1]
+                self.small_vertices = [self.sorted_by_dists[i] for i in range(len(a_locs), len(a_locs)+self.num_of_min_values)]
         self.name = "grid" + str(self.cols) + "X" + str(self.rows) + self.type + ".py"
-
-    def get_unpassable(self):
-        return []
 
     def generate_init_loc(self, agent_hash):
         return 1
@@ -48,15 +56,31 @@ class Generator:
         while len(self.centers) != self.NUM_OF_CENTERS:
             self.centers.add(random.randint(1, self.rows * self.cols))
 
-    def generate_distances(self):
-        level = 0
-        next_level = self.centers
-        for c in self.centers:
-            self.dist_to_center[c] = level
-            if c in self.unpassable or not self.num_is_legal(c):
-                raise Exception("Center "+str(c)+" assigned incorectly")
+    def each_connected_component_has_a_center(self, centers):
+        vertices = set(centers.copy())
+        while True:
+            new_vertices = set()
+            for v in vertices:
+                neighbours = set(self.get_neighbours(*self.num_to_xy(v)))
+                new_vertices = new_vertices.union(neighbours)
+            if new_vertices.issubset(vertices):
+                return False
+            vertices |= new_vertices
+            if len(vertices) == self.rows * self.cols - len(self.unpassable):
+                return True
 
-        while len(self.dist_to_center.keys()) != self.rows * self.cols - len(self.unpassable):
+    def generate_dists(self, centers):
+        if not self.each_connected_component_has_a_center(centers):
+            raise Exception("Some connected component has no center")
+        distances = {}
+        level = 0
+        next_level = centers
+        for c in centers:
+            distances[c] = level
+            if c in self.unpassable or not self.num_is_legal(c):
+                raise Exception("Center " + str(c) + " assigned incorectly")
+
+        while len(distances.keys()) != self.rows * self.cols - len(self.unpassable):
             level += 1
             prev_level = next_level.copy()
             next_level = set()
@@ -66,17 +90,19 @@ class Generator:
                 for n in ngbrs:
                     next_level.add(int(n))
             for v in next_level:
-                if v not in self.dist_to_center:
-                    self.dist_to_center[v] = level
+                if v not in distances:
+                    distances[v] = level
+        return distances
 
     def distance_to_center_to_distr(self, x):
-        return {1: round(1 * pow(self.decrease, (x + 1)), self.ACC), 0: round(1-pow(self.decrease, (x + 1)), self.ACC)}
+        return {1: round(1 * pow(self.decrease, (x + 1)), self.ACC),
+                0: round(1 - pow(self.decrease, (x + 1)), self.ACC)}
 
     def generate_mountain_top_distr(self, vertex_hash):
         if self.centers is None:
             self.generate_centers()
         if not self.dist_to_center:
-            self.generate_distances()
+            self.generate_dists(self.centers)
         return self.distance_to_center_to_distr(self.dist_to_center[vertex_hash])
 
     def generate_distr(self, vertex_hash):
@@ -87,6 +113,17 @@ class Generator:
                 return self.generate_empty_distr()
             case 'MT':
                 return self.generate_mountain_top_distr(vertex_hash)
+            case 'AG':
+                return self.generate_anti_greed_distr(vertex_hash)
+
+    def generate_anti_greed_distr(self, v):
+        if v == self.big_vertex:
+            return {self.max_value:1}
+        if v in self.small_vertices:
+            return {self.min_value:1}
+        else:
+            return {0: 1}
+
 
     def generate_utility_budget(self, agent_hash):
         return round(self.HORIZON * 2 / 3)
@@ -99,15 +136,15 @@ class Generator:
         return num
 
     def get_neighbours(self, x, y):
-        neighbours = []
         potential_neighbours = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
-        n = [int(self.xy_to_num(m, n)) for (m, n) in potential_neighbours if self.xy_is_legal(m, n)]
-        return n
+        return [int(self.xy_to_num(m, n)) for (m,n) in potential_neighbours if self.xy_is_legal(m,n)]
 
     def num_is_legal(self, num):
         return 0 < num <= self.cols * self.rows
 
     def xy_is_legal(self, x, y):
+        if self.unpassable is None:
+            raise Exception("Failed to check legality because unpassable is not defined yet")
         return 0 <= x < self.cols and 0 <= y < self.rows and self.xy_to_num(x, y) not in self.unpassable
 
     def num_to_xy(self, num):
@@ -159,7 +196,7 @@ class Generator:
                 vertex_str = "vertex" + str(vertex_hash) + ' ' * (
                         len(str(self.rows * self.cols)) - len(str(vertex_hash)))
                 if vertex_hash in mountns:
-                    f.write(' '*len(vertex_str)+'  ')
+                    f.write(' ' * len(vertex_str) + '  ')
                 else:
                     f.write(vertex_str + ", ")
         f.write("]\n")
@@ -175,13 +212,10 @@ class Generator:
         f.write("instance1 = Instance.Instance(map1, agents, " + str(self.HORIZON) + ")\n")
 
 
-'''
-G = Generator('MT')
-filename = "grid" + str(G.cols) + "X" + str(G.rows)
-filename += G.type
-filename += ".py"
-f = open(filename, "w")
+
+G = Generator('AG')
+f = open("ready_maps/"+G.name, "w")
 G.gen_map(f)
 f.close()
-print(filename + " added.")
-'''
+print(G.name + " added.")
+

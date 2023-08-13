@@ -13,6 +13,9 @@ DISCOUNT = 1
 
 
 def zero(state, instance):
+    return 0
+
+def hundred(state, instance):
     return 100
 
 
@@ -44,10 +47,105 @@ class Solver:
             ##estimate_sum += state.calculate_estimate(winner_list[i])
         return estimate_sum
 
-    def bfs(self, def_inst):
-        return self.bnb(def_inst, zero)
+    def get_greedy_bound_UR(self, movement_budget, current_vertex, state, instance, used_vertex, probs):
+        if movement_budget == 0:
+            return 0
+        if (len(probs) == 0):
+            return 0
+        winner_list = []
+        for v in instance.map:
+            if v.hash() == current_vertex or instance.distance[(v.hash(), current_vertex)] > (
+                    movement_budget - (instance.horizon - state.time_left)):
+                continue
+            winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
+            used_vertex[v.hash()] = 0
+        winner_list = sorted(winner_list, reverse=True)
+        i = 0
+        while i < len(winner_list) and ([winner_list[i]][1] >= 1 or winner_list[i][0] >= len(probs)):
+            i += 1
+        if i == len(winner_list):
+            return 0
+        if (winner_list[i][0] >= len(probs)):
+            return 0
+        used_vertex[winner_list[i][1]] += probs[0]
+        return winner_list[i][0] * probs[0] + self.get_greedy_bound_UR(movement_budget - 1, winner_list[i][1], state,
+                                                                       instance, probs[round(winner_list[i][0]):])
 
-    def bnb(self, def_inst, heur):
+    def Lower_bound_UR(self, state, instance):
+        if self.type != 'URS':
+            raise Exception("URS type required!")
+        estimate_sum = 0
+        used_vertex = {}
+        for agent in instance.agents:
+            current_vertex = state.a_pos[agent.hash()].loc
+            winner_list = []
+            for v in instance.map:
+                if v.hash() == current_vertex or instance.distance[(v.hash(), current_vertex)] > (
+                        agent.movement_budget - (instance.horizon - state.time_left)):
+                    continue
+                winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
+                used_vertex[v.hash()] = 0
+            winner_list = sorted(winner_list, reverse=True)
+
+            matrix = state.matrices[agent.hash()]
+            ##print(matrix)
+            for j in range(matrix.shape[0]):
+                for k in range(matrix.shape[1] - 1):
+                    estimate_sum += self.get_greedy_bound_UR(
+                        min(matrix.shape[1] - k, agent.movement_budget - (instance.horizon - state.time_left)),
+                        current_vertex, state, instance, used_vertex, matrix[j][k:])
+            ##estimate_sum += state.calculate_estimate(winner_list[i])
+        return estimate_sum
+
+    def get_greedy_bound_U1(self, movement_budget, current_vertex, state, instance, used_vertex, probs):
+        if movement_budget == 0:
+            return 0
+        winner_list = []
+        for v in instance.map:
+            if v.hash() == current_vertex or instance.distance[(v.hash(), current_vertex)] > (
+                    movement_budget - (instance.horizon - state.time_left)):
+                continue
+            winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
+            used_vertex[v.hash()] = 0
+        winner_list = sorted(winner_list, reverse=True)
+        i = 0
+        while i < len(winner_list) and used_vertex[winner_list[i][1]] >= 1:
+            i += 1
+        if i == len(winner_list):
+            return 0
+        used_vertex[winner_list[i][1]] += probs[0]
+        return winner_list[i][0] * probs[0] + self.get_greedy_bound_U1(movement_budget - 1, winner_list[i][1], state,
+                                                                       instance, used_vertex, probs[1:])
+
+    def Lower_bound_U1(self, state, instance):
+        if self.type != 'U1S':
+            raise Exception("U1S type required!")
+        estimate_sum = 0
+        used_vertex = {}
+        for agent in instance.agents:
+            current_vertex = state.a_pos[agent.hash()].loc
+            winner_list = []
+            for v in instance.map:
+                if v.hash() == current_vertex or instance.distance[(v.hash(), current_vertex)] > (
+                        agent.movement_budget - (instance.horizon - state.time_left)):
+                    continue
+                winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
+                used_vertex[v.hash()] = 0
+            winner_list = sorted(winner_list, reverse=True)
+            matrix = state.matrices[agent.hash()]
+            ##print(matrix)
+            for j in range(matrix.shape[0]):
+                for k in range(matrix.shape[1] - 1):
+                    estimate_sum += self.get_greedy_bound_U1(
+                        min(matrix.shape[1] - k, agent.movement_budget - (instance.horizon - state.time_left)), current_vertex,
+                        state, instance, used_vertex, matrix[j][k:])
+        return estimate_sum
+
+
+    def bfs(self, def_inst):
+            return self.bnb(def_inst, hundred, zero)
+
+    def bnb(self, def_inst, heur, lower_bound):
         root = Node.Node(None)
         best_node = root
         instance = self.make_instance(def_inst)
@@ -69,19 +167,20 @@ class Solver:
                             continue
                         visited_states.add(hash)
                     v = instance.reward(c.state)
-                    h = heur(c.state, instance)
-                    if v + h < best_value:
+                    up = heur(c.state, instance)
+                    low = lower_bound(best_node.state, instance)
+                    if v + up < best_value+low:
                         continue
                     if v > best_value:
                         best_value = v
                         best_node = c
                     que = [c]+que
 
-        if self.dup_det:
-            print("Checked states", len(visited_states))
-        else:
-            print("Number of states", num_of_states)
-        return best_node.get_path()
+            if self.dup_det:
+                print("Checked states", len(visited_states))
+            else:
+                print("Number of states", num_of_states)
+            return best_node.get_path()
 
     def make_instance(self, def_inst):
         if self.type == "U1D":
