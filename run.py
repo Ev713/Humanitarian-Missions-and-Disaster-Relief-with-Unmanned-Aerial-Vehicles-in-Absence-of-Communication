@@ -93,7 +93,7 @@ def main():
 
     data_to_append = []
     args = sys.argv[1:]
-    inst = instance_collector.instances[int(args[0])]
+    inst = instance_collector.instances[0]
     df = pd.DataFrame(columns=["run", "final result", "time", "result"])
     for flybys in [True, False]:
         inst.flybys = flybys

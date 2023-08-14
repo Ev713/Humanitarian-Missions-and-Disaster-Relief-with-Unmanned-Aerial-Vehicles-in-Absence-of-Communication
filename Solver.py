@@ -4,7 +4,7 @@ import DetInstance
 import Node
 import State
 import StochInstance
-from very_ready_maps import grid8FR as map
+
 
 def zero(state, instance):
     return 0
