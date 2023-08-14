@@ -37,6 +37,7 @@ class Generator:
                 self.small_vertices = [self.sorted_by_dists[i] for i in
                                        range(len(self.a_locs), len(self.a_locs) + self.num_of_min_values)]
                 self.HORIZON = max(self.dists_to_agents.values())
+                self.actual_horizon = self.HORIZON
         self.name_no_py = "grid" + name + self.type
         self.name = self.name_no_py + ".py"
 
@@ -47,10 +48,10 @@ class Generator:
             return 1
 
     def generate_full_random_distr(self, vertex_hash):
-        try:
-            distr_size = np.random.randint(1, self.MAX_REWARD)
-        except:
-            distr_size = 1
+        if self.MAX_REWARD>1:
+            distr_size = random.randint(2, self.MAX_REWARD+1)
+        else:
+            distr_size = random.randint(1, 2)
         distr = {}
         if distr_size == 1:
             return {0: 1}
@@ -108,7 +109,7 @@ class Generator:
         return distances
 
     def distance_to_center_to_distr(self, x):
-        return {1: round(1 * pow(self.decrease, (x + 1)), self.ACC),
+        return {1: round( pow(self.decrease, (x + 1)), self.ACC),
                 0: round(1 - pow(self.decrease, (x + 1)), self.ACC)}
 
     def generate_mountain_top_distr(self, vertex_hash):
@@ -133,25 +134,27 @@ class Generator:
 
     def generate_sc_distr(self, v):
         x, y = self.num_to_xy(v)
-        if x == 0 or y == 0 or x == cols or y == rows:
+        if x == 0 or y == 0 or x == self.cols or y == self.rows:
             return {1: 1}
         else:
             return {0: 1}
 
     def generate_anti_greed_distr(self, v):
         if v == self.big_vertex:
-            return {self.max_value: 1}
+            return {self.max_value*10: 0.1, 0:0.9}
         if v in self.small_vertices:
             return {self.min_value: 1}
         else:
             return {0: 1}
 
     def generate_utility_budget(self, agent_hash):
-        return random.randint(1, self.HORIZON)
+        return max(random.randint(1, self.HORIZON), 3)
 
     def generate_movement_budget(self, agent_hash):
+        if self.type == 'AG':
+            return self.HORIZON
         try:
-            mb = random.randint(int(self.HORIZON * 0.5), self.HORIZON)
+            mb = max(random.randint(int(self.HORIZON * 0.5), self.HORIZON), 2)
         except:
             mb = self.HORIZON
         if self.actual_horizon is None or mb > self.actual_horizon:
@@ -239,16 +242,16 @@ class Generator:
         f.write("instance1 = Instance.Instance(\"" + self.name_no_py + "\", map1, agents, " + str(
             self.actual_horizon) + ")\n")
 
-
+'''
 for type in ['FR', 'SC', 'AG', 'MT']:
-    for size in range(2, 20):
+    for size in range(2, 25):
         if type == 'AG' and size < 3:
             continue
         cols = max(random.randint(int(size * 0.75), int(size * 1.25)), 2)
         rows = max(random.randint(round(size * 0.75), round(size * 1.25)), 2)
         agents = max((cols + rows) // 5, 1)
         hor = max(random.randint(int(size * 0.9), int(size) * 2), 2)
-        mr = max(size // 2, 1)
+        mr = max(size // 2, 2)
         G = Generator(str(size), type, rows, cols, agents, hor)
         G.ACC = 4
         G.MAX_REWARD = mr
@@ -260,3 +263,4 @@ for type in ['FR', 'SC', 'AG', 'MT']:
         G.gen_map(f)
         f.close()
         print(G.name + " added.")
+'''

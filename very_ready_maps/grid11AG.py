@@ -220,27 +220,7 @@ vertex108.distribution = {0: 1}
 vertex109 = Vertex.Vertex(109)
 vertex109.distribution = {0: 1}
 vertex110 = Vertex.Vertex(110)
-vertex110.distribution = {0: 1}
-vertex111 = Vertex.Vertex(111)
-vertex111.distribution = {0: 1}
-vertex112 = Vertex.Vertex(112)
-vertex112.distribution = {0: 1}
-vertex113 = Vertex.Vertex(113)
-vertex113.distribution = {0: 1}
-vertex114 = Vertex.Vertex(114)
-vertex114.distribution = {0: 1}
-vertex115 = Vertex.Vertex(115)
-vertex115.distribution = {0: 1}
-vertex116 = Vertex.Vertex(116)
-vertex116.distribution = {0: 1}
-vertex117 = Vertex.Vertex(117)
-vertex117.distribution = {0: 1}
-vertex118 = Vertex.Vertex(118)
-vertex118.distribution = {0: 1}
-vertex119 = Vertex.Vertex(119)
-vertex119.distribution = {0: 1}
-vertex120 = Vertex.Vertex(120)
-vertex120.distribution = {7: 1}
+vertex110.distribution = {70: 0.1, 0: 0.9}
 vertex1.neighbours = [vertex2, vertex11]
 vertex2.neighbours = [vertex3, vertex1, vertex12]
 vertex3.neighbours = [vertex4, vertex2, vertex13]
@@ -341,30 +321,20 @@ vertex97.neighbours = [vertex98, vertex96, vertex107, vertex87]
 vertex98.neighbours = [vertex99, vertex97, vertex108, vertex88]
 vertex99.neighbours = [vertex100, vertex98, vertex109, vertex89]
 vertex100.neighbours = [vertex99, vertex110, vertex90]
-vertex101.neighbours = [vertex102, vertex111, vertex91]
-vertex102.neighbours = [vertex103, vertex101, vertex112, vertex92]
-vertex103.neighbours = [vertex104, vertex102, vertex113, vertex93]
-vertex104.neighbours = [vertex105, vertex103, vertex114, vertex94]
-vertex105.neighbours = [vertex106, vertex104, vertex115, vertex95]
-vertex106.neighbours = [vertex107, vertex105, vertex116, vertex96]
-vertex107.neighbours = [vertex108, vertex106, vertex117, vertex97]
-vertex108.neighbours = [vertex109, vertex107, vertex118, vertex98]
-vertex109.neighbours = [vertex110, vertex108, vertex119, vertex99]
-vertex110.neighbours = [vertex109, vertex120, vertex100]
-vertex111.neighbours = [vertex112, vertex101]
-vertex112.neighbours = [vertex113, vertex111, vertex102]
-vertex113.neighbours = [vertex114, vertex112, vertex103]
-vertex114.neighbours = [vertex115, vertex113, vertex104]
-vertex115.neighbours = [vertex116, vertex114, vertex105]
-vertex116.neighbours = [vertex117, vertex115, vertex106]
-vertex117.neighbours = [vertex118, vertex116, vertex107]
-vertex118.neighbours = [vertex119, vertex117, vertex108]
-vertex119.neighbours = [vertex120, vertex118, vertex109]
-vertex120.neighbours = [vertex119, vertex110]
-agent0 = Agent.Agent(0, vertex1, 20, 13)
-agent1 = Agent.Agent(1, vertex1, 15, 14)
-agent2 = Agent.Agent(2, vertex1, 18, 13)
-agent3 = Agent.Agent(3, vertex1, 16, 6)
+vertex101.neighbours = [vertex102, vertex91]
+vertex102.neighbours = [vertex103, vertex101, vertex92]
+vertex103.neighbours = [vertex104, vertex102, vertex93]
+vertex104.neighbours = [vertex105, vertex103, vertex94]
+vertex105.neighbours = [vertex106, vertex104, vertex95]
+vertex106.neighbours = [vertex107, vertex105, vertex96]
+vertex107.neighbours = [vertex108, vertex106, vertex97]
+vertex108.neighbours = [vertex109, vertex107, vertex98]
+vertex109.neighbours = [vertex110, vertex108, vertex99]
+vertex110.neighbours = [vertex109, vertex100]
+agent0 = Agent.Agent(0, vertex1, 19, 6)
+agent1 = Agent.Agent(1, vertex1, 19, 3)
+agent2 = Agent.Agent(2, vertex1, 19, 8)
+agent3 = Agent.Agent(3, vertex1, 19, 17)
 map1 = [
         vertex1  , vertex2  , vertex3  , vertex4  , vertex5  , vertex6  , vertex7  , vertex8  , vertex9  , vertex10 , 
         vertex11 , vertex12 , vertex13 , vertex14 , vertex15 , vertex16 , vertex17 , vertex18 , vertex19 , vertex20 , 
@@ -376,7 +346,6 @@ map1 = [
         vertex71 , vertex72 , vertex73 , vertex74 , vertex75 , vertex76 , vertex77 , vertex78 , vertex79 , vertex80 , 
         vertex81 , vertex82 , vertex83 , vertex84 , vertex85 , vertex86 , vertex87 , vertex88 , vertex89 , vertex90 , 
         vertex91 , vertex92 , vertex93 , vertex94 , vertex95 , vertex96 , vertex97 , vertex98 , vertex99 , vertex100, 
-        vertex101, vertex102, vertex103, vertex104, vertex105, vertex106, vertex107, vertex108, vertex109, vertex110, 
-        vertex111, vertex112, vertex113, vertex114, vertex115, vertex116, vertex117, vertex118, vertex119, vertex120, ]
+        vertex101, vertex102, vertex103, vertex104, vertex105, vertex106, vertex107, vertex108, vertex109, vertex110, ]
 agents = [agent0, agent1, agent2, agent3]
-instance1 = Instance.Instance("grid11AG", map1, agents, 20)
+instance1 = Instance.Instance("grid11AG", map1, agents, 19)

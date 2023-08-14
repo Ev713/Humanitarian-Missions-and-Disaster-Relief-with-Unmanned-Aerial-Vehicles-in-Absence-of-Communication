@@ -24,13 +24,7 @@ vertex10.distribution = {0: 1}
 vertex11 = Vertex.Vertex(11)
 vertex11.distribution = {0: 1}
 vertex12 = Vertex.Vertex(12)
-vertex12.distribution = {0: 1}
-vertex13 = Vertex.Vertex(13)
-vertex13.distribution = {0: 1}
-vertex14 = Vertex.Vertex(14)
-vertex14.distribution = {0: 1}
-vertex15 = Vertex.Vertex(15)
-vertex15.distribution = {7: 1}
+vertex12.distribution = {70: 0.1, 0: 0.9}
 vertex1.neighbours = [vertex2, vertex4]
 vertex2.neighbours = [vertex3, vertex1, vertex5]
 vertex3.neighbours = [vertex2, vertex6]
@@ -40,18 +34,14 @@ vertex6.neighbours = [vertex5, vertex9, vertex3]
 vertex7.neighbours = [vertex8, vertex10, vertex4]
 vertex8.neighbours = [vertex9, vertex7, vertex11, vertex5]
 vertex9.neighbours = [vertex8, vertex12, vertex6]
-vertex10.neighbours = [vertex11, vertex13, vertex7]
-vertex11.neighbours = [vertex12, vertex10, vertex14, vertex8]
-vertex12.neighbours = [vertex11, vertex15, vertex9]
-vertex13.neighbours = [vertex14, vertex10]
-vertex14.neighbours = [vertex15, vertex13, vertex11]
-vertex15.neighbours = [vertex14, vertex12]
-agent0 = Agent.Agent(0, vertex1, 4, 2)
+vertex10.neighbours = [vertex11, vertex7]
+vertex11.neighbours = [vertex12, vertex10, vertex8]
+vertex12.neighbours = [vertex11, vertex9]
+agent0 = Agent.Agent(0, vertex1, 5, 3)
 map1 = [
         vertex1 , vertex2 , vertex3 , 
         vertex4 , vertex5 , vertex6 , 
         vertex7 , vertex8 , vertex9 , 
-        vertex10, vertex11, vertex12, 
-        vertex13, vertex14, vertex15, ]
+        vertex10, vertex11, vertex12, ]
 agents = [agent0]
-instance1 = Instance.Instance("grid4AG", map1, agents, 4)
+instance1 = Instance.Instance("grid4AG", map1, agents, 5)

@@ -61,7 +61,7 @@ vertex17.neighbours = [vertex18, vertex16, vertex12]
 vertex18.neighbours = [vertex19, vertex17, vertex13]
 vertex19.neighbours = [vertex20, vertex18, vertex14]
 vertex20.neighbours = [vertex19, vertex15]
-agent0 = Agent.Agent(0, vertex1, 5, 2)
+agent0 = Agent.Agent(0, vertex1, 5, 7)
 map1 = [
         vertex1 , vertex2 , vertex3 , vertex4 , vertex5 , 
         vertex6 , vertex7 , vertex8 , vertex9 , vertex10, 

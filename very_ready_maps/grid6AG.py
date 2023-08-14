@@ -64,23 +64,7 @@ vertex30.distribution = {0: 1}
 vertex31 = Vertex.Vertex(31)
 vertex31.distribution = {0: 1}
 vertex32 = Vertex.Vertex(32)
-vertex32.distribution = {0: 1}
-vertex33 = Vertex.Vertex(33)
-vertex33.distribution = {0: 1}
-vertex34 = Vertex.Vertex(34)
-vertex34.distribution = {0: 1}
-vertex35 = Vertex.Vertex(35)
-vertex35.distribution = {0: 1}
-vertex36 = Vertex.Vertex(36)
-vertex36.distribution = {0: 1}
-vertex37 = Vertex.Vertex(37)
-vertex37.distribution = {0: 1}
-vertex38 = Vertex.Vertex(38)
-vertex38.distribution = {0: 1}
-vertex39 = Vertex.Vertex(39)
-vertex39.distribution = {0: 1}
-vertex40 = Vertex.Vertex(40)
-vertex40.distribution = {7: 1}
+vertex32.distribution = {70: 0.1, 0: 0.9}
 vertex1.neighbours = [vertex2, vertex9]
 vertex2.neighbours = [vertex3, vertex1, vertex10]
 vertex3.neighbours = [vertex4, vertex2, vertex11]
@@ -105,29 +89,20 @@ vertex21.neighbours = [vertex22, vertex20, vertex29, vertex13]
 vertex22.neighbours = [vertex23, vertex21, vertex30, vertex14]
 vertex23.neighbours = [vertex24, vertex22, vertex31, vertex15]
 vertex24.neighbours = [vertex23, vertex32, vertex16]
-vertex25.neighbours = [vertex26, vertex33, vertex17]
-vertex26.neighbours = [vertex27, vertex25, vertex34, vertex18]
-vertex27.neighbours = [vertex28, vertex26, vertex35, vertex19]
-vertex28.neighbours = [vertex29, vertex27, vertex36, vertex20]
-vertex29.neighbours = [vertex30, vertex28, vertex37, vertex21]
-vertex30.neighbours = [vertex31, vertex29, vertex38, vertex22]
-vertex31.neighbours = [vertex32, vertex30, vertex39, vertex23]
-vertex32.neighbours = [vertex31, vertex40, vertex24]
-vertex33.neighbours = [vertex34, vertex25]
-vertex34.neighbours = [vertex35, vertex33, vertex26]
-vertex35.neighbours = [vertex36, vertex34, vertex27]
-vertex36.neighbours = [vertex37, vertex35, vertex28]
-vertex37.neighbours = [vertex38, vertex36, vertex29]
-vertex38.neighbours = [vertex39, vertex37, vertex30]
-vertex39.neighbours = [vertex40, vertex38, vertex31]
-vertex40.neighbours = [vertex39, vertex32]
-agent0 = Agent.Agent(0, vertex1, 7, 2)
-agent1 = Agent.Agent(1, vertex1, 11, 2)
+vertex25.neighbours = [vertex26, vertex17]
+vertex26.neighbours = [vertex27, vertex25, vertex18]
+vertex27.neighbours = [vertex28, vertex26, vertex19]
+vertex28.neighbours = [vertex29, vertex27, vertex20]
+vertex29.neighbours = [vertex30, vertex28, vertex21]
+vertex30.neighbours = [vertex31, vertex29, vertex22]
+vertex31.neighbours = [vertex32, vertex30, vertex23]
+vertex32.neighbours = [vertex31, vertex24]
+agent0 = Agent.Agent(0, vertex1, 10, 9)
+agent1 = Agent.Agent(1, vertex1, 10, 4)
 map1 = [
         vertex1 , vertex2 , vertex3 , vertex4 , vertex5 , vertex6 , vertex7 , vertex8 , 
         vertex9 , vertex10, vertex11, vertex12, vertex13, vertex14, vertex15, vertex16, 
         vertex17, vertex18, vertex19, vertex20, vertex21, vertex22, vertex23, vertex24, 
-        vertex25, vertex26, vertex27, vertex28, vertex29, vertex30, vertex31, vertex32, 
-        vertex33, vertex34, vertex35, vertex36, vertex37, vertex38, vertex39, vertex40, ]
+        vertex25, vertex26, vertex27, vertex28, vertex29, vertex30, vertex31, vertex32, ]
 agents = [agent0, agent1]
-instance1 = Instance.Instance("grid6AG", map1, agents, 11)
+instance1 = Instance.Instance("grid6AG", map1, agents, 10)

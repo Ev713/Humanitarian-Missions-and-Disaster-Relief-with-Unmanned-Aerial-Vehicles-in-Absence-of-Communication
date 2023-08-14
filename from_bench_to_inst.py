@@ -5,19 +5,21 @@ import numpy as np
 from generator import Generator
 import os
 
+
 class BenchToMapGenerator(Generator):
 
-    def __init__(self, path):
-        super().__init__('MT')
+    def __init__(self, path, type, name):
+        super().__init__(name, type, 100, 100, 2, 10)
         self.file = open(path)
         self.lines = [line for line in self.file]
         self.rows = int(self.lines[1].split(" ")[1])
         self.cols = int(self.lines[2].split(" ")[1])
         self.map = self.extract_map()
-        self.FACTOR = 6
+        self.FACTOR = 25
         self.reduce_map()
         self.unpassable = self.get_unpassable()
-        self.name = '_'+str(self.rows)+"X"+str(self.cols)+self.type+os.path.basename(path).split('.')[0]+".py"
+        self.name = '_' + str(self.rows) + "X" + str(self.cols) + self.type + os.path.basename(path).split('.')[
+            0] + ".py"
         self.file.close()
 
     def map_to_string(self):
@@ -31,21 +33,21 @@ class BenchToMapGenerator(Generator):
             string += '■\n'
         return string
 
-
     def generate_init_loc(self, agent_hash):
-        for l in range(1, self.rows*self.cols):
+        while True:
+            l = random.randint(1, self.rows * self.cols)
             if l not in self.unpassable:
                 return l
 
     def reduce_map(self):
         factor = self.FACTOR
         new_map = []
-        new_rows = math.floor(self.rows/factor)
-        new_cols = math.floor(self.cols/factor)
+        new_rows = math.floor(self.rows / factor)
+        new_cols = math.floor(self.cols / factor)
         for i in range(new_rows):
             row = []
             for j in range(new_cols):
-                c = self.map[math.floor(i*factor)][math.floor(j*factor)]
+                c = self.map[math.floor(i * factor)][math.floor(j * factor)]
                 row.append(c)
             new_map.append(row)
         print("Reduced map:")
@@ -53,7 +55,7 @@ class BenchToMapGenerator(Generator):
         self.cols = new_cols
         self.rows = new_rows
 
-        print (self.map_to_string())
+        print(self.map_to_string())
 
     def extract_map(self):
         map = []
@@ -78,9 +80,8 @@ class BenchToMapGenerator(Generator):
         return unpassable
 
 
-G = BenchToMapGenerator("maps/orz107d.map")
-
-f = open("ready_maps/"+G.name, "w")
-G.gen_map(f)
-f.close()
-print(G.name + " added.")
+for type in ['FR', 'MT']:
+    G = BenchToMapGenerator("maps/AR0604SR.map", type, "AR0604SR")
+    f = open("ready_maps/" + G.name, "w")
+    G.gen_map(f)
+    f.close()
