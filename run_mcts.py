@@ -50,42 +50,42 @@ def timeout_exec(search, inst, solver, timeout_duration=600, default='-'):
                 del it
                 return final_res, end - start, res
     except:
-        print()
+        #print()
         return default, default, default
 
 def run_mcts(inst, solver, default):
-    print("start " + inst.name)
+    #print("start " + inst.name)
     paths = solver.mcts(inst)
     p = tuple((solver.evaluate_path(inst, p) for p in paths))
     if not solver.interrupt_flag:
-        print("succesfully finished " + inst.name)
+        pass#print("succesfully finished " + inst.name)
     else:
-        print("Out of time")
+        #print("Out of time")
         solver.flag = False
     return p
 
 
 def run_bfs(inst, solver, default):
-    print("start " + inst.name)
+    #print("start " + inst.name)
     path = solver.bfs(inst)
     if not solver.interrupt_flag:
-        print("succesfully finished " + inst.name)
+        pass#print("succesfully finished " + inst.name)
     else:
-        print("Out of time")
+        #print("Out of time")
         solver.flag = False
     return solver.evaluate_path(inst, path)
 
 
 def run_bnb(inst, solver, default):
-    print("start " + inst.name)
+    #print("start " + inst.name)
     if solver.type == "U1S":
         path = solver.bnb(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
     elif solver.type == "URS":
         path = solver.bnb(inst, solver.Heuristics_UR, solver.Lower_bound_UR)
     if not solver.interrupt_flag:
-        print("succesfully finished " + inst.name)
+        pass#print("succesfully finished " + inst.name)
     else:
-        print("Out of time")
+        #print("Out of time")
         solver.flag = False
     return solver.evaluate_path(inst, path)
 

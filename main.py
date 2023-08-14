@@ -270,7 +270,7 @@ class Solver:
             # root.get_tree()
             # checking mid-rewards
             if t % self.JUMP == 0 or t == self.NUMBER_OF_SIMULATIONS - 1:
-                print(str(round(t / self.NUMBER_OF_SIMULATIONS * 100, 2)) + "%")
+                #print(str(round(t / self.NUMBER_OF_SIMULATIONS * 100, 2)) + "%")
                 node = root
                 while not node.state.is_terminal() and len(node.children) != 0:
                     node = node.highest_value_child()
