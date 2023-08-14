@@ -2586,6 +2586,79 @@ from ready_maps import _12X12FRAR0509SR
 instances.append(_12X12FRAR0509SR.instance1)
 from ready_maps import _12X12MTAR0509SR
 instances.append(_12X12MTAR0509SR.instance1)
+from ready_maps import _14X14FRAR0310SR
+instances.append(_14X14FRAR0310SR.instance1)
+from ready_maps import _14X14FRAR0410SR
+instances.append(_14X14FRAR0410SR.instance1)
+from ready_maps import _14X14MTAR0410SR
+instances.append(_14X14MTAR0410SR.instance1)
+from ready_maps import _16X16FRAR0412SR
+instances.append(_16X16FRAR0412SR.instance1)
+from ready_maps import _16X16FRAR0414SR
+instances.append(_16X16FRAR0414SR.instance1)
+from ready_maps import _16X16MTAR0412SR
+instances.append(_16X16MTAR0412SR.instance1)
+from ready_maps import _16X16MTAR0414SR
+instances.append(_16X16MTAR0414SR.instance1)
+from ready_maps import _17X17FRAR0042SR
+instances.append(_17X17FRAR0042SR.instance1)
+
+from ready_maps import _17X17FRAR0314SR
+instances.append(_17X17FRAR0314SR.instance1)
+
+
+from ready_maps import _17X17FRAR0513SR
+instances.append(_17X17FRAR0513SR.instance1)
+
+
+from ready_maps import _17X17MTAR0042SR
+instances.append(_17X17MTAR0042SR.instance1)
+
+
+from ready_maps import _17X17MTAR0314SR
+instances.append(_17X17MTAR0314SR.instance1)
+
+
+from ready_maps import _17X17MTAR0513SR
+instances.append(_17X17MTAR0513SR.instance1)
+
+from ready_maps import _20X20FRAR0604SR
+instances.append(_20X20FRAR0604SR.instance1)
+
+from ready_maps import _20X20MTAR0203SR
+instances.append(_20X20MTAR0203SR.instance1)
+
+from ready_maps import _20X20MTAR0506SR
+instances.append(_20X20MTAR0506SR.instance1)
+
+
+from ready_maps import _20X20MTAR0604SR
+instances.append(_20X20MTAR0604SR.instance1)
+
+
+from ready_maps import _25X25FRAR0516SR
+instances.append(_25X25FRAR0516SR.instance1)
+
+
+from ready_maps import _25X25MTAR0516SR
+instances.append(_25X25MTAR0516SR.instance1)
+
+
+from ready_maps import ble6X5isound1
+instances.append(ble6X5isound1.instance1)
+
+
+from ready_maps import WHY_CONFIRMING_IS_USEFUL
+instances.append(WHY_CONFIRMING_IS_USEFUL.instance1)
+
+
+from ready_maps import WHY_FLYBYS_NEEDED
+instances.append(WHY_FLYBYS_NEEDED.instance1)
+
+
+
+
+
 
 
 
