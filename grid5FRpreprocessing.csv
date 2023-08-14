@@ -1,0 +1,17 @@
+run,final result,time,result
+"('grid5FR', 5000, 'U1D', 'MCTS', True)",-,-,-
+"('grid5FR', 5000, 'U1S', 'MCTS', True)",-,-,-
+"('grid5FR', 5000, 'U1S', 'BFS', True)",-,-,-
+"('grid5FR', 5000, 'U1S', 'BNB', True)",-,0.010277986526489258,-
+"('grid5FR', 5000, 'URD', 'MCTS', True)",-,-,-
+"('grid5FR', 5000, 'URS', 'MCTS', True)",-,-,-
+"('grid5FR', 5000, 'URS', 'BFS', True)",-,-,-
+"('grid5FR', 5000, 'URS', 'BNB', True)",-,0.005277156829833984,-
+"('grid5FR', 5000, 'U1D', 'MCTS', False)",-,-,-
+"('grid5FR', 5000, 'U1S', 'MCTS', False)",-,-,-
+"('grid5FR', 5000, 'U1S', 'BFS', False)",-,-,-
+"('grid5FR', 5000, 'U1S', 'BNB', False)",-,0.011025190353393555,-
+"('grid5FR', 5000, 'URD', 'MCTS', False)",-,-,-
+"('grid5FR', 5000, 'URS', 'MCTS', False)",-,-,-
+"('grid5FR', 5000, 'URS', 'BFS', False)",-,-,-
+"('grid5FR', 5000, 'URS', 'BNB', False)",-,0.005277156829833984,-

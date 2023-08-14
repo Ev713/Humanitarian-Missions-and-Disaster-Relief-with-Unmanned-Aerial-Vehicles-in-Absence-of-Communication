@@ -1,14 +1,11 @@
-import csv
-import time
-
-import pd as pd
-
-import instance_collector
-import Solver
+import sys
 import pandas as pd
 
+import Solver
+import instance_collector
 
-def timeout_exec(search, inst, solver, timeout_duration=600, default='-'):
+
+def timeout_exec(search, inst, solver, timeout_duration=10, default='-'):
     """This function will spawn a thread and run the given function
     using the args, kwargs and return the given default value if the
     timeout_duration is exceeded.
@@ -44,62 +41,60 @@ def timeout_exec(search, inst, solver, timeout_duration=600, default='-'):
             del it
             return final_res, default, res
         else:
-                end = time.time()
-                res = it.result
-                final_res = res[-1] if search == 'MCTS' else res
-                del it
-                return final_res, end - start, res
+            end = time.time()
+            res = it.result
+            final_res = res[-1] if search == 'MCTS' else res
+            del it
+            return final_res, end - start, res
     except:
-        #print()
+        # print()
         return default, default, default
 
+
 def run_mcts(inst, solver, default):
-    #print("start " + inst.name)
+    # print("start " + inst.name)
     paths = solver.mcts(inst)
     p = tuple((solver.evaluate_path(inst, p) for p in paths))
     if not solver.interrupt_flag:
-        pass#print("succesfully finished " + inst.name)
+        pass  # print("succesfully finished " + inst.name)
     else:
-        #print("Out of time")
+        # print("Out of time")
         solver.flag = False
     return p
 
 
 def run_bfs(inst, solver, default):
-    #print("start " + inst.name)
+    # print("start " + inst.name)
     path = solver.bfs(inst)
     if not solver.interrupt_flag:
-        pass#print("succesfully finished " + inst.name)
+        pass  # print("succesfully finished " + inst.name)
     else:
-        #print("Out of time")
+        # print("Out of time")
         solver.flag = False
     return solver.evaluate_path(inst, path)
 
 
 def run_bnb(inst, solver, default):
-    #print("start " + inst.name)
+    # print("start " + inst.name)
     if solver.type == "U1S":
         path = solver.bnb(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
     elif solver.type == "URS":
         path = solver.bnb(inst, solver.Heuristics_UR, solver.Lower_bound_UR)
     if not solver.interrupt_flag:
-        pass#print("succesfully finished " + inst.name)
+        pass  # print("succesfully finished " + inst.name)
     else:
-        #print("Out of time")
+        # print("Out of time")
         solver.flag = False
     return solver.evaluate_path(inst, path)
 
 
-df = pd.DataFrame(columns=["run", "final result", "time", "result"])
+def main():
+    import time
 
-
-
-# Initialize an empty list to collect data
-data_to_append = []
-counter = 0
-# Loop over instances and num_of_sim
-for inst in instance_collector.instances:
-    # inst.map_reduce()
+    data_to_append = []
+    args = sys.argv[1:]
+    inst = instance_collector.instances[int(args[0])]
+    df = pd.DataFrame(columns=["run", "final result", "time", "result"])
     for flybys in [True, False]:
         inst.flybys = flybys
         for solver_type in ['U1D', 'U1S', 'URD', 'URS']:
@@ -107,65 +102,64 @@ for inst in instance_collector.instances:
             for algo in ['MCTS', 'BFS', 'BNB']:
                 if algo != 'MCTS' and (solver_type == 'U1D' or solver_type == 'URD'):
                     continue
-                for num_of_sim in [100, 1000, 10000]:
-                    solver = main.Solver()
+                for num_of_sim in [5000]:#[100, 500, 1000, 2000, 5000]:
+                    solver = Solver.Solver()
                     solver.type = solver_type
                     solver.NUMBER_OF_SIMULATIONS = num_of_sim
-                    fin_res, time, result = timeout_exec(algo, inst, solver)
+                    fin_res, exec_time, result = timeout_exec(algo, inst, solver)
                     if algo != 'MCTS':
                         break
                         # Append data to the list
                     data_to_append.append({"run": (inst.name, num_of_sim, solver_type, algo, flybys), "final result":
-                        fin_res, "time": time, "result": result})
+                        fin_res, "time": exec_time, "result": result})
+
+    # Concatenate the collected data to the DataFrame
+    df = pd.concat([df, pd.DataFrame(data_to_append)], ignore_index=True)
+
+    # Print the resulting DataFrame
+    print(df)
+    df.to_csv("no_preprocessing.csv", index=False)
 
 
 
-# Concatenate the collected data to the DataFrame
-df = pd.concat([df, pd.DataFrame(data_to_append)], ignore_index=True)
+    df = pd.DataFrame(columns=["run", "final result", "time", "result"])
 
-# Print the resulting DataFrame
-print(df)
-df.to_csv("no_preprocessing.csv", index=False)
+    data_to_append = []
+    preprocess_time = preprocess_names = []
+    # Loop over instances and num_of_sim
 
-
-data_to_append = []
-counter = 0
-preprocess_time=preprocess_names = []
-# Loop over instances and num_of_sim
-for inst in instance_collector.instances:
     start = time.time()
     inst.map_reduce()
     finish = time.time()
-    preprocess_time.append(finish-start)
+    preprocess_time.append(finish - start)
     preprocess_names.append(inst.name)
 
     for flybys in [True, False]:
         inst.flybys = flybys
         for solver_type in ['U1D', 'U1S', 'URD', 'URS']:
-
             for algo in ['MCTS', 'BFS', 'BNB']:
                 if algo != 'MCTS' and (solver_type == 'U1D' or solver_type == 'URD'):
                     continue
-                for num_of_sim in [100, 1000, 10000]:
-                    solver = main.Solver()
+                for num_of_sim in [5000]:#, 1000, 10000]:
+                    solver = Solver.Solver()
                     solver.type = solver_type
                     solver.NUMBER_OF_SIMULATIONS = num_of_sim
                     fin_res, time, result = timeout_exec(algo, inst, solver)
-                    if algo != 'MCTS':
-                        break
                         # Append data to the list
                     data_to_append.append({"run": (inst.name, num_of_sim, solver_type, algo, flybys), "final result":
                         fin_res, "time": time, "result": result})
+                    if algo != 'MCTS':
+                        break
+    df2 = pd.DataFrame({"prepproces_name": preprocess_names, "preprocess_time": preprocess_time})
+
+    # Concatenate the collected data to the DataFrame
+    df = pd.concat([df, pd.DataFrame(data_to_append)], ignore_index=True)
+
+    # Print the resulting DataFrame
+    print(df)
+    df.to_csv(inst.name + "preprocessing.csv", index=False)
+    df2.to_csv(inst.name + "preprocess_time", index=False)
 
 
-df2 = pd.DataFrame({"prepproces_name": preprocess_names, "preprocess_time":preprocess_time})
-
-# Concatenate the collected data to the DataFrame
-df = pd.concat([df, pd.DataFrame(data_to_append)], ignore_index=True)
-
-# Print the resulting DataFrame
-print(df)
-df.to_csv("preprocessing.csv", index=False)
-df2.to_csv("preprocess_time", index=False)
-
-
+if __name__ == "__main__":
+    main()
