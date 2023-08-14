@@ -93,7 +93,7 @@ class StochUisRState(StochState):
     def copy(self):
         copy_state = StochUisRState()
         copy_state.a_pos = copy.deepcopy(self.a_pos)
-        copy_state.matrices = copy.deepcopy(self.vectors)
+        copy_state.vectors = copy.deepcopy(self.vectors)
         copy_state.distr = copy.deepcopy(self.distr)
         copy_state.time_left = self.time_left
         return copy_state

@@ -29,7 +29,8 @@ def product_dict(dict):
 
 
 class Instance:
-    def __init__(self, map, agents, horizon):
+    def __init__(self, name, map, agents, horizon):
+        self.name = name
         self.map = map  # list of Vertices
         self.map_map = {v.hash(): v for v in map}
         self.agents = agents  # list of agents
@@ -39,10 +40,53 @@ class Instance:
         self.flybys = True
         self.check_sums_of_probs_is_0()
         self.distance = {}
+
+    def map_reduce(self):
+        self.calculate_distance_between_vertices()
+        useful_vertex = []
+        starting_pos = []
+        for i in self.agents:
+            starting_pos.append(i.loc)
+        for i in self.map:
+            if (i.distribution[0] < 1) or (i in starting_pos):
+                useful_vertex.append(i)
+        for i in range(len(useful_vertex)):
+            useful_vertex[i].neighbours = []
+            for j in range(len(useful_vertex)):
+                if (i != j):
+                    useful_vertex[i].neighbours.append(useful_vertex[j])
+
+        is_used = set()
+        for start in useful_vertex:
+            for end in useful_vertex:
+                queue = [(start, [])]
+                while (queue):
+                    cur, prev = queue.pop()
+                    if (cur == end):
+                        for t in prev:
+                            is_used.add(t)
+                        queue = []
+                    else:
+                        for t in cur.neighbours:
+                            queue.insert(0, (t, prev + [cur]))
+
+        new_map = []
+        for i in self.map:
+            if (i in is_used) or (i in useful_vertex):
+                ngbr = []
+                for j in i.neighbours:
+                    if (j in is_used) or (j in useful_vertex):
+                        ngbr.append(j)
+                i.neighbours = ngbr
+                new_map.append(i)
+
+        self.map = new_map
     def check_sums_of_probs_is_0(self):
         for v in self.map:
-            if 0 not in v.distribution:
-                v.distribution[0] = 0
+            try:
+                if 0 not in v.distribution:
+                    v.distribution[0] = 0
+            except: breakpoint()
             if round(sum(v.distribution.values()), 7)!=1:
                 raise Exception("Sum of vertex "+str(v)+"'s probabilities is not 0!")
 

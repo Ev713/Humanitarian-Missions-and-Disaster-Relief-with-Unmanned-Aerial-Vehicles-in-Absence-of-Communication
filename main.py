@@ -4,25 +4,39 @@ import DetInstance
 import Node
 import State
 import StochInstance
-
-from ready_maps import _8X5MTorz107d as map
-
-NUMBER_OF_SIMULATIONS = 50000
-JUMP = NUMBER_OF_SIMULATIONS / min(NUMBER_OF_SIMULATIONS, 100)
-DISCOUNT = 1
+from very_ready_maps import grid5X5agents_2hor_5mr5FR as map
 
 
 def zero(state, instance):
     return 0
 
+
 def hundred(state, instance):
     return 100
+
+
+class TimeoutException(Exception):
+    """Custom exception to represent a timeout."""
+    pass
 
 
 class Solver:
     def __init__(self):
         self.type = None
         self.dup_det = False
+
+        self.NUMBER_OF_SIMULATIONS = 5000
+        self.JUMP = self.NUMBER_OF_SIMULATIONS / min(self.NUMBER_OF_SIMULATIONS, 100)
+        self.DISCOUNT = 1
+        self.interupt_flag = False
+
+    def check_interuption(self):
+        if self.interupt_flag:
+            self.interupt_flag = False
+            raise TimeoutException
+
+    def interrupt(self):
+        self.interupt_flag = True
 
     def Heuristics_U1(self, state, instance):
         if self.type != 'U1S':
@@ -137,15 +151,17 @@ class Solver:
             for j in range(matrix.shape[0]):
                 for k in range(matrix.shape[1] - 1):
                     estimate_sum += self.get_greedy_bound_U1(
-                        min(matrix.shape[1] - k, agent.movement_budget - (instance.horizon - state.time_left)), current_vertex,
+                        min(matrix.shape[1] - k, agent.movement_budget - (instance.horizon - state.time_left)),
+                        current_vertex,
                         state, instance, used_vertex, matrix[j][k:])
         return estimate_sum
 
-
     def bfs(self, def_inst):
-            return self.bnb(def_inst, hundred, zero)
+        return self.bnb(def_inst, None, None)
 
     def bnb(self, def_inst, heur, lower_bound):
+        if self.type == 'URD' or self.type=='U1D':
+            raise Exception("Unfit type fro bfs")
         root = Node.Node(None)
         best_node = root
         instance = self.make_instance(def_inst)
@@ -156,6 +172,7 @@ class Solver:
         num_of_states = 0
         best_value = instance.reward(root.state)
         while que:
+            self.check_interuption()
             node = que.pop()
             if not node.state.is_terminal():
                 node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state)])
@@ -167,14 +184,16 @@ class Solver:
                             continue
                         visited_states.add(hash)
                     v = instance.reward(c.state)
-                    up = heur(c.state, instance)
-                    low = lower_bound(best_node.state, instance)
-                    if v + up < best_value+low:
-                        continue
+
+                    if heur is not None and lower_bound is not None:
+                        up = heur(c.state, instance)
+                        low = lower_bound(best_node.state, instance)
+                        if v + up < best_value + low:
+                            continue
                     if v > best_value:
                         best_value = v
                         best_node = c
-                    que = [c]+que
+                    que = [c] + que
 
             if self.dup_det:
                 print("Checked states", len(visited_states))
@@ -199,14 +218,14 @@ class Solver:
         paths = []
         root = Node.Node(None)
         best_value = 0
-        best_path  = None
+        best_path = None
 
         instance = self.make_instance(def_inst)
 
         root.state = instance.initial_state.copy()
 
-        for t in range(NUMBER_OF_SIMULATIONS):
-
+        for t in range(self.NUMBER_OF_SIMULATIONS):
+            self.check_interuption()
             node = root
             # selection
             while node.all_children_visited():
@@ -238,21 +257,21 @@ class Solver:
             if rollout_reward > best_value:
                 best_value = rollout_reward
                 best_path = path
-            discounted_reward = rollout_reward * pow(DISCOUNT, node.depth)
+            discounted_reward = rollout_reward * pow(self.DISCOUNT, node.depth)
             # backpropagation
             while True:
                 node.value = max(node.value, discounted_reward)
                 if node is root:
                     break
                 node = node.parent
-                discounted_reward /= DISCOUNT
+                discounted_reward /= self.DISCOUNT
 
             # showing tree
 
             # root.get_tree()
             # checking mid-rewards
-            if t % JUMP == 0 or t == NUMBER_OF_SIMULATIONS - 1:
-                print(str(round(t / NUMBER_OF_SIMULATIONS * 100, 2)) + "%")
+            if t % self.JUMP == 0 or t == self.NUMBER_OF_SIMULATIONS - 1:
+                #print(str(round(t / self.NUMBER_OF_SIMULATIONS * 100, 2)) + "%")
                 node = root
                 while not node.state.is_terminal() and len(node.children) != 0:
                     node = node.highest_value_child()
@@ -285,6 +304,13 @@ class Solver:
                 action = {a: path[a][t] for a in path}
                 state = instance.make_action(action, state)
             return instance.reward(state)
+        if self.type == "URD":
+            instance = DetInstance.DetUisRInstance(def_inst)
+            state = instance.initial_state.copy()
+            for t in range(1, len(list(path.values())[0])):
+                action = {a: path[a][t] for a in path}
+                state = instance.make_action(action, state)
+            return instance.reward(state)
         else:
             raise Exception("No recognised type!")
 
@@ -292,6 +318,8 @@ class Solver:
 def is_sorted_ascending(lst):
     return all(lst[i] <= lst[i + 1] for i in range(len(lst) - 1))
 
+
+'''
 
 solver = Solver()
 inst = map.instance1
@@ -301,12 +329,16 @@ inst.flybys = False
 
 solver.type = "U1S"
 solver.dup_det = True
-
+'''
+'''
 det = solver.mcts(inst)
 print("Best path found with det mcts is: ", det[-1])
 print("Value of the best path found with det mcts is: ", solver.evaluate_path(inst, det[-1]))
+'''
+'''
 
-bnb = solver.bnb(inst, solver.Heuristics_U1)
+
+bnb = solver.bnb(inst, hundred, zero)
 print("Best path found with bfs is: ", bnb)
 print("Value of the best path found with bfs is: ", solver.evaluate_path(inst, bnb))
 
@@ -316,9 +348,7 @@ sam = solver.mcts(inst)
 print("Best path found with det mcts is: ", sam[-1])
 print("Value of the best path found with det mcts is: ", solver.evaluate_path(inst, sam[-1]))
 
-
-
-'''solver.type = "U1D"
+solver.type = "U1D"
 det_u1 = solver.mcts(inst)
 solver.type = "U1S"
 stoch_u1 = solver.mcts(inst)
@@ -341,8 +371,9 @@ print(stoch_u1[-1])
 print(solver.evaluate_path(inst, stoch_u1[-1]))
 print("-------U1D-------")
 print(det_u1[-1])
-print(solver.evaluate_path(inst, det_u1[-1]))'''
-
+print(solver.evaluate_path(inst, det_u1[-1]))
+'''
+'''
 # print("Deterministically calculated value of det:", solver.evaluate_path_by_simulations(i, det[-1], 10000))
 # print("Stochastically calculated value of det:", solver.evaluate_path_with_matrices(i, det[-1]))
 # print("Deterministically calculated value of stoch:", solver.evaluate_path_by_simulations(i, stoch[-1], 10000))
@@ -363,4 +394,4 @@ print(solver.evaluate_path(inst, det_u1[-1]))'''
 # plt.scatter(x4, y4)
 # only Stoch:
 # plt.legend(["StochStoch", 'DetStoch'])  # , 'StochDet', 'DetDet'])
-# plt.show()
+# plt.show()'''

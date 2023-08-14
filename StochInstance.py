@@ -11,7 +11,7 @@ import MatricesFunctions
 
 class GenStochInstance(Instance.Instance):
     def __init__(self, instance):
-        super().__init__(instance.map, instance.agents, instance.horizon)
+        super().__init__(instance.name, instance.map, instance.agents, instance.horizon)
         self.map, self.map_map = instance.make_special_map_and_map_map(Vertex.Stoch_Vertex)
         self.agents, self.agents_map = instance.make_agents_and_agents_map(self.map_map, Agent.StochAgent)
         self.horizon = instance.horizon
@@ -97,15 +97,18 @@ class UisRStochInstance(GenStochInstance):
             if action[a_hash] is None or action[a_hash].flyby or \
                     self.agents_map[a_hash].movement_budget < self.horizon - new_state.time_left:
                 continue
-            vertex_hash = action[a_hash].loc
-            new_vector = MatricesFunctions.stoch_subtract(state.matrices[a_hash], new_state.distr[vertex_hash])
-            new_distr = MatricesFunctions.stoch_subtract(new_state.distr[vertex_hash], state.matrices[a_hash])
-            new_state.vectors[a_hash] = new_vector
-            new_state.distr[vertex_hash] = new_distr
+            try:
+                vertex_hash = action[a_hash].loc
+                new_vector = MatricesFunctions.stoch_subtract(state.vectors[a_hash], new_state.distr[vertex_hash])
+                new_distr = MatricesFunctions.stoch_subtract(new_state.distr[vertex_hash], state.vectors[a_hash])
+                new_state.vectors[a_hash] = new_vector
+                new_state.distr[vertex_hash] = new_distr
+            except:
+                breakpoint()
         return new_state
 
     def reward(self, state):
         if state.reward is not None:
             return state.reward
-        state.reward = MatricesFunctions.get_vectors_reward(state.matrices)
+        state.reward = MatricesFunctions.get_vectors_reward(state.vectors)
         return state.reward

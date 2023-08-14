@@ -1,6 +1,7 @@
 import math
 import State
 
+
 class Node:
     def __init__(self, state, parent=None):
         self.children = []
@@ -41,7 +42,7 @@ class Node:
 
     def get_stoch_path(self):
         node = self
-        path = {a:[]for a in self.state.a_pos}
+        path = {a: [] for a in self.state.a_pos}
         while True:
             for a in self.state.a_pos:
                 path[a].insert(0, node.state.a_pos[a])
@@ -51,7 +52,7 @@ class Node:
         return path
 
     def __str__(self):
-        return " R:"+str(self.value)+" "+str(self.state)
+        return " R:" + str(self.value) + " " + str(self.state)
 
     def uct(self, t, c):
         uct = self.value / self.times_visited + c * math.sqrt(math.log(t) / self.times_visited)
