@@ -1,3 +1,4 @@
+import csv
 import sys
 import pandas as pd
 
@@ -54,7 +55,7 @@ def timeout_exec(search, inst, solver, timeout_duration=10, default='-'):
 def run_mcts(inst, solver, default):
     # print("start " + inst.name)
     paths = solver.mcts(inst)
-    p = tuple((solver.evaluate_path(inst, p) for p in paths))
+    p = tuple((round(solver.evaluate_path(inst, p), 2) for p in paths))
     if not solver.interrupt_flag:
         pass  # print("succesfully finished " + inst.name)
     else:
@@ -93,7 +94,7 @@ def main():
 
     data_to_append = []
     args = sys.argv[1:]
-    inst = instance_collector.instances[0]
+    inst = instance_collector.instances[int(args[0])]
     df = pd.DataFrame(columns=["run", "final result", "time", "result"])
     for flybys in [True, False]:
         inst.flybys = flybys
@@ -102,7 +103,7 @@ def main():
             for algo in ['MCTS', 'BFS', 'BNB']:
                 if algo != 'MCTS' and (solver_type == 'U1D' or solver_type == 'URD'):
                     continue
-                for num_of_sim in [5000]:#[100, 500, 1000, 2000, 5000]:
+                for num_of_sim in [5000]:  # [100, 500, 1000, 2000, 5000]:
                     solver = Solver.Solver()
                     solver.type = solver_type
                     solver.NUMBER_OF_SIMULATIONS = num_of_sim
@@ -117,10 +118,10 @@ def main():
     df = pd.concat([df, pd.DataFrame(data_to_append)], ignore_index=True)
 
     # Print the resulting DataFrame
-    print(df)
-    df.to_csv("no_preprocessing.csv", index=False)
+    print(inst.name+' without preprocessing is done')
+    df.to_csv(inst.name+"no_preprocessing.csv", index=False)
 
-
+    df.to_csv('no_preprocessing_tot.csv', mode='a', index=False, header=False)
 
     df = pd.DataFrame(columns=["run", "final result", "time", "result"])
 
@@ -150,15 +151,22 @@ def main():
                         fin_res, "time": time, "result": result})
                     if algo != 'MCTS':
                         break
-    df2 = pd.DataFrame({"prepproces_name": preprocess_names, "preprocess_time": preprocess_time})
 
     # Concatenate the collected data to the DataFrame
     df = pd.concat([df, pd.DataFrame(data_to_append)], ignore_index=True)
+    df.to_csv('ye_preprocessing_tot.csv', mode='a', index=False, header=False)
 
+    df2 = pd.DataFrame({"preprocess_name": preprocess_names, "preprocess_time": preprocess_time})
+    df.to_csv('preprocess_times.csv', mode='a', index=False, header=False)
     # Print the resulting DataFrame
-    print(df)
+    print(inst.name+' with preprocessing is done')
     df.to_csv(inst.name + "preprocessing.csv", index=False)
     df2.to_csv(inst.name + "preprocess_time", index=False)
+
+
+
+    # Pass the list as an argument into
+    # the writerow()
 
 
 if __name__ == "__main__":
