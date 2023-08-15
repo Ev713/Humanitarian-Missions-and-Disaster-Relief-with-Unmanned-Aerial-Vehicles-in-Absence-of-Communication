@@ -94,17 +94,18 @@ class UisRStochInstance(GenStochInstance):
         new_state.a_pos = copy.deepcopy(action)
 
         for a_hash in self.agents_map:
-            if action[a_hash] is None or action[a_hash].flyby or \
-                    self.agents_map[a_hash].movement_budget < self.horizon - new_state.time_left:
+            if action[a_hash] is None:
                 continue
-            try:
-                vertex_hash = action[a_hash].loc
-                new_vector = MatricesFunctions.stoch_subtract(state.vectors[a_hash], new_state.distr[vertex_hash])
-                new_distr = MatricesFunctions.stoch_subtract(new_state.distr[vertex_hash], state.vectors[a_hash])
-                new_state.vectors[a_hash] = new_vector
-                new_state.distr[vertex_hash] = new_distr
-            except:
-                breakpoint()
+            if action[a_hash].flyby:
+                continue
+            if self.agents_map[a_hash].movement_budget < self.horizon - new_state.time_left:
+                continue
+            vertex_hash = action[a_hash].loc
+            new_vector = MatricesFunctions.stoch_subtract(state.vectors[a_hash], new_state.distr[vertex_hash])
+            new_distr = MatricesFunctions.stoch_subtract(new_state.distr[vertex_hash], state.vectors[a_hash])
+            new_state.vectors[a_hash] = new_vector
+            new_state.distr[vertex_hash] = new_distr
+
         return new_state
 
     def reward(self, state):

@@ -91,8 +91,6 @@ class DetUisRInstance(DetInstance):
             round_reward = 0
             for t in range(len(list(state.path.values())[0])):
                 for a_hash in self.agents_map:
-                    if a_hash not in self.agents_map:
-                        raise Exception("The weird error :(")
                     if state.path[a_hash][t] is None:
                         continue
                     a_loc_hash = state.path[a_hash][t].loc

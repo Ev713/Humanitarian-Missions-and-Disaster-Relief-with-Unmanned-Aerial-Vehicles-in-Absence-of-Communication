@@ -130,7 +130,7 @@ def get_vectors_reward(vectors):
     for a_hash in vectors:
         v = vectors[a_hash]
         for u in range(len(v)):
-            sum += v[u] * (len(v)-u-1)
+            sum += v[u] * (len(v)-1-u)
     return sum
 
 
