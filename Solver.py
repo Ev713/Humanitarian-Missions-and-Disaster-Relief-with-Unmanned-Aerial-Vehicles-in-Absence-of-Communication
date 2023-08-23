@@ -8,20 +8,6 @@ import StochInstance
 
 import check_for_sasha as map
 
-
-def zero(state, instance):
-    return 0
-
-
-def hundred(state, instance):
-    return 100
-
-
-class TimeoutException(Exception):
-    """Custom exception to represent a timeout."""
-    pass
-
-
 class Solution:
     def __init__(self, paths, timestamps, interrupted):
         self.paths = paths
@@ -162,9 +148,9 @@ class Solver:
         return estimate_sum
 
     def bfs(self, def_inst):
-        return self.bnb(def_inst, None, None)
+        return self.branch_and_bound(def_inst)
 
-    def bnb(self, def_inst, heur, lower_bound):
+    def branch_and_bound(self, def_inst, upper_bound=None, lower_bound=None):
         start = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
         if self.type == 'URD' or self.type == 'U1D':
             raise Exception("Unfit type fro bfs")
@@ -192,9 +178,9 @@ class Solver:
                         visited_states.add(hash)
                     v = instance.reward(c.state)
 
-                    if heur is not None and lower_bound is not None:
-                        up = heur(c.state, instance)
-                        low = lower_bound(best_node.state, instance)
+                    if upper_bound is not None:
+                        up = upper_bound(c.state, instance)
+                        low = lower_bound(best_node.state, instance) if lower_bound is not None else 0
                         if v + up < best_value + low:
                             continue
                     if v > best_value:
