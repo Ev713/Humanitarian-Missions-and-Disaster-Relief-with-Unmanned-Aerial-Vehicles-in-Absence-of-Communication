@@ -1,5 +1,3 @@
-import _16X16FRAR0412SR as map
-
 import random
 import time
 
@@ -8,12 +6,7 @@ import Node
 import State
 import StochInstance
 
-
-
-class TimeoutException(Exception):
-    """Custom exception to represent a timeout."""
-    pass
-
+import check_for_sasha as map
 
 class Solution:
     def __init__(self, paths, timestamps, interrupted):
@@ -34,7 +27,7 @@ class Solver:
         self.NUMBER_OF_SIMULATIONS = 5000
         self.JUMP = self.NUMBER_OF_SIMULATIONS / min(self.NUMBER_OF_SIMULATIONS, 100)
         self.DISCOUNT = 1
-        self.timeout = 5000
+        self.timeout = 10
 
     def Heuristics_U1(self, state, instance):
         if self.type != 'U1S':
@@ -320,18 +313,17 @@ def is_sorted_ascending(lst):
     return all(lst[i] <= lst[i + 1] for i in range(len(lst) - 1))
 
 
-
+'''
 solver = Solver()
 inst = map.instance1
 inst.flybys = True
-solver.type = "U1S"
+# solver.type = "U1S"
 # stoch = solver.mcts(i)
 
-solver.dup_det = False
-path = solver.bfs(inst).paths[0]
-print("Value of the best path found with bfs is: ", solver.evaluate_path(inst, path))
+solver.dup_det = True
 
-'''
+
+
 solver.type = "URD"
 det = solver.mcts(inst)
 
@@ -342,8 +334,8 @@ print("Value of the best path found with det  is: ", solver.evaluate_path(inst, 
 solver.type = "URS"
 
 print("Value of the best path found with bfs is: ", solver.evaluate_path(inst, path))
-'''
 
+'''
 
 '''solver.type = "U1D"
 
