@@ -17,7 +17,9 @@ def run_solver(inst, algo, solver_type, default='-'):
         case 'BFS':
             solution = solver.bfs(inst)
         case 'BNB':
-            solution = solver.bnb(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
+            solution = solver.branch_and_bound(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
+        case 'BNBL':
+            solution = solver.branch_and_bound(inst, solver.Heuristics_U1)
 
     timestamps = solution.timestamps
     solver.type = 'U1S'
@@ -38,7 +40,7 @@ def main():
     for flybys in [True, False]:
         inst.flybys = flybys
         for solver_type in ['U1D', 'U1S']:  # , 'URD', 'URS']:
-            for algo in ['MCTS', 'BFS', 'BNB']:
+            for algo in ['MCTS', 'BFS', 'BNB', 'BNBL']:
                 if algo != 'MCTS' and (solver_type == 'U1D' or solver_type == 'URD'):
                     continue
                 fin_res, time, res = run_solver(inst, algo, solver_type)

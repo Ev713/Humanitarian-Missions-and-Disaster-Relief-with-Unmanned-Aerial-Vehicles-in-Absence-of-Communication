@@ -1,3 +1,5 @@
+import _16X16FRAR0412SR as map
+
 import random
 import time
 
@@ -6,15 +8,6 @@ import Node
 import State
 import StochInstance
 
-import check_for_sasha as map
-
-
-def zero(state, instance):
-    return 0
-
-
-def hundred(state, instance):
-    return 100
 
 
 class TimeoutException(Exception):
@@ -41,7 +34,7 @@ class Solver:
         self.NUMBER_OF_SIMULATIONS = 5000
         self.JUMP = self.NUMBER_OF_SIMULATIONS / min(self.NUMBER_OF_SIMULATIONS, 100)
         self.DISCOUNT = 1
-        self.timeout = 10
+        self.timeout = 5000
 
     def Heuristics_U1(self, state, instance):
         if self.type != 'U1S':
@@ -162,9 +155,9 @@ class Solver:
         return estimate_sum
 
     def bfs(self, def_inst):
-        return self.bnb(def_inst, None, None)
+        return self.branch_and_bound(def_inst)
 
-    def bnb(self, def_inst, heur, lower_bound):
+    def branch_and_bound(self, def_inst, upper_bound=None, lower_bound=None):
         start = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
         if self.type == 'URD' or self.type == 'U1D':
             raise Exception("Unfit type fro bfs")
@@ -192,9 +185,9 @@ class Solver:
                         visited_states.add(hash)
                     v = instance.reward(c.state)
 
-                    if heur is not None and lower_bound is not None:
-                        up = heur(c.state, instance)
-                        low = lower_bound(best_node.state, instance)
+                    if upper_bound is not None:
+                        up = upper_bound(c.state, instance)
+                        low = lower_bound(best_node.state, instance) if lower_bound is not None else 0
                         if v + up < best_value + low:
                             continue
                     if v > best_value:
@@ -327,17 +320,18 @@ def is_sorted_ascending(lst):
     return all(lst[i] <= lst[i + 1] for i in range(len(lst) - 1))
 
 
-'''
+
 solver = Solver()
 inst = map.instance1
 inst.flybys = True
-# solver.type = "U1S"
+solver.type = "U1S"
 # stoch = solver.mcts(i)
 
-solver.dup_det = True
+solver.dup_det = False
+path = solver.bfs(inst).paths[0]
+print("Value of the best path found with bfs is: ", solver.evaluate_path(inst, path))
 
-
-
+'''
 solver.type = "URD"
 det = solver.mcts(inst)
 
@@ -348,8 +342,8 @@ print("Value of the best path found with det  is: ", solver.evaluate_path(inst, 
 solver.type = "URS"
 
 print("Value of the best path found with bfs is: ", solver.evaluate_path(inst, path))
-
 '''
+
 
 '''solver.type = "U1D"
 
