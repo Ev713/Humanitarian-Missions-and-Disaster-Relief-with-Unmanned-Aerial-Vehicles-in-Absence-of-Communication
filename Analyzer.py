@@ -130,17 +130,16 @@ def main():
     MT_BNB_time = [i.BNB.fin_res for i in analyzer.instances.values() if i.map_type == 'MT']
     '''
     type = 'FR'
-    MCTS_res = {}
-    MCTS_time = {}
-    MCTS_res[type] = []
-    MCTS_time[type] = []
+    algo = 'MCTS'
+    res = {}
+    time = {}
+    res[type, algo] = []
+    MCTS_time[type, algo] = []
     
     for i in analyzer.instances.values():
         if i.map_type == 'FR' and i.best_value!=None:
-            MCTS_res[type]+=[r[0] for r in i.MCTS.results]
-            MCTS_time[type]+=[r[1] for r in i.MCTS.results]
-
-    
+            res[type, algo]+=[r[0] for r in i.MCTS.results]
+            time[type, algo]+=[r[1] for r in i.MCTS.results]
     
     plt.scatter(MCTS_time[type], MCTS_res[type])
     plt.show()
