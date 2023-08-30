@@ -125,10 +125,6 @@ def main():
     analyzer.create_runs()
     analyzer.normalize()
     
-    '''
-    MT_BNB_res = [i.BNB.fin_res for i in analyzer.instances.values() if i.map_type == 'MT']
-    MT_BNB_time = [i.BNB.fin_res for i in analyzer.instances.values() if i.map_type == 'MT']
-    '''
     type = 'FR'
     algo = 'MCTS'
     res = {}
@@ -141,7 +137,16 @@ def main():
             res[type, algo]+=[r[0] for r in i.MCTS.results]
             time[type, algo]+=[r[1] for r in i.MCTS.results]
     
-    plt.scatter(MCTS_time[type], MCTS_res[type])
+    x = time[type, algo]
+    y = res[type, algo]
+
+    plt.scatter(time[type, algo], res[type, algo])
+
+    z = np.polyfit(x, y, 2)
+    p = np.poly1d(z)
+
+    #add trendline to plot
+    plt.plot(x, p(x))
     plt.show()
 
 if __name__ == '__main__':
