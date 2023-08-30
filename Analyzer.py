@@ -142,7 +142,7 @@ def main():
 
     plt.scatter(time[type, algo], res[type, algo])
 
-    z = np.polyfit(x, y, 2)
+    z = np.polyfit(x, y, 4)
     p = np.poly1d(z)
 
     #add trendline to plot
