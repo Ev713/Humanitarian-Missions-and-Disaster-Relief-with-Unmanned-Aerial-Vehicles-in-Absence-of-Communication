@@ -1,6 +1,6 @@
-import pandas
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 # (inst.name, solver_type, algo, flybys)
 
@@ -47,8 +47,8 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "~/Humanitarian-Missions-and-Disaster-Relief-with-Unmanned-Aerial-Vehicles-in-Absence-of-Communication/no_preprocessing_tot.csv"
-        self.df = pd.read_csv(self.file_path, header=None, on_bad_lines = 'skip')
+        self.file_path = "no_preprocessing_tot.csv"
+        self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
 
@@ -130,23 +130,18 @@ def main():
     res = {}
     time = {}
     res[type, algo] = []
-    MCTS_time[type, algo] = []
+    time[type, algo] = []
     
     for i in analyzer.instances.values():
-        if i.map_type == 'FR' and i.best_value!=None:
-            res[type, algo]+=[r[0] for r in i.MCTS.results]
-            time[type, algo]+=[r[1] for r in i.MCTS.results]
+        if i.map_type == 'FR' and i.best_value is not None:
+            res[type, algo] += [r[0] for r in i.MCTS.results]
+            time[type, algo] += [r[1] for r in i.MCTS.results]
     
     x = time[type, algo]
     y = res[type, algo]
 
     plt.scatter(time[type, algo], res[type, algo])
 
-    z = np.polyfit(x, y, 4)
-    p = np.poly1d(z)
-
-    #add trendline to plot
-    plt.plot(x, p(x))
     plt.show()
 
 if __name__ == '__main__':
