@@ -1,5 +1,7 @@
 import pandas as pd
 import sys
+
+import SECOND_instance_collector
 import Solver
 import instance_collector
 
@@ -35,7 +37,7 @@ def main():
     import time
     data_to_append = []
     args = sys.argv[1:]
-    inst = instance_collector.instances[int(args[0])]
+    inst = SECOND_instance_collector.instances[int(args[0])]
     print("\n" + inst.name + " starts")
     df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
     for flybys in [True, False]:
