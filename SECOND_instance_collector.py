@@ -1,5 +1,4 @@
 instances=[]
-
 from very_ready_maps import i_3_2_3_1_2_FR
 instances.append(i_3_2_3_1_2_FR.instance1)
 from very_ready_maps import i_3_2_4_2_2_FR

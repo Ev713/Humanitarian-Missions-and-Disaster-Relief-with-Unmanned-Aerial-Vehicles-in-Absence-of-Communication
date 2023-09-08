@@ -3,7 +3,7 @@ import sys
 import Solver
 import instance_collector
 
-
+#for i in {0..110}; do python3 run.py $i & done
 def run_solver(inst, algo, solver_type, default='-'):
     # print("start " + inst.name)
     solver = Solver.Solver()
