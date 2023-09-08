@@ -89,7 +89,7 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "no_preprocessing_tot.csv"
+        self.file_path = "small_no_preprocessing_tot.csv"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
@@ -185,7 +185,7 @@ class Analyzer:
         plt.ylabel('Success rate')
         plt.show()
 
-    def get_success_rate_per_result(self):
+    def get_success_rate_per_result(self, save=False):
         x = []
         y = []
         for time in range(1, 100):
@@ -196,13 +196,15 @@ class Analyzer:
         plt.legend('MCTS')
         plt.xlabel('Percent of best value')
         plt.ylabel('Success rate')
+        if save:
+            plt.savefig('success_per_result.png')
         plt.show()
 
 
 def main():
     analyzer = Analyzer()
     analyzer.create_runs()
-    analyzer.get_success_rate_per_result()
+    analyzer.get_success_rate_per_result(True)
     # analyzer.normalize()
 
     '''type = 'FR'
