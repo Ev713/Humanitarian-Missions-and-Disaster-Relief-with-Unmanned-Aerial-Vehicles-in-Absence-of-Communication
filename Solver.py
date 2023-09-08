@@ -9,11 +9,12 @@ import StochInstance
 import check_for_sasha as map
 
 class Solution:
-    def __init__(self, paths, timestamps, interrupted):
+    def __init__(self, paths, timestamps, interrupted, opened_nodes):
         self.paths = paths
         self.timestamps = timestamps
         self.rewards = []
         self.interrupted = interrupted
+        self.states = opened_nodes
 
     def set_rewards(self, solver, inst):
         for p in self.paths:
@@ -165,7 +166,7 @@ class Solver:
         best_value = instance.reward(root.state)
         while que:
             if time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start > self.timeout:
-                return Solution([best_node.get_path()], [round(time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start, 3)], True)
+                return Solution([best_node.get_path()], [round(time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start, 3)], True, num_of_states)
             node = que.pop()
             if not node.state.is_terminal():
                 node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state)])
@@ -192,7 +193,7 @@ class Solver:
                 pass  # print("Checked states", len(visited_states))
             else:
                 pass  # print("Number of states", num_of_states)
-        return Solution([best_node.get_path()], [time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start], False)
+        return Solution([best_node.get_path()], [time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start], False, num_of_states)
 
     def make_instance(self, def_inst):
         if self.type == "U1D":
@@ -214,6 +215,7 @@ class Solver:
         root = Node.Node(None)
         best_value = 0
         best_path = None
+        num_of_states = 0
 
         instance = self.make_instance(def_inst)
 
@@ -222,7 +224,7 @@ class Solver:
         for t in range(self.NUMBER_OF_SIMULATIONS):
             exec_time = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start
             if exec_time > self.timeout:
-                return Solution(paths, timestamps, True)
+                return Solution(paths, timestamps, True, num_of_states)
 
             node = root
             # selection
@@ -240,6 +242,7 @@ class Solver:
             if node.children:
                 node.times_visited += 1
                 node = node.pick_unvisited_child()
+                num_of_states += 1
 
             node.times_visited += 1
 
@@ -276,7 +279,7 @@ class Solver:
                     paths.append(node.get_path())
         # root.get_tree()
         # returning
-        return Solution(paths, timestamps, False)
+        return Solution(paths, timestamps, False, num_of_states)
 
     def evaluate_path(self, def_inst, path, NUM_OF_SIMS=100000):
         if self.type == "U1D":

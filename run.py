@@ -22,12 +22,13 @@ def run_solver(inst, algo, solver_type, default='-'):
             solution = solver.branch_and_bound(inst, solver.Heuristics_U1)
 
     timestamps = solution.timestamps
+    states = solution.states
     solver.type = 'U1S'
     solution.set_rewards(solver, inst)
     res = tuple(zip(solution.rewards, timestamps))
     fin_res = solution.rewards[-1]
     time = timestamps[-1] if not solution.interrupted else default
-    return fin_res, time, res
+    return fin_res, time, res, states
 
 
 def main():
@@ -36,16 +37,16 @@ def main():
     args = sys.argv[1:]
     inst = instance_collector.instances[int(args[0])]
     print("\n" + inst.name + " starts")
-    df = pd.DataFrame(columns=["run", "final result", "time", "result"])
+    df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
     for flybys in [True, False]:
         inst.flybys = flybys
         for solver_type in ['U1D', 'U1S']:  # , 'URD', 'URS']:
             for algo in ['MCTS', 'BFS', 'BNB', 'BNBL']:
                 if algo != 'MCTS' and (solver_type == 'U1D' or solver_type == 'URD'):
                     continue
-                fin_res, time, res = run_solver(inst, algo, solver_type)
+                fin_res, time, res, states = run_solver(inst, algo, solver_type)
                 data_to_append.append({"run": (inst.name, solver_type, algo, flybys), "final result":
-                    fin_res, "time": time, "result": res})
+                    fin_res, "time": time, "result": res, 'states': states})
                 print({"run": (inst.name, solver_type, algo, flybys), "final result":
                     fin_res, "time": time})
 
@@ -56,10 +57,10 @@ def main():
     print(inst.name + ' without preprocessing is done')
     df.to_csv(inst.name + "no_preprocessing.csv", index=False)
 
-    df.to_csv('no_preprocessing_tot.csv', mode='a', index=False, header=False)
+    df.to_csv('small_no_preprocessing_tot.csv', mode='a', index=False, header=False)
     print("first file added")
-    df = pd.DataFrame(columns=["run", "final result", "time", "result"])
-
+    df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
+'''
     data_to_append = []
     preprocess_time = preprocess_names = []
     # Loop over instances and num_of_sim
@@ -74,18 +75,18 @@ def main():
     for flybys in [True, False]:
         inst.flybys = flybys
         for solver_type in ['U1D', 'U1S']:  # , 'URD', 'URS']:
-            for algo in ['MCTS', 'BFS', 'BNB']:
+            for algo in ['MCTS', 'BFS', 'BNB', 'BNBH']:
                 if algo != 'MCTS' and (solver_type == 'U1D' or solver_type == 'URD'):
                     continue
-                fin_res, time, res = run_solver(inst, algo, solver_type)
+                fin_res, time, res, states = run_solver(inst, algo, solver_type)
                 data_to_append.append({"run": (inst.name, solver_type, algo, flybys), "final result":
-                    fin_res, "time": time, "result": res})
+                    fin_res, "time": time, "result": res, 'states':states})
                 print({"run": (inst.name, solver_type, algo, flybys), "final result":
                     fin_res, "time": time})
 
     # Concatenate the collected data to the DataFrame
     df = pd.concat([df, pd.DataFrame(data_to_append)], ignore_index=True)
-    df.to_csv('ye_preprocessing_tot.csv', mode='a', index=False, header=False)
+    df.to_csv('small_ye_preprocessing_tot.csv', mode='a', index=False, header=False)
 
     df2 = pd.DataFrame({"preprocess_name": preprocess_names, "preprocess_time": preprocess_time})
     df.to_csv('preprocess_times.csv', mode='a', index=False, header=False)
@@ -97,7 +98,7 @@ def main():
 
     # Pass the list as an argument into
     # the writerow()
-
+'''
 
 if __name__ == "__main__":
     main()

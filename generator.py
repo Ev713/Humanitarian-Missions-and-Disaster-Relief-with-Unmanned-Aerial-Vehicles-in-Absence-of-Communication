@@ -38,7 +38,7 @@ class Generator:
                                        range(len(self.a_locs), len(self.a_locs) + self.num_of_min_values)]
                 self.HORIZON = max(self.dists_to_agents.values())
                 self.actual_horizon = self.HORIZON
-        self.name_no_py = "grid" + name + self.type
+        self.name_no_py = name + self.type
         self.name = self.name_no_py + ".py"
 
     def generate_init_loc(self, agent_hash):
@@ -48,8 +48,8 @@ class Generator:
             return 1
 
     def generate_full_random_distr(self, vertex_hash):
-        if self.MAX_REWARD>1:
-            distr_size = random.randint(2, self.MAX_REWARD+1)
+        if self.MAX_REWARD > 1:
+            distr_size = random.randint(2, self.MAX_REWARD + 1)
         else:
             distr_size = random.randint(1, 2)
         distr = {}
@@ -109,7 +109,7 @@ class Generator:
         return distances
 
     def distance_to_center_to_distr(self, x):
-        return {1: round( pow(self.decrease, (x + 1)), self.ACC),
+        return {1: round(pow(self.decrease, (x + 1)), self.ACC),
                 0: round(1 - pow(self.decrease, (x + 1)), self.ACC)}
 
     def generate_mountain_top_distr(self, vertex_hash):
@@ -141,7 +141,7 @@ class Generator:
 
     def generate_anti_greed_distr(self, v):
         if v == self.big_vertex:
-            return {self.max_value*10: 0.1, 0:0.9}
+            return {self.max_value * 10: 0.1, 0: 0.9}
         if v in self.small_vertices:
             return {self.min_value: 1}
         else:
@@ -242,8 +242,8 @@ class Generator:
         f.write("instance1 = Instance.Instance(\"" + self.name_no_py + "\", map1, agents, " + str(
             self.actual_horizon) + ")\n")
 
-'''
-for type in ['FR', 'SC', 'AG', 'MT']:
+
+'''for type in ['FR', 'SC', 'AG', 'MT']:
     for size in range(2, 25):
         if type == 'AG' and size < 3:
             continue
@@ -262,5 +262,22 @@ for type in ['FR', 'SC', 'AG', 'MT']:
         g.close()
         G.gen_map(f)
         f.close()
-        print(G.name + " added.")
-'''
+        print(G.name + " added.")'''
+for type in ['FR', 'MT']:
+    for size in range(3, 27, 6):
+        for agents in range(1, 6):
+            cols = max(random.randint(int(size * 0.75), int(size * 1.25)), 2)
+            rows = max(random.randint(round(size * 0.75), round(size * 1.25)), 2)
+            hor = max(random.randint(int(size * 0.9), int(size) * 2), 2)
+            mr = max(size // 2, 2)
+            G = Generator('i_'+str(size) + '_' + str(cols) + '_' + str(rows) + '_' + str(agents) + '_' + str(hor)+'_', type,
+                          rows, cols, agents, hor)
+            G.ACC = 4
+            G.MAX_REWARD = mr
+            f = open("very_ready_maps/" + G.name, "w")
+            g = open("SECOND_instance_collector.py", "a")
+            g.write("from very_ready_maps import " + G.name_no_py + "\n")
+            g.write("instances.append(" + G.name_no_py + ".instance1)\n")
+            g.close()
+            G.gen_map(f)
+            f.close()
