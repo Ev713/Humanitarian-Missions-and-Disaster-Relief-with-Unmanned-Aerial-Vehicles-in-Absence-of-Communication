@@ -10,11 +10,12 @@ def run_solver(inst, algo, solver_type, default='-'):
     # print("start " + inst.name)
     solver = Solver.Solver()
     solver.type = solver_type
-    solver.timeout = 60
+    solver.bfs_timeout = 60
     solver.NUMBER_OF_SIMULATIONS = 5000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
     match algo:
         case 'MCTS':
+            solver.timeout = 20
             solution = solver.mcts(inst)
         case 'BFS':
             solution = solver.bfs(inst)

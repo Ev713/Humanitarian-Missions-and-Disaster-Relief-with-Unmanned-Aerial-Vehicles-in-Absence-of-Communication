@@ -9,6 +9,10 @@ def mcts_is_timeout(run, param=None):
     return run.time == -1
 
 
+def inst_is_type(inst, t):
+    return inst.map_type == t
+
+
 def time_less_than(run, time):
     return not mcts_is_timeout(run) and run.time < time
 
@@ -25,6 +29,10 @@ def inst_has_best_result(inst, param=None):
     return inst.best_value is not None
 
 
+def inst_has_mcts_result(inst, param=None):
+    return not mcts_is_timeout(inst.MCTS)
+
+
 class Run:
     def __init__(self):
         self.inst_name = None
@@ -34,6 +42,7 @@ class Run:
         self.results = None
         self.time = None
         self.fin_res = None
+        self.states = 0
         self.map_type = None
         self.is_real = False
 
@@ -116,6 +125,7 @@ class Analyzer:
             run.algo = run_info.strip("()").split(', ')[2].strip('\'\'')
             run.flybys = bool(run_info.strip("()").split(', ')[3].strip('\'\''))
             run.fin_res = row[1]
+            run.states = row[4]
             try:
                 run.time = float(row[2])
             except:
@@ -205,6 +215,13 @@ def main():
     analyzer = Analyzer()
     analyzer.create_runs()
     analyzer.get_success_rate_per_result(True)
+    types = ['FR', 'MT']
+    for t in types:
+        print(t + " BFS success rate: " + str(
+            analyzer.count_percentage(list(analyzer.instances.values()), inst_has_best_result, None, inst_is_type, t)))
+        print(t + " MCTS success rate: " + str(
+            analyzer.count_percentage(list(analyzer.instances.values()), inst_has_mcts_result, None, inst_is_type, t)))
+        print()
     # analyzer.normalize()
 
     '''type = 'FR'
