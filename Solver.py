@@ -8,6 +8,7 @@ import StochInstance
 
 import check_for_sasha as map
 
+
 class Solution:
     def __init__(self, paths, timestamps, interrupted, opened_nodes):
         self.paths = paths
@@ -20,8 +21,11 @@ class Solution:
         for p in self.paths:
             self.rewards.append(round(solver.evaluate_path(inst, p), 2))
 
+
 class Solver:
     def __init__(self):
+        self.num_of_states = None
+        self.best_path = None
         self.type = None
         self.dup_det = False
 
@@ -29,6 +33,27 @@ class Solver:
         self.JUMP = self.NUMBER_OF_SIMULATIONS / min(self.NUMBER_OF_SIMULATIONS, 100)
         self.DISCOUNT = 1
         self.timeout = 10
+        self.start = 0
+        self.prev_time_check = 0
+
+        self.root = None
+        self.timestamps = []
+        self.paths = []
+        self.best_node = None
+        self.best_value = 0
+        self.states = 0
+
+    def restart(self):
+        self.start = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
+        self.timestamps = []
+        self.paths = []
+        self.root = Node.Node(None)
+        self.best_value = 0
+        self.best_path = None
+        self.num_of_states = 0
+
+    def exit(self, timeout):
+        return Solution(self.paths, self.timestamps, timeout, self.num_of_states)
 
     def Heuristics_U1(self, state, instance):
         if self.type != 'U1S':
@@ -164,9 +189,15 @@ class Solver:
         visited_states = set()
         num_of_states = 0
         best_value = instance.reward(root.state)
+
+        timestamps = []
+        paths = []
+
         while que:
             if time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start > self.timeout:
-                return Solution([best_node.get_path()], [round(time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start, 3)], True, num_of_states)
+                return Solution([best_node.get_path()],
+                                [round(time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start, 3)], True,
+                                num_of_states)
             node = que.pop()
             if not node.state.is_terminal():
                 node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state)])
@@ -193,7 +224,8 @@ class Solver:
                 pass  # print("Checked states", len(visited_states))
             else:
                 pass  # print("Number of states", num_of_states)
-        return Solution([best_node.get_path()], [time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start], False, num_of_states)
+        return Solution([best_node.get_path()], [time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start], False,
+                        num_of_states)
 
     def make_instance(self, def_inst):
         if self.type == "U1D":
@@ -209,24 +241,17 @@ class Solver:
         return instance
 
     def mcts(self, def_inst):
-        start = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
-        timestamps = []
-        paths = []
-        root = Node.Node(None)
+        self.restart()
+        instance = self.make_instance(def_inst)
+        self.root.state = instance.initial_state.copy()
         best_value = 0
         best_path = None
-        num_of_states = 0
-
-        instance = self.make_instance(def_inst)
-
-        root.state = instance.initial_state.copy()
 
         for t in range(self.NUMBER_OF_SIMULATIONS):
-            exec_time = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start
-            if exec_time > self.timeout:
-                return Solution(paths, timestamps, True, num_of_states)
-
-            node = root
+            now = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - self.start
+            if now > self.timeout:
+                self.exit(True)
+            node = self.root
             # selection
             while node.all_children_visited():
                 node.times_visited += 1
@@ -242,7 +267,7 @@ class Solver:
             if node.children:
                 node.times_visited += 1
                 node = node.pick_unvisited_child()
-                num_of_states += 1
+                self.num_of_states += 1
 
             node.times_visited += 1
 
@@ -255,31 +280,39 @@ class Solver:
                     path[a].append(action[a])
                 rollout_state = instance.make_action(action, rollout_state)
             rollout_reward = instance.reward(rollout_state)
+
+            # Deterministic approach allows us to memorize the best path
             if (self.type == 'U1S' or self.type == 'URS') and rollout_reward > best_value:
                 best_value = rollout_reward
                 best_path = path
+
             discounted_reward = rollout_reward * pow(self.DISCOUNT, node.depth)
+
             # backpropagation
             while True:
                 node.value = max(node.value, discounted_reward)
-                if node is root:
+                if node is self.root:
                     break
                 node = node.parent
                 discounted_reward /= self.DISCOUNT
-            # checking mid-rewards
-            if t % self.JUMP == 0 or t == self.NUMBER_OF_SIMULATIONS - 1:
-                timestamps.append(round(time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start, 3))
-                if (self.type == 'U1S' or self.type == 'URS') and node.value < best_value:
-                    paths.append(best_path)
+
+            # gathering data
+            now = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
+            if now - self.prev_time_check > self.timeout / 100:
+                self.timestamps.append(now)
+
+                # Deterministic approach allows us to takeout the best path without checking
+                if (self.type == 'U1S' or self.type == 'URS') and node.value < self.best_value:
+                    self.paths.append(best_path)
                 else:
-                    # print(str(round(t / self.NUMBER_OF_SIMULATIONS * 100, 2)) + "%")
-                    node = root
+                    #print(str(round(self.prev_time_check/self.timeout * 100, 2)) + "%")
+                    node = self.root
                     while not node.state.is_terminal() and len(node.children) != 0:
                         node = node.highest_value_child()
-                    paths.append(node.get_path())
+                    self.paths.append(node.get_path())
         # root.get_tree()
         # returning
-        return Solution(paths, timestamps, False, num_of_states)
+        return self.exit(False)
 
     def evaluate_path(self, def_inst, path, NUM_OF_SIMS=100000):
         if self.type == "U1D":

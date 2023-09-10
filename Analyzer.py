@@ -5,34 +5,6 @@ import numpy as np
 
 # (inst.name, solver_type, algo, flybys)
 
-def mcts_is_timeout(run, param=None):
-    return run.time == -1
-
-
-def inst_is_type(inst, t):
-    return inst.map_type == t
-
-
-def time_less_than(run, time):
-    return not mcts_is_timeout(run) and run.time < time
-
-
-def result_greater_than(inst, p):
-    return inst.MCTS.fin_res >= p * inst.best_value
-
-
-def run_is_algo(run, algo):
-    return run.algo == algo
-
-
-def inst_has_best_result(inst, param=None):
-    return inst.best_value is not None
-
-
-def inst_has_mcts_result(inst, param=None):
-    return not mcts_is_timeout(inst.MCTS)
-
-
 class Run:
     def __init__(self):
         self.inst_name = None
@@ -45,6 +17,11 @@ class Run:
         self.states = 0
         self.map_type = None
         self.is_real = False
+
+    def self.res
+
+    def is_timeout(self):
+        return self.time == -1
 
     def inst_name_extract_type(self):
         if self.inst_name[0] == '_':
@@ -103,12 +80,31 @@ class Analyzer:
         self.runs = []
         self.instances = {}
 
-    def count_percentage(self, arr, sat, sat_param, filter=None, filter_param=None):
+    def filter_runs(self, algo=None, solver_type=None, map_type=None, inst_name=None, finished=None, time_less_than=None, reward_bigger_than=None ):
+        filtered_runs = []
+        for r in self.runs:
+            if algo is not None and r.algo != algo:
+                continue
+            if solver_type is not None and r.solver_type != solver_type:
+                continue
+            if map_type is not None and r.map_type != map_type:
+                continue
+            if inst_name is not None and r.inst_name != inst_name:
+                continue
+            if finished is not None:
+                if (finished and r.time != -1) or (not finished and r.time == -1):
+                    continue
+            if time_less_than is not None and (r.time == -1 or r.time >= time_less_than):
+                continue
+            if reward_bigger_than is not None and r.fin_res<reward_bigger_than:
+                continue
+            filtered_runs.append(r)
+        return filtered_runs
+
+    def count_percentage(self, arr, sat, sat_param=None):
         num_of_sats = 0
         tot = 0
         for r in arr:
-            if not filter(r, filter_param):
-                continue
             if sat(r, sat_param):
                 num_of_sats += 1
             tot += 1
@@ -180,27 +176,31 @@ class Analyzer:
 
                     i.MCTS.results[t_id] = new
 
-    def get_success_rate_per_time(self):
-        algos = ['MCTS', 'BFS', 'BNB']
+    def get_success_rate_per_time(self, time_range, save=False):
+        algos = ['MCTS', 'BFS', 'BNB', 'BNBL']
         for algo in algos:
             x = []
             y = []
-            for time in range(1, 600):
+            for time in range(1, time_range):
                 t = time
-                y.append(self.count_percentage(self.runs, time_less_than, t, filter=run_is_algo, filter_param=algo))
+                y.append(len(self.filter_runs(time_less_than=t, algo=algo))/len(self.filter_runs(algo=algo)))
                 x.append(t)
             plt.scatter(x, y)
         plt.legend(algos)
         plt.xlabel('Runtime limit (s)')
         plt.ylabel('Success rate')
+        if save:
+            plt.savefig('success_rate_per_time.png')
         plt.show()
 
+
     def get_success_rate_per_result(self, save=False):
+        raise NotImplementedError
         x = []
         y = []
         for time in range(1, 100):
             t = time / 100
-            y.append(self.count_percentage(self.instances.values(), result_greater_than, t, inst_has_best_result))
+            #y.append(self.count_percentage(filter(list(self.instances.values()), inst_has_best_result), result_greater_than, t))
             x.append(t)
         plt.scatter(x, y)
         plt.legend('MCTS')
@@ -214,14 +214,18 @@ class Analyzer:
 def main():
     analyzer = Analyzer()
     analyzer.create_runs()
-    analyzer.get_success_rate_per_result(True)
+    analyzer.get_success_rate_per_time(60)
     types = ['FR', 'MT']
+    '''
     for t in types:
         print(t + " BFS success rate: " + str(
-            analyzer.count_percentage(list(analyzer.instances.values()), inst_has_best_result, None, inst_is_type, t)))
+            analyzer.count_percentage(filter(list(analyzer.instances.values()), inst_is_type, t), inst_has_best_result)))
         print(t + " MCTS success rate: " + str(
-            analyzer.count_percentage(list(analyzer.instances.values()), inst_has_mcts_result, None, inst_is_type, t)))
-        print()
+            analyzer.count_percentage(filter(list(analyzer.instances.values()), inst_is_type, t), inst_has_mcts_result)))
+        print()    
+    '''
+
+
     # analyzer.normalize()
 
     '''type = 'FR'
