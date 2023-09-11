@@ -34,7 +34,6 @@ class Solver:
         self.DISCOUNT = 1
         self.timeout = 10
         self.start = 0
-        self.prev_time_check = 0
 
         self.root = None
         self.timestamps = []
@@ -246,6 +245,7 @@ class Solver:
         self.root.state = instance.initial_state.copy()
         best_value = 0
         best_path = None
+        prev_time_check=self.start
 
         for t in range(self.NUMBER_OF_SIMULATIONS):
             now = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - self.start
@@ -298,7 +298,8 @@ class Solver:
 
             # gathering data
             now = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
-            if now - self.prev_time_check > self.timeout / 100:
+            if now - prev_time_check > self.timeout / 100:
+                prev_time_check = now
                 self.timestamps.append(now)
 
                 # Deterministic approach allows us to takeout the best path without checking
