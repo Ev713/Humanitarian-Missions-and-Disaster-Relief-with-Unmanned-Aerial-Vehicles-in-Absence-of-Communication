@@ -9,7 +9,6 @@ import instance_collector
 def run_solver(inst, algo, default='-'):
     # print("start " + inst.name)
     solver = Solver.Solver()
-    solver.bfs_timeout = 60
     solver.NUMBER_OF_SIMULATIONS = 5000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
     match algo:
@@ -22,12 +21,15 @@ def run_solver(inst, algo, default='-'):
             solver.timeout = 30
             solution = solver.mcts(inst)
         case 'BFS':
+            solver.timeout = 60
             solver.type = 'U1S'
             solution = solver.bfs(inst)
         case 'BNB':
             solver.type = 'U1S'
+            solver.timeout = 60
             solution = solver.branch_and_bound(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
         case 'BNBL':
+            solver.timeout = 60
             solver.type = 'U1S'
             solution = solver.branch_and_bound(inst, solver.Heuristics_U1)
 
