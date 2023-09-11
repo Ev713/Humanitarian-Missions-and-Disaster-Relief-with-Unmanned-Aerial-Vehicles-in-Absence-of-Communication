@@ -6,22 +6,29 @@ import Solver
 import instance_collector
 
 #for i in {0..110}; do python3 run.py $i & done
-def run_solver(inst, algo, solver_type, default='-'):
+def run_solver(inst, algo, default='-'):
     # print("start " + inst.name)
     solver = Solver.Solver()
-    solver.type = solver_type
     solver.bfs_timeout = 60
     solver.NUMBER_OF_SIMULATIONS = 5000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
     match algo:
-        case 'MCTS':
-            solver.timeout = 20
+        case 'MCTS_D':
+            solver.type = 'U1D'
+            solver.timeout = 30
+            solution = solver.mcts(inst)
+        case 'MCTS_S':
+            solver.type = 'U1S'
+            solver.timeout = 30
             solution = solver.mcts(inst)
         case 'BFS':
+            solver.type = 'U1S'
             solution = solver.bfs(inst)
         case 'BNB':
+            solver.type = 'U1S'
             solution = solver.branch_and_bound(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
         case 'BNBL':
+            solver.type = 'U1S'
             solution = solver.branch_and_bound(inst, solver.Heuristics_U1)
 
     timestamps = solution.timestamps
@@ -43,14 +50,11 @@ def main():
     df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
     for flybys in [True, False]:
         inst.flybys = flybys
-        for solver_type in ['U1D', 'U1S']:  # , 'URD', 'URS']:
-            for algo in ['MCTS', 'BFS', 'BNB', 'BNBL']:
-                if algo != 'MCTS' and (solver_type == 'U1D' or solver_type == 'URD'):
-                    continue
-                fin_res, time, res, states = run_solver(inst, algo, solver_type)
-                data_to_append.append({"run": (inst.name, solver_type, algo, flybys), "final result":
-                    fin_res, "time": time, "result": res, 'states': states})
-                print({"run": (inst.name, solver_type, algo, flybys), "final result":
+        for algo in ['MCTS_D', 'MCTS_S', 'BFS', 'BNB', 'BNBL']:
+            fin_res, time, res, states = run_solver(inst, algo)
+            data_to_append.append({"run": (inst.name, algo, flybys), "final result":
+                fin_res, "time": time, "result": res, 'states': states})
+            print({"run": (inst.name, algo, flybys), "final result":
                     fin_res, "time": time})
 
     # Concatenate the collected data to the DataFrame
@@ -58,11 +62,11 @@ def main():
 
     # Print the resulting DataFrame
     print(inst.name + ' without preprocessing is done')
-    df.to_csv(inst.name + "no_preprocessing.csv", index=False)
+    #df.to_csv(inst.name + "no_preprocessing.csv", index=False)
 
-    df.to_csv('small_no_preprocessing_tot.csv', mode='a', index=False, header=False)
+    df.to_csv('NEW_data/NEW_no_preprocessing_tot.csv', mode='a', index=False, header=False)
     print("first file added")
-    df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
+    #df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
 '''
     data_to_append = []
     preprocess_time = preprocess_names = []
