@@ -48,7 +48,7 @@ def main():
     inst = SECOND_instance_collector.instances[int(args[0])]
     print("\n" + inst.name + " starts")
     df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
-    for flybys in [True, False]:
+    for flybys in [True]:
         inst.flybys = flybys
         for algo in ['MCTS_D', 'MCTS_S', 'BFS', 'BNB', 'BNBL']:
             fin_res, time, res, states = run_solver(inst, algo)
