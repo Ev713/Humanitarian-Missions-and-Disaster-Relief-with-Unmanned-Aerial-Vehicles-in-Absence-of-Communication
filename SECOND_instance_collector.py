@@ -401,3 +401,83 @@ from very_ready_maps import i_21_20_23_4_26_MT
 instances.append(i_21_20_23_4_26_MT.instance1)
 from very_ready_maps import i_21_17_22_5_23_MT
 instances.append(i_21_17_22_5_23_MT.instance1)
+from very_ready_maps import i_3_3_3_1_6_FR
+instances.append(i_3_3_3_1_6_FR.instance1)
+from very_ready_maps import i_3_2_4_2_6_FR
+instances.append(i_3_2_4_2_6_FR.instance1)
+from very_ready_maps import i_3_3_3_3_5_FR
+instances.append(i_3_3_3_3_5_FR.instance1)
+from very_ready_maps import i_3_3_3_4_3_FR
+instances.append(i_3_3_3_4_3_FR.instance1)
+from very_ready_maps import i_3_3_3_5_4_FR
+instances.append(i_3_3_3_5_4_FR.instance1)
+from very_ready_maps import i_9_9_11_1_9_FR
+instances.append(i_9_9_11_1_9_FR.instance1)
+from very_ready_maps import i_9_10_10_2_10_FR
+instances.append(i_9_10_10_2_10_FR.instance1)
+from very_ready_maps import i_9_9_7_3_9_FR
+instances.append(i_9_9_7_3_9_FR.instance1)
+from very_ready_maps import i_9_10_9_4_9_FR
+instances.append(i_9_10_9_4_9_FR.instance1)
+from very_ready_maps import i_9_6_11_5_13_FR
+instances.append(i_9_6_11_5_13_FR.instance1)
+from very_ready_maps import i_15_11_12_1_30_FR
+instances.append(i_15_11_12_1_30_FR.instance1)
+from very_ready_maps import i_15_15_13_2_21_FR
+instances.append(i_15_15_13_2_21_FR.instance1)
+from very_ready_maps import i_15_14_15_3_23_FR
+instances.append(i_15_14_15_3_23_FR.instance1)
+from very_ready_maps import i_15_13_15_4_13_FR
+instances.append(i_15_13_15_4_13_FR.instance1)
+from very_ready_maps import i_15_18_13_5_25_FR
+instances.append(i_15_18_13_5_25_FR.instance1)
+from very_ready_maps import i_21_22_25_1_42_FR
+instances.append(i_21_22_25_1_42_FR.instance1)
+from very_ready_maps import i_21_15_16_2_32_FR
+instances.append(i_21_15_16_2_32_FR.instance1)
+from very_ready_maps import i_21_26_23_3_31_FR
+instances.append(i_21_26_23_3_31_FR.instance1)
+from very_ready_maps import i_21_23_16_4_27_FR
+instances.append(i_21_23_16_4_27_FR.instance1)
+from very_ready_maps import i_21_18_20_5_34_FR
+instances.append(i_21_18_20_5_34_FR.instance1)
+from very_ready_maps import i_3_3_4_1_3_MT
+instances.append(i_3_3_4_1_3_MT.instance1)
+from very_ready_maps import i_3_2_3_2_4_MT
+instances.append(i_3_2_3_2_4_MT.instance1)
+from very_ready_maps import i_3_2_4_3_6_MT
+instances.append(i_3_2_4_3_6_MT.instance1)
+from very_ready_maps import i_3_2_4_4_5_MT
+instances.append(i_3_2_4_4_5_MT.instance1)
+from very_ready_maps import i_3_2_2_5_2_MT
+instances.append(i_3_2_2_5_2_MT.instance1)
+from very_ready_maps import i_9_6_9_1_12_MT
+instances.append(i_9_6_9_1_12_MT.instance1)
+from very_ready_maps import i_9_11_8_2_17_MT
+instances.append(i_9_11_8_2_17_MT.instance1)
+from very_ready_maps import i_9_9_10_3_8_MT
+instances.append(i_9_9_10_3_8_MT.instance1)
+from very_ready_maps import i_9_6_7_4_17_MT
+instances.append(i_9_6_7_4_17_MT.instance1)
+from very_ready_maps import i_9_8_11_5_10_MT
+instances.append(i_9_8_11_5_10_MT.instance1)
+from very_ready_maps import i_15_13_12_1_27_MT
+instances.append(i_15_13_12_1_27_MT.instance1)
+from very_ready_maps import i_15_16_11_2_15_MT
+instances.append(i_15_16_11_2_15_MT.instance1)
+from very_ready_maps import i_15_18_16_3_23_MT
+instances.append(i_15_18_16_3_23_MT.instance1)
+from very_ready_maps import i_15_12_15_4_14_MT
+instances.append(i_15_12_15_4_14_MT.instance1)
+from very_ready_maps import i_15_13_19_5_17_MT
+instances.append(i_15_13_19_5_17_MT.instance1)
+from very_ready_maps import i_21_21_25_1_28_MT
+instances.append(i_21_21_25_1_28_MT.instance1)
+from very_ready_maps import i_21_26_18_2_36_MT
+instances.append(i_21_26_18_2_36_MT.instance1)
+from very_ready_maps import i_21_16_23_3_24_MT
+instances.append(i_21_16_23_3_24_MT.instance1)
+from very_ready_maps import i_21_18_25_4_33_MT
+instances.append(i_21_18_25_4_33_MT.instance1)
+from very_ready_maps import i_21_20_16_5_29_MT
+instances.append(i_21_20_16_5_29_MT.instance1)
