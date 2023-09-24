@@ -40,6 +40,7 @@ class Instance:
         self.flybys = True
         self.check_sums_of_probs_is_0()
         self.distance = {}
+        self.source = '-'
 
     def map_reduce(self):
         self.calculate_distance_between_vertices()

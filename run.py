@@ -4,7 +4,13 @@ import sys
 import SECOND_instance_collector
 import Solver
 
-#for i in {0..39}; do python3 run.py $i & done
+'''
+Run using :
+    for i in {0..n}; do python3 run.py $i & done
+where n is the last index of instances i instance collector.
+'''
+
+
 def run_solver(inst, algo, default='-'):
     # print("start " + inst.name)
     solver = Solver.Solver()
@@ -29,19 +35,12 @@ def run_solver(inst, algo, default='-'):
             solution = solver.branch_and_bound(inst, solver.Heuristics_U1)
 
     timestamps = solution.timestamps
-    states_collector = solution.states_collector
     states = solution.states
     solver.type = 'U1S'
     solution.set_rewards(solver, inst)
-    res = tuple(zip(solution.rewards, timestamps, states_collector))
-    try:
-        fin_res = solution.rewards[-1]
-    except IndexError:
-        fin_res = default
-    try:
-        time = timestamps[-1]
-    except:
-        time=default
+    res = tuple(zip(solution.rewards, timestamps))
+    fin_res = solution.rewards[-1]
+    time = timestamps[-1] if not solution.interrupted else default
     return fin_res, time, res, states
 
 
@@ -51,26 +50,33 @@ def main():
     args = sys.argv[1:]
     inst = SECOND_instance_collector.instances[int(args[0])]
     print("\n" + inst.name + " starts")
-    df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
+    df = pd.DataFrame(columns=['num_agents', 'map_size', 'source', 'horizon', 'algo',
+                               'final_result', 'time', 'states', 'result'])
+    # collected data:
+    # num_agents, map_size, if_bench_name, horizon, final result, time, states, result
     for flybys in [True]:
         inst.flybys = flybys
-        for algo in ['MCTS_S','MCTS_D', 'BFS', 'BNB', 'BNBL']:
-            fin_res, time, res, states = run_solver(inst, algo)
-            data_to_append.append({"run": (inst.name, algo, flybys), "final result":
-                fin_res, "time": time, "result": res, 'states': states})
-            print({"run": (inst.name, algo, flybys), "final result":
-                    fin_res, "time": time})
+        for algo in ['MCTS_D', 'MCTS_S', 'BFS', 'BNB', 'BNBL']:
+            fin_res, t, res, states = run_solver(inst, algo)
+            data_to_append.append({'num_agents': len(inst.agents), 'map_size': len(inst.map), 'source': inst.source,
+                                   'horizon': inst.horizon, 'algo': algo,
+                                   'final_result': fin_res, 'time': t, 'states': states, 'result': res})
+            print({'num_agents': len(inst.agents), 'map_size': len(inst.map), 'source': inst.source,
+                                   'horizon': inst.horizon, 'algo': algo,
+                                   'final_result': fin_res, 'time': t, 'states': states,})
 
     # Concatenate the collected data to the DataFrame
     df = pd.concat([df, pd.DataFrame(data_to_append)], ignore_index=True)
 
     # Print the resulting DataFrame
     print(inst.name + ' without preprocessing is done')
-    #df.to_csv(inst.name + "no_preprocessing.csv", index=False)
+    # df.to_csv(inst.name + "no_preprocessing.csv", index=False)
 
     df.to_csv('NEW_data/NEW_no_preprocessing_tot.csv', mode='a', index=False, header=False)
     print("first file added")
-    #df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
+    # df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
+
+
 '''
     data_to_append = []
     preprocess_time = preprocess_names = []

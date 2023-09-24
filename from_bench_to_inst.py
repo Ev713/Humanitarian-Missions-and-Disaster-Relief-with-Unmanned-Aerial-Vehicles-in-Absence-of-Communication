@@ -20,6 +20,7 @@ class BenchToMapGenerator(Generator):
         self.unpassable = self.get_unpassable()
         self.name = '_' + str(self.rows) + "X" + str(self.cols) + self.type + os.path.basename(path).split('.')[
             0] + ".py"
+        self.source = os.path.basename(path).split('.')[0]
         self.file.close()
 
     def map_to_string(self):
@@ -82,6 +83,6 @@ class BenchToMapGenerator(Generator):
 
 for type in ['FR', 'MT']:
     G = BenchToMapGenerator("maps/den101d.map", type, "den101")
-    f = open("very_ready_maps/" + G.name, "w")
+    f = open("ready_maps/" + G.name, "w")
     G.gen_map(f)
     f.close()
