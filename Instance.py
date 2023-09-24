@@ -29,7 +29,7 @@ def product_dict(dict):
 
 
 class Instance:
-    def __init__(self, name, map, agents, horizon):
+    def __init__(self, name, map, agents, horizon, source='-'):
         self.name = name
         self.map = map  # list of Vertices
         self.map_map = {v.hash(): v for v in map}
@@ -40,7 +40,7 @@ class Instance:
         self.flybys = True
         self.check_sums_of_probs_is_0()
         self.distance = {}
-        self.source = '-'
+        self.source = source
 
     def map_reduce(self):
         self.calculate_distance_between_vertices()

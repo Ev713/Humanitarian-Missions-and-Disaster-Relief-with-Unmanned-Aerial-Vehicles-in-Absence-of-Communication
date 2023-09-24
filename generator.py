@@ -5,8 +5,9 @@ import numpy as np
 
 
 class Generator:
-    def __init__(self, name, type, cols, rows, agents, horizon, ):
+    def __init__(self, name, type, cols, rows, agents, horizon, source='-'):
         self.MAX_REWARD = 7
+        self.source = source
         self.cols = cols
         self.rows = rows
         self.NUM_OF_AGENTS = agents
@@ -240,7 +241,7 @@ class Generator:
         f.write("]\n")
 
         f.write("instance1 = Instance.Instance(\"" + self.name_no_py + "\", map1, agents, " + str(
-            self.actual_horizon) + ")\n")
+            self.actual_horizon) + ", source=" + "\"" + self.source + "\"" + ")\n")
 
 
 '''for type in ['FR', 'SC', 'AG', 'MT']:
@@ -270,14 +271,18 @@ for type in ['FR', 'MT']:
             rows = max(random.randint(round(size * 0.75), round(size * 1.25)), 2)
             hor = max(random.randint(int(size * 0.9), int(size) * 2), 2)
             mr = max(size // 2, 2)
-            G = Generator('i_'+str(size) + '_' + str(cols) + '_' + str(rows) + '_' + str(agents) + '_' + str(hor)+'_', type,
-                          rows, cols, agents, hor)
+            G = Generator(
+                'i_' + str(size) + '_' + str(cols) + '_' + str(rows) + '_' + str(agents) + '_' + str(hor) + '_', type,
+                rows, cols, agents, hor)
             G.ACC = 4
             G.MAX_REWARD = mr
-            f = open("very_ready_maps/" + G.name, "w")
-            g = open("SECOND_instance_collector.py", "a")
-            g.write("from very_ready_maps import " + G.name_no_py + "\n")
+            f = open("ready_maps/" + G.name, "w")
+            g = open("THIRD_instance_collector.py", "a")
+            g.write("from ready_maps import " + G.name_no_py + "\n")
             g.write("instances.append(" + G.name_no_py + ".instance1)\n")
             g.close()
             G.gen_map(f)
             f.close()
+            break
+        break
+    break

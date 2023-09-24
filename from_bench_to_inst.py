@@ -9,7 +9,9 @@ import os
 class BenchToMapGenerator(Generator):
 
     def __init__(self, path, type, name):
-        super().__init__(name, type, 100, 100, 2, 10)
+        source=os.path.basename(path).split('.')[
+            0]
+        super().__init__(name, type, 100, 100, 2, 10, source=source)
         self.file = open(path)
         self.lines = [line for line in self.file]
         self.rows = int(self.lines[1].split(" ")[1])
@@ -18,9 +20,7 @@ class BenchToMapGenerator(Generator):
         self.FACTOR = 4
         self.reduce_map()
         self.unpassable = self.get_unpassable()
-        self.name = '_' + str(self.rows) + "X" + str(self.cols) + self.type + os.path.basename(path).split('.')[
-            0] + ".py"
-        self.source = os.path.basename(path).split('.')[0]
+        self.name = '_' + str(self.rows) + "X" + str(self.cols) + self.type + source + ".py"
         self.file.close()
 
     def map_to_string(self):
