@@ -86,23 +86,7 @@ class Instance:
             if round(sum(v.distribution.values()), 7)!=1:
                 raise Exception("Sum of vertex "+str(v)+"'s probabilities is not 0!")
 
-    def calculate_distance_between_vertices(self):
-        n = len(self.map)
-        for i in self.map:
-            for j in self.map:
-                self.distance[(i.hash(), j.hash())] = 100000000
-        for i in range(n):
-            for j in self.map[i].neighbours:
-                self.distance[(self.map[i].hash(), j.hash())] = 1
-                self.distance[(j.hash(), self.map[i].hash())] = 1
-            self.distance[(self.map[i].hash(), self.map[i].hash())] = 0
-        for i in self.map:
-            for j in self.map:
-                for k in self.map:
-                    if (self.distance[(i.hash(), j.hash())] > self.distance[(i.hash(), k.hash())] + self.distance[
-                        (k.hash(), j.hash())]):
-                        self.distance[(i.hash(), j.hash())] = self.distance[(i.hash(), k.hash())] + self.distance[
-                            (k.hash(), j.hash())]
+
 
     def make_det_map_and_det_map_map(self):
         det_map = []

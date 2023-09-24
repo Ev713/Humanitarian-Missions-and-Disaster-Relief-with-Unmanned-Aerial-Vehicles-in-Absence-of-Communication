@@ -6,13 +6,14 @@ import Node
 import State
 import StochInstance
 
-import check_for_sasha as map
+#import check_for_sasha as map
 
 
 class Solution:
-    def __init__(self, paths, timestamps, interrupted, opened_nodes):
+    def __init__(self, paths, timestamps,states_collector, interrupted, opened_nodes):
         self.paths = paths
         self.timestamps = timestamps
+        self.states_collector = states_collector
         self.rewards = []
         self.interrupted = interrupted
         self.states = opened_nodes
@@ -24,10 +25,12 @@ class Solution:
 
 class Solver:
     def __init__(self):
+        self.dist_calculated = False
+        self.distance = {}
         self.num_of_states = None
-        self.best_path = None
         self.type = None
         self.dup_det = False
+        self.prev_time_check = 0
 
         self.NUMBER_OF_SIMULATIONS = 5000
         self.JUMP = self.NUMBER_OF_SIMULATIONS / min(self.NUMBER_OF_SIMULATIONS, 100)
@@ -36,23 +39,42 @@ class Solver:
         self.start = 0
 
         self.root = None
+
+        # log variables
         self.timestamps = []
         self.paths = []
+        self.states_collector = []
+
         self.best_node = None
         self.best_value = 0
         self.states = 0
 
     def restart(self):
         self.start = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
+        self.prev_time_check = self.start
         self.timestamps = []
         self.paths = []
         self.root = Node.Node(None)
         self.best_value = 0
-        self.best_path = None
         self.num_of_states = 0
 
-    def exit(self, timeout):
-        return Solution(self.paths, self.timestamps, timeout, self.num_of_states)
+    def get_time(self):
+        return time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)-self.start
+
+    def time_for_log(self):
+        now = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
+        if now - self.prev_time_check > self.timeout / 100:
+            #print("time total: ", now-self.start, " time skip:", now-self.prev_time_check)
+            self.prev_time_check = now
+            self.timestamps.append(now)
+            return True
+        return False
+
+    def is_timeout(self):
+        return self.get_time() > self.timeout
+
+    def get_solution(self, timeout):
+        return Solution(self.paths, self.timestamps,self.states_collector, timeout, self.num_of_states)
 
     def Heuristics_U1(self, state, instance):
         if self.type != 'U1S':
@@ -62,7 +84,7 @@ class Solver:
             current_vertex = state.a_pos[agent.hash()].loc
             winner_list = []
             for v in instance.map:
-                if v.hash() == current_vertex or instance.distance[(v.hash(), current_vertex)] > (
+                if v.hash() == current_vertex or self.distance[(v.hash(), current_vertex)] > (
                         agent.movement_budget - (instance.horizon - state.time_left)):
                     continue
                 winner_list += [state.calculate_vertex_estimate(v, instance)]
@@ -84,7 +106,7 @@ class Solver:
             return 0
         winner_list = []
         for v in instance.map:
-            if v.hash() == current_vertex or instance.distance[(v.hash(), current_vertex)] > (
+            if v.hash() == current_vertex or self.distance[(v.hash(), current_vertex)] > (
                     movement_budget - (instance.horizon - state.time_left)):
                 continue
             winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
@@ -110,7 +132,7 @@ class Solver:
             current_vertex = state.a_pos[agent.hash()].loc
             winner_list = []
             for v in instance.map:
-                if v.hash() == current_vertex or instance.distance[(v.hash(), current_vertex)] > (
+                if v.hash() == current_vertex or self.distance[(v.hash(), current_vertex)] > (
                         agent.movement_budget - (instance.horizon - state.time_left)):
                     continue
                 winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
@@ -132,7 +154,7 @@ class Solver:
             return 0
         winner_list = []
         for v in instance.map:
-            if v.hash() == current_vertex or instance.distance[(v.hash(), current_vertex)] > (
+            if v.hash() == current_vertex or self.distance[(v.hash(), current_vertex)] > (
                     movement_budget - (instance.horizon - state.time_left)):
                 continue
             winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
@@ -156,7 +178,7 @@ class Solver:
             current_vertex = state.a_pos[agent.hash()].loc
             winner_list = []
             for v in instance.map:
-                if v.hash() == current_vertex or instance.distance[(v.hash(), current_vertex)] > (
+                if v.hash() == current_vertex or self.distance[(v.hash(), current_vertex)] > (
                         agent.movement_budget - (instance.horizon - state.time_left)):
                     continue
                 winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
@@ -171,37 +193,63 @@ class Solver:
                         current_vertex,
                         state, instance, used_vertex, matrix[j][k:])
         return estimate_sum
+    
+    def calculate_distance_between_vertices(self, inst):
+        n = len(inst.map)
+        for i in inst.map:
+            for j in inst.map:
+                if self.is_timeout():
+                    return
+                self.distance[(i.hash(), j.hash())] = 100000000
+        for i in range(n):
+            for j in inst.map[i].neighbours:
+                if self.is_timeout():
+                    return
+                self.distance[(inst.map[i].hash(), j.hash())] = 1
+                self.distance[(j.hash(), inst.map[i].hash())] = 1
+            self.distance[(inst.map[i].hash(), inst.map[i].hash())] = 0
+        for i in inst.map:
+            for j in inst.map:
+                for k in inst.map:
+                    if self.is_timeout():
+                        return
+                    if (self.distance[(i.hash(), j.hash())] > self.distance[(i.hash(), k.hash())] + self.distance[
+                        (k.hash(), j.hash())]):
+                        self.distance[(i.hash(), j.hash())] = self.distance[(i.hash(), k.hash())] + self.distance[
+                            (k.hash(), j.hash())]
+        self.dist_calculated = True
 
     def bfs(self, def_inst):
         return self.branch_and_bound(def_inst)
 
     def branch_and_bound(self, def_inst, upper_bound=None, lower_bound=None):
-        start = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
+        self.restart()
         if self.type == 'URD' or self.type == 'U1D':
-            raise Exception("Unfit type fro bfs")
-        root = Node.Node(None)
-        best_node = root
+            raise Exception("Unfit type for bfs")
+        self.root = Node.Node(None)
+        self.best_node = self.root
         instance = self.make_instance(def_inst)
-        instance.calculate_distance_between_vertices()
-        root.state = instance.initial_state.copy()
-        que = [root]
-        visited_states = set()
-        num_of_states = 0
-        best_value = instance.reward(root.state)
+        if upper_bound is not None or lower_bound is not None:
+            self.calculate_distance_between_vertices(instance)
+            if not self.dist_calculated:
+                print("Calculating distances failed")
+                return self.get_solution(True)
 
-        timestamps = []
-        paths = []
+        self.root.state = instance.initial_state.copy()
+        que = [self.root]
+        visited_states = set()
+        self.num_of_states = 0
+        self.best_value = instance.reward(self.root.state)
+        self.prev_time_check = self.start
 
         while que:
-            if time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start > self.timeout:
-                return Solution([best_node.get_path()],
-                                [round(time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start, 3)], True,
-                                num_of_states)
+            if self.is_timeout():
+                return self.get_solution(True)
             node = que.pop()
             if not node.state.is_terminal():
                 node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state)])
                 for c in node.children:
-                    num_of_states += 1
+                    self.num_of_states += 1
                     hash = c.state.hash()
                     if self.dup_det:
                         if hash in visited_states:
@@ -211,20 +259,18 @@ class Solver:
 
                     if upper_bound is not None:
                         up = upper_bound(c.state, instance)
-                        low = lower_bound(best_node.state, instance) if lower_bound is not None else 0
-                        if v + up < best_value + low:
+                        low = lower_bound(self.best_node.state, instance) if lower_bound is not None else 0
+                        if v + up < self.best_value + low:
                             continue
-                    if v > best_value:
-                        best_value = v
-                        best_node = c
+                    if v > self.best_value:
+                        self.best_value = v
+                        self.best_node = c
                     que = [c] + que
 
-            if self.dup_det:
-                pass  # print("Checked states", len(visited_states))
-            else:
-                pass  # print("Number of states", num_of_states)
-        return Solution([best_node.get_path()], [time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - start], False,
-                        num_of_states)
+            if self.time_for_log():
+                self.paths.append(self.best_node.get_path())
+                self.states_collector.append(self.num_of_states)
+        return self.get_solution(False)
 
     def make_instance(self, def_inst):
         if self.type == "U1D":
@@ -245,12 +291,11 @@ class Solver:
         self.root.state = instance.initial_state.copy()
         best_value = 0
         best_path = None
-        prev_time_check=self.start
+        prev_time_check = self.start
 
         for t in range(self.NUMBER_OF_SIMULATIONS):
-            now = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - self.start
-            if now > self.timeout:
-                self.exit(True)
+            if self.is_timeout():
+                return self.get_solution(True)
             node = self.root
             # selection
             while node.all_children_visited():
@@ -297,23 +342,19 @@ class Solver:
                 discounted_reward /= self.DISCOUNT
 
             # gathering data
-            now = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
-            if now - prev_time_check > self.timeout / 100:
-                prev_time_check = now
-                self.timestamps.append(now)
-
+            if self.time_for_log():
+                self.states_collector.append(self.num_of_states)
                 # Deterministic approach allows us to takeout the best path without checking
                 if (self.type == 'U1S' or self.type == 'URS') and node.value < self.best_value:
                     self.paths.append(best_path)
                 else:
-                    #print(str(round(self.prev_time_check/self.timeout * 100, 2)) + "%")
                     node = self.root
                     while not node.state.is_terminal() and len(node.children) != 0:
                         node = node.highest_value_child()
                     self.paths.append(node.get_path())
         # root.get_tree()
         # returning
-        return self.exit(False)
+        return self.get_solution(False)
 
     def evaluate_path(self, def_inst, path, NUM_OF_SIMS=100000):
         if self.type == "U1D":

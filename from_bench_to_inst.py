@@ -15,7 +15,7 @@ class BenchToMapGenerator(Generator):
         self.rows = int(self.lines[1].split(" ")[1])
         self.cols = int(self.lines[2].split(" ")[1])
         self.map = self.extract_map()
-        self.FACTOR = 25
+        self.FACTOR = 4
         self.reduce_map()
         self.unpassable = self.get_unpassable()
         self.name = '_' + str(self.rows) + "X" + str(self.cols) + self.type + os.path.basename(path).split('.')[
@@ -81,7 +81,7 @@ class BenchToMapGenerator(Generator):
 
 
 for type in ['FR', 'MT']:
-    G = BenchToMapGenerator("maps/AR0604SR.map", type, "AR0604SR")
-    f = open("ready_maps/" + G.name, "w")
+    G = BenchToMapGenerator("maps/den101d.map", type, "den101")
+    f = open("very_ready_maps/" + G.name, "w")
     G.gen_map(f)
     f.close()

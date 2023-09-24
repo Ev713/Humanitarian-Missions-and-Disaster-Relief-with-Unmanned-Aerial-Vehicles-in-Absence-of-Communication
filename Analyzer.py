@@ -18,8 +18,6 @@ class Run:
         self.map_type = None
         self.is_real = False
 
-    def self.res
-
     def is_timeout(self):
         return self.time == -1
 
@@ -54,7 +52,8 @@ class Instance_data:
         self.best_value = None
         self.BFS = None
         self.BNB = None
-        self.MCTS = None
+        self.MCTS_D = None
+        self.MCTS_S = None
 
     def clone(self):
         cp = Instance_data(self.inst_name, self.flybys, self.map_type)
@@ -75,12 +74,51 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "small_no_preprocessing_tot.csv"
+        self.file_path = "NEW_data/NEW_no_preprocessing_tot.csv"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
 
-    def filter_runs(self, algo=None, solver_type=None, map_type=None, inst_name=None, finished=None, time_less_than=None, reward_bigger_than=None ):
+    def filter_inst(self, bfs_finished=None, mcts_s_more_than_percentage=None, mcts_d_more_than_percentage=None, mcts_s_before_time=None, mcts_d_before_time=None):
+        filtered_instances = []
+        for i in list(self.instances.values()):
+            if mcts_s_more_than_percentage is not None:
+                if i.best_value == -1 or i.MCTS_S.results==-1:
+                    continue
+                try:
+                    if mcts_s_before_time is None:
+                        res = i.MCTS_S.fin_res
+                    else:
+                        id = 0
+                        res = i.MCTS_S.results[0][1]
+                        while(i.MCTS_S.results[id][1]<mcts_s_before_time and id < len(i.MCTS_S.results)):
+                            res = i.MCTS_S.results[id][1]
+                            id += 1
+                except:
+                    breakpoint
+                if res < i.best_value * mcts_s_more_than_percentage:
+                    continue
+            if mcts_d_more_than_percentage is not None:
+                if i.best_value == -1:
+                    continue
+                if mcts_d_before_time is not None:
+                    res = i.MCTS_D.fin_res
+                else:
+                    id = 0
+                    res = i.MCTS_D.results[0][1]
+                    while (i.MCTS_D.results[id][1] < mcts_d_before_time):
+                        res = i.MCTS_D.results[id][1]
+                        id += 1
+                if res < i.best_value * mcts_d_more_than_percentage:
+                    continue
+            if bfs_finished == True:
+                if i.best_value == -1:
+                    continue
+            filtered_instances.append(i)
+        return filtered_instances
+
+    def filter_runs(self, algo=None, solver_type=None, map_type=None, inst_name=None, finished=None,
+                    time_less_than=None, reward_bigger_than=None):
         filtered_runs = []
         for r in self.runs:
             if algo is not None and r.algo != algo:
@@ -96,7 +134,7 @@ class Analyzer:
                     continue
             if time_less_than is not None and (r.time == -1 or r.time >= time_less_than):
                 continue
-            if reward_bigger_than is not None and r.fin_res<reward_bigger_than:
+            if reward_bigger_than is not None and r.fin_res < reward_bigger_than:
                 continue
             filtered_runs.append(r)
         return filtered_runs
@@ -117,9 +155,9 @@ class Analyzer:
             run_info = row[0]
             run = Run()
             run.inst_name = run_info.strip("()").split(', ')[0].strip('\'\'')
-            run.solver_type = run_info.strip("()").split(', ')[1].strip('\'\'')
-            run.algo = run_info.strip("()").split(', ')[2].strip('\'\'')
-            run.flybys = bool(run_info.strip("()").split(', ')[3].strip('\'\''))
+            run.algo = run_info.strip("()").split(', ')[1].strip('\'\'')
+            # run.algo = run_info.strip("()").split(', ')[2].strip('\'\'')
+            # run.flybys = bool(run_info.strip("()").split(', ')[3].strip('\'\''))
             run.fin_res = row[1]
             run.states = row[4]
             try:
@@ -152,10 +190,14 @@ class Analyzer:
                     if run.time != -1:
                         id.best_value = run.fin_res
                         id.BFS_time = run.time
+                    else:
+                        id.best_value = -1
                 case 'BNB':
                     id.BNB = run
-                case 'MCTS':
-                    id.MCTS = run
+                case 'MCTS_S':
+                    id.MCTS_S = run
+                case 'MCTS_D':
+                    id.MCTS_S = run
 
     def normalize(self):
         for i in self.instances.values():
@@ -177,13 +219,13 @@ class Analyzer:
                     i.MCTS.results[t_id] = new
 
     def get_success_rate_per_time(self, time_range, save=False):
-        algos = ['MCTS', 'BFS', 'BNB', 'BNBL']
+        algos = ['MCTS_S', 'MCTS_D', 'BFS', 'BNB', 'BNBL']
         for algo in algos:
             x = []
             y = []
             for time in range(1, time_range):
                 t = time
-                y.append(len(self.filter_runs(time_less_than=t, algo=algo))/len(self.filter_runs(algo=algo)))
+                y.append(len(self.filter_runs(time_less_than=t, algo=algo)) / len(self.filter_runs(algo=algo)))
                 x.append(t)
             plt.scatter(x, y)
         plt.legend(algos)
@@ -193,18 +235,16 @@ class Analyzer:
             plt.savefig('success_rate_per_time.png')
         plt.show()
 
-
-    def get_success_rate_per_result(self, save=False):
-        raise NotImplementedError
+    def get_success_rate_per_result(self, percentage, save=False):
         x = []
         y = []
         for time in range(1, 100):
-            t = time / 100
-            #y.append(self.count_percentage(filter(list(self.instances.values()), inst_has_best_result), result_greater_than, t))
+            t = time
+            y.append(len(self.filter_inst(mcts_s_more_than_percentage=percentage/100, mcts_s_before_time=t))/len(self.filter_inst(bfs_finished=True)))
             x.append(t)
         plt.scatter(x, y)
         plt.legend('MCTS')
-        plt.xlabel('Percent of best value')
+        plt.xlabel('time')
         plt.ylabel('Success rate')
         if save:
             plt.savefig('success_per_result.png')
@@ -214,7 +254,21 @@ class Analyzer:
 def main():
     analyzer = Analyzer()
     analyzer.create_runs()
-    analyzer.get_success_rate_per_time(60)
+    #analyzer.get_success_rate_per_time(60)
+    #analyzer.get_success_rate_per_result(90)
+
+    for run in analyzer.runs:
+        rewards = [r[0] for r in run.results if r[1]-run.results[0][1]<300]
+        times = [r[1]-run.results[0][1] for r in run.results if r[1]<300]
+        states = [r[2] for r in run.results if r[1]-run.results[0][1]<300]
+        plt.scatter(times, rewards)
+    plt.xlabel('time')
+    plt.ylabel('states')
+    plt.legend([run.algo for run in analyzer.runs])
+    plt.show()
+    plt.savefig()
+
+
     types = ['FR', 'MT']
     '''
     for t in types:
@@ -224,7 +278,6 @@ def main():
             analyzer.count_percentage(filter(list(analyzer.instances.values()), inst_is_type, t), inst_has_mcts_result)))
         print()    
     '''
-
 
     # analyzer.normalize()
 

@@ -3,43 +3,45 @@ import sys
 
 import SECOND_instance_collector
 import Solver
-import instance_collector
 
-#for i in {0..110}; do python3 run.py $i & done
+#for i in {0..39}; do python3 run.py $i & done
 def run_solver(inst, algo, default='-'):
     # print("start " + inst.name)
     solver = Solver.Solver()
-    solver.NUMBER_OF_SIMULATIONS = 5000
+    solver.NUMBER_OF_SIMULATIONS = 50000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
+    solver.timeout = 240
     match algo:
         case 'MCTS_D':
             solver.type = 'U1D'
-            solver.timeout = 30
             solution = solver.mcts(inst)
         case 'MCTS_S':
             solver.type = 'U1S'
-            solver.timeout = 30
             solution = solver.mcts(inst)
         case 'BFS':
-            solver.timeout = 60
             solver.type = 'U1S'
             solution = solver.bfs(inst)
         case 'BNB':
             solver.type = 'U1S'
-            solver.timeout = 60
             solution = solver.branch_and_bound(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
         case 'BNBL':
-            solver.timeout = 60
             solver.type = 'U1S'
             solution = solver.branch_and_bound(inst, solver.Heuristics_U1)
 
     timestamps = solution.timestamps
+    states_collector = solution.states_collector
     states = solution.states
     solver.type = 'U1S'
     solution.set_rewards(solver, inst)
-    res = tuple(zip(solution.rewards, timestamps))
-    fin_res = solution.rewards[-1]
-    time = timestamps[-1] if not solution.interrupted else default
+    res = tuple(zip(solution.rewards, timestamps, states_collector))
+    try:
+        fin_res = solution.rewards[-1]
+    except IndexError:
+        fin_res = default
+    try:
+        time = timestamps[-1]
+    except:
+        time=default
     return fin_res, time, res, states
 
 
@@ -52,7 +54,7 @@ def main():
     df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
     for flybys in [True]:
         inst.flybys = flybys
-        for algo in ['MCTS_D', 'MCTS_S', 'BFS', 'BNB', 'BNBL']:
+        for algo in ['MCTS_S','MCTS_D', 'BFS', 'BNB', 'BNBL']:
             fin_res, time, res, states = run_solver(inst, algo)
             data_to_append.append({"run": (inst.name, algo, flybys), "final result":
                 fin_res, "time": time, "result": res, 'states': states})
