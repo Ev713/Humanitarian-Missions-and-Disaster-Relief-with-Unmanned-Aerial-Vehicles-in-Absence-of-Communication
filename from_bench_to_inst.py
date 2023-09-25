@@ -84,5 +84,10 @@ class BenchToMapGenerator(Generator):
 for type in ['FR', 'MT']:
     G = BenchToMapGenerator("maps/den101d.map", type, "den101")
     f = open("ready_maps/" + G.name, "w")
+    g = open("THIRD_instance_collector.py", "a")
+    g.write("from ready_maps import " + G.name_no_py + "\n")
+    g.write("instances.append(" + G.name_no_py + ".instance1)\n")
+    g.close()
+
     G.gen_map(f)
     f.close()
