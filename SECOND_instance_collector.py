@@ -483,5 +483,3 @@ from very_ready_maps import i_21_20_16_5_29_MT
 instances.append(i_21_20_16_5_29_MT.instance1)
 from very_ready_maps import i_3_3_4_1_4_FR
 instances.append(i_3_3_4_1_4_FR.instance1)
-from ready_maps import i_3_2_2_1_4_FR
-instances.append(i_3_2_2_1_4_FR.instance1)

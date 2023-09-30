@@ -2,6 +2,7 @@ import pandas as pd
 import sys
 
 import SECOND_instance_collector
+import THIRD_instance_collector as collector
 import Solver
 
 '''
@@ -48,7 +49,7 @@ def main():
     import time
     data_to_append = []
     args = sys.argv[1:]
-    inst = SECOND_instance_collector.instances[int(args[0])]
+    inst = collector.instances[int(args[0])]
     print("\n" + inst.name + " starts")
     df = pd.DataFrame(columns=['num_agents', 'map_size', 'source', 'horizon', 'algo',
                                'final_result', 'time', 'states', 'result'])
@@ -62,8 +63,8 @@ def main():
                                    'horizon': inst.horizon, 'algo': algo,
                                    'final_result': fin_res, 'time': t, 'states': states, 'result': res})
             print({'num_agents': len(inst.agents), 'map_size': len(inst.map), 'source': inst.source,
-                                   'horizon': inst.horizon, 'algo': algo,
-                                   'final_result': fin_res, 'time': t, 'states': states,})
+                   'horizon': inst.horizon, 'algo': algo,
+                   'final_result': fin_res, 'time': t, 'states': states, })
 
     # Concatenate the collected data to the DataFrame
     df = pd.concat([df, pd.DataFrame(data_to_append)], ignore_index=True)
