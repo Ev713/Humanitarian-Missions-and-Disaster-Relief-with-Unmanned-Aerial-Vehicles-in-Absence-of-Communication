@@ -15,7 +15,7 @@ where n is the last index of instances i instance collector.
 def run_solver(inst, algo, default='-'):
     # print("start " + inst.name)
     solver = Solver.Solver()
-    solver.NUMBER_OF_SIMULATIONS = 50000
+    solver.NUMBER_OF_SIMULATIONS = 100000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
     solver.timeout = 240
     match algo:
@@ -40,17 +40,18 @@ def run_solver(inst, algo, default='-'):
     solver.type = 'U1S'
     solution.set_rewards(solver, inst)
     res = tuple(zip(solution.rewards, timestamps))
-    (time, fin_res) = (timestamps[-1], solution.rewards[-1]) if not solution.interrupted else (default, default)
+    fin_res = solution.rewards[-1] if len(solution.rewards) > 0 else default
+    time = timestamps[-1] if not solution.interrupted else default
     return fin_res, time, res, states
 
 
 def main():
     import time
     data_to_append = []
-    args = sys.argv[1:]
+    args = [2]#sys.argv[1:]
     inst = collector.instances[int(args[0])]
     print("\n" + inst.name + " starts")
-    df = pd.DataFrame(columns=['num_agents', 'map_size', 'source', 'horizon', 'algo',
+    df = pd.DataFrame(columns=['inst_name','num_agents', 'map_size', 'source', 'horizon', 'algo',
                                'final_result', 'time', 'states', 'result'])
     # collected data:
     # num_agents, map_size, if_bench_name, horizon, final result, time, states, result
@@ -58,11 +59,11 @@ def main():
         inst.flybys = flybys
         for algo in ['MCTS_D', 'MCTS_S', 'BFS', 'BNB', 'BNBL']:
             fin_res, t, res, states = run_solver(inst, algo)
-            data_to_append.append({'num_agents': len(inst.agents), 'map_size': len(inst.map), 'source': inst.source,
-                                   'horizon': inst.horizon, 'algo': algo,
+            data_to_append.append({'inst_name':inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
+                                   'source': inst.source,'horizon': inst.horizon, 'algo': algo,
                                    'final_result': fin_res, 'time': t, 'states': states, 'result': res})
-            print({'num_agents': len(inst.agents), 'map_size': len(inst.map), 'source': inst.source,
-                   'horizon': inst.horizon, 'algo': algo,
+            print({'inst_name':inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
+                   'source': inst.source,'horizon': inst.horizon, 'algo': algo,
                    'final_result': fin_res, 'time': t, 'states': states, })
 
     # Concatenate the collected data to the DataFrame

@@ -74,7 +74,7 @@ class Solver:
         return self.get_time() > self.timeout
 
     def get_solution(self, timeout):
-        return Solution(self.paths, self.timestamps,self.states_collector, timeout, self.num_of_states)
+        return Solution(self.paths, self.timestamps, self.states_collector, timeout, self.num_of_states)
 
     def Heuristics_U1(self, state, instance):
         if self.type != 'U1S':

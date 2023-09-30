@@ -252,4 +252,4 @@ map1 = [
                    vertex146, vertex147, vertex148,            vertex150,                                                        vertex156,                                                                   
                    vertex164, vertex165, vertex166,            vertex168, vertex169, vertex170, vertex171, vertex172, vertex173, vertex174,                                                                   ]
 agents = [agent0, agent1]
-instance1 = Instance.Instance("den101FR", map1, agents, 9, source="den101d")
+instance1 = Instance.Instance("_10X18FRden101d", map1, agents, 9, source="den101d")

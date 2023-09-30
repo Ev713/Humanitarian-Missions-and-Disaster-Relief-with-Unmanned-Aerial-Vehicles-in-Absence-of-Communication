@@ -149,6 +149,22 @@ class Analyzer:
         p = num_of_sats / tot
         return p
 
+    def create_runs_NEW(self):
+        for i in range(len(self.df)):
+            row = self.df.loc[i, :].to_list()
+            run = Run()
+            run.inst_name = row[0]
+            run.num_of_agents = row[1]
+            run.size = row[2]
+            run.source = row[3]
+            run.horizon = row[4]
+            run.algo = row[5]
+            run.fin_res = row[6]
+            run.time = float(row[7]) if row[7] != '-' else -1
+            run.states = row[8]
+            run.results = [tuple(float(t.strip('()')) for t in i.strip('').strip(')').split(', ')) for i in
+                                   row[9].strip("()").split(', (')] if len(row[9]) > 2 else []
+
     def create_runs(self):
         for i in range(len(self.df)):
             row = self.df.loc[i, :].to_list()
@@ -253,7 +269,7 @@ class Analyzer:
 
 def main():
     analyzer = Analyzer()
-    analyzer.create_runs()
+    analyzer.create_runs_NEW()
     #analyzer.get_success_rate_per_time(60)
     #analyzer.get_success_rate_per_result(90)
 
