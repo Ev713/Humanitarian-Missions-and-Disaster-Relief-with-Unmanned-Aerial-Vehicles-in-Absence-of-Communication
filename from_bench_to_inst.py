@@ -34,6 +34,8 @@ class BenchToMapGenerator(Generator):
             string += '■\n'
         return string
 
+
+
     def generate_init_loc(self, agent_hash):
         while True:
             l = random.randint(1, self.rows * self.cols)
