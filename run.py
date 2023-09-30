@@ -1,7 +1,7 @@
 import pandas as pd
 import sys
 
-import SECOND_instance_collector
+#import SECOND_instance_collector
 import THIRD_instance_collector as collector
 import Solver
 
