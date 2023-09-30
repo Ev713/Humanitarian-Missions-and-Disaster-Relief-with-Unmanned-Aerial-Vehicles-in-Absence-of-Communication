@@ -40,7 +40,7 @@ def run_solver(inst, algo, default='-'):
     solver.type = 'U1S'
     solution.set_rewards(solver, inst)
     res = tuple(zip(solution.rewards, timestamps))
-    time, fin_res = timestamps[-1], solution.rewards[-1] if not solution.interrupted else default, default
+    (time, fin_res) = (timestamps[-1], solution.rewards[-1]) if not solution.interrupted else (default, default)
     return fin_res, time, res, states
 
 
