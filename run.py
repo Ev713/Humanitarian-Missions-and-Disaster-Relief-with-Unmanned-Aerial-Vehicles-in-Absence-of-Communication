@@ -1,8 +1,8 @@
 import pandas as pd
 import sys
 
-#import SECOND_instance_collector
-import THIRD_instance_collector as collector
+import instance_collector as collector
+#import THIRD_instance_collector as collector
 import Solver
 
 '''
@@ -15,9 +15,10 @@ where n is the last index of instances i instance collector.
 def run_solver(inst, algo, default='-'):
     # print("start " + inst.name)
     solver = Solver.Solver()
-    solver.NUMBER_OF_SIMULATIONS = 100000
+    solver.NUMBER_OF_SIMULATIONS = 1000000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
     solver.timeout = 240
+    solution = None
     match algo:
         case 'MCTS_D':
             solver.type = 'U1D'
@@ -46,7 +47,6 @@ def run_solver(inst, algo, default='-'):
 
 
 def main():
-    import time
     data_to_append = []
     args = [2]#sys.argv[1:]
     inst = collector.instances[int(args[0])]
@@ -73,7 +73,7 @@ def main():
     print(inst.name + ' without preprocessing is done')
     # df.to_csv(inst.name + "no_preprocessing.csv", index=False)
 
-    df.to_csv('NEW_data/NEW_no_preprocessing_tot.csv', mode='a', index=False, header=False)
+    df.to_csv('data/NEW_no_preprocessing_tot.csv', mode='a', index=False, header=False)
     print("first file added")
     # df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
 

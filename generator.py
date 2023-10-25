@@ -256,9 +256,9 @@ class Generator:
         G = Generator(str(size), type, rows, cols, agents, hor)
         G.ACC = 4
         G.MAX_REWARD = mr
-        f = open("very_ready_maps/" + G.name, "w")
+        f = open("instances/" + G.name, "w")
         g = open("instance_collector.py", "a")
-        g.write("from very_ready_maps import " + G.name_no_py + "\n")
+        g.write("from instances import " + G.name_no_py + "\n")
         g.write("instances.append(" + G.name_no_py + ".instance1)\n")
         g.close()
         G.gen_map(f)

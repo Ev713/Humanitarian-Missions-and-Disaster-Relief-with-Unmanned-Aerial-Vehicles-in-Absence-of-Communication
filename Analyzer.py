@@ -16,7 +16,8 @@ class Run:
         self.fin_res = None
         self.states = 0
         self.map_type = None
-        self.is_real = False
+        #self.is_real = False
+        self.map_size = 0
 
     def is_timeout(self):
         return self.time == -1
@@ -74,7 +75,7 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "NEW_data/NEW_no_preprocessing_tot.csv"
+        self.file_path = "data/NEW_no_preprocessing_tot.csv"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
@@ -95,7 +96,7 @@ class Analyzer:
                             res = i.MCTS_S.results[id][1]
                             id += 1
                 except:
-                    breakpoint
+                    breakpoint()
                 if res < i.best_value * mcts_s_more_than_percentage:
                     continue
             if mcts_d_more_than_percentage is not None:
@@ -155,7 +156,7 @@ class Analyzer:
             run = Run()
             run.inst_name = row[0]
             run.num_of_agents = row[1]
-            run.size = row[2]
+            run.map_size = row[2]
             run.source = row[3]
             run.horizon = row[4]
             run.algo = row[5]
@@ -164,6 +165,7 @@ class Analyzer:
             run.states = row[8]
             run.results = [tuple(float(t.strip('()')) for t in i.strip('').strip(')').split(', ')) for i in
                                    row[9].strip("()").split(', (')] if len(row[9]) > 2 else []
+            self.runs.append(run)
 
     def create_runs(self):
         for i in range(len(self.df)):
@@ -282,7 +284,7 @@ def main():
     plt.ylabel('states')
     plt.legend([run.algo for run in analyzer.runs])
     plt.show()
-    plt.savefig()
+    #plt.savefig()
 
 
     types = ['FR', 'MT']
