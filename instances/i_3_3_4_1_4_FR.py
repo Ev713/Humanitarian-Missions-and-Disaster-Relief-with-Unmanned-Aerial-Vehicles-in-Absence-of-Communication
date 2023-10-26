@@ -43,4 +43,4 @@ map1 = [
         vertex5 , vertex6 , vertex7 , vertex8 , 
         vertex9 , vertex10, vertex11, vertex12, ]
 agents = [agent0]
-instance1 = Instance.Instance("i_3_3_4_1_4_FR", map1, agents, 2,source=-)
+instance1 = Instance.Instance("i_3_3_4_1_4_FR", map1, agents, 2,source='-')
