@@ -50,7 +50,7 @@ def main():
     data_to_append = []
     args = [2]#sys.argv[1:]
     inst = collector.instances[int(args[0])]
-    print("\n" + inst.name + " starts")
+    print("\n" + inst.file_name + " starts")
     df = pd.DataFrame(columns=['inst_name','num_agents', 'map_size', 'source', 'horizon', 'algo',
                                'final_result', 'time', 'states', 'result'])
     # collected data:
@@ -59,10 +59,10 @@ def main():
         inst.flybys = flybys
         for algo in ['MCTS_D', 'MCTS_S', 'BFS', 'BNB', 'BNBL']:
             fin_res, t, res, states = run_solver(inst, algo)
-            data_to_append.append({'inst_name':inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
+            data_to_append.append({'inst_name':inst.file_name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
                                    'source': inst.source,'horizon': inst.horizon, 'algo': algo,
                                    'final_result': fin_res, 'time': t, 'states': states, 'result': res})
-            print({'inst_name':inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
+            print({'inst_name':inst.file_name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
                    'source': inst.source,'horizon': inst.horizon, 'algo': algo,
                    'final_result': fin_res, 'time': t, 'states': states, })
 
@@ -70,7 +70,7 @@ def main():
     df = pd.concat([df, pd.DataFrame(data_to_append)], ignore_index=True)
 
     # Print the resulting DataFrame
-    print(inst.name + ' without preprocessing is done')
+    print(inst.file_name + ' without preprocessing is done')
     # df.to_csv(inst.name + "no_preprocessing.csv", index=False)
 
     df.to_csv('data/NEW_no_preprocessing_tot.csv', mode='a', index=False, header=False)

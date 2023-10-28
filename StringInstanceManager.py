@@ -5,9 +5,9 @@ import Instance
 import Agent
 
 
-def to_string(inst):
-    file = open(inst.name + ".txt", mode='a')
-    file.write(str(inst.name) + '\n')
+def to_string(inst, filepath=''):
+    file = open(filepath + inst.file_name + ".txt", mode='a')
+    file.write(str(inst.file_name) + '\n')
     file.write(str(inst.horizon) + '\n')
     for a in inst.agents:
         file.write('A' + '\n')

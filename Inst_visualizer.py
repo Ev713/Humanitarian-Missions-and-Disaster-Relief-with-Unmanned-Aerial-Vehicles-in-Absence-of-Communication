@@ -40,7 +40,7 @@ def visualize(inst):
     G= nx.Graph()
     for i in range(len(inst.map)):
         for j in range(len(inst.map[i].neighbours)):
-            G.add_edge(inst.map[i].name, inst.map[i].neighbours[j].name)
+            G.add_edge(inst.map[i].file_name, inst.map[i].neighbours[j].file_name)
     nx.draw_planar(G, with_labels = True)
     plt.savefig("instance" + str(i) + ".png")
     plt.clf()
@@ -70,12 +70,12 @@ def vis_2(inst):
     colors = [v.get_avg_reward()/average_reward for v in inst.map]
 
     for t in range(len(inst.map)):
-        x += [int(inst.map[t].name[1:]) % m]
-        y += [int(inst.map[t].name[1:]) // m]
+        x += [int(inst.map[t].file_name[1:]) % m]
+        y += [int(inst.map[t].file_name[1:]) // m]
 
     fig, ax = plt.subplots()
     ax.scatter(x, y,c = colors, cmap='RdYlGn_r')
     for t in range(len(inst.map)):
-        ax.annotate(inst.map[t].name, (x[t], y[t]))
+        ax.annotate(inst.map[t].file_name, (x[t], y[t]))
 
     plt.show()

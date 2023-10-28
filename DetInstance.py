@@ -10,7 +10,7 @@ import Instance
 
 class DetInstance(Instance.Instance):
     def __init__(self, instance=None):
-        super().__init__(instance.name, instance.map, instance.agents, instance.horizon)
+        super().__init__(instance.file_name, instance.map, instance.agents, instance.horizon)
         self.map, self.map_map = instance.make_special_map_and_map_map(Vertex.DetVertex)
         self.agents, self.agents_map = instance.make_agents_and_agents_map(self.map_map, Agent.DetAgent)
         self.horizon = instance.horizon
