@@ -27,17 +27,9 @@ class Generator:
         self.rows = rows
         self.num_of_agents = num_of_agents
         self.horizon = horizon
-        self.actual_horizon = None
         self.ACC = 5  # accuracy
         self.type = type
         self.unpassable = [] if unpassable is None else unpassable  # Hashes of vertices that are not in the final map.
-        if name == None:
-            self.name = 'i_' + str(rows * cols) + '_' + str(cols) + \
-                        '_' + str(rows) + '_' + str(agents) + '_' + str(hor) + '_' + type + '_'+source
-        else:
-            self.name = name
-        self.file_name = self.name + ".py"
-
         match self.type:
             case 'MT':
                 self.NUM_OF_CENTERS = self.generate_num_of_centers()
@@ -52,14 +44,26 @@ class Generator:
                                              self.cols * self.rows - len(self.unpassable) - 1 - len(self.a_locs))
                 self.dists_to_agents = self.generate_distances(set(self.a_locs.values()))
                 self.sorted_by_dists = sorted(self.dists_to_agents.keys(), key=lambda x: self.dists_to_agents[x])
-                self.big_vertex = self.sorted_by_dists[-1]
+                for i in range(self.rows * self.cols):
+                    if self.num_is_legal(i) and self.dists_to_agents[i] == horizon:
+                        self.big_vertex = self.sorted_by_dists[i]
+                        break
+                    raise Exception("No vertex fit for being the big vertex")
                 self.small_vertices = [self.sorted_by_dists[i] for i in
                                        range(len(self.a_locs), len(self.a_locs) + self.num_of_min_values)]
                 self.horizon = max(self.dists_to_agents.values())
-                self.actual_horizon = self.horizon
+        self.gen_names(name, rows, cols, agents, hor, source)
 
     def generate_num_of_centers(self):
         return random.randint(1, max(self.rows * self.cols / 5, 1))
+
+    def gen_names(self, name, rows, cols, agents, hor, source):
+        if name == None:
+            self.name = 'i_' + str(rows * cols) + '_' + str(cols) + \
+                        '_' + str(rows) + '_' + str(agents) + '_' + str(hor) + '_' + type + '_' + source
+        else:
+            self.name = name
+        self.file_name = self.name + ".py"
 
     def generate_init_loc(self, agent_hash):
         try:
@@ -177,8 +181,6 @@ class Generator:
             mb = max(random.randint(int(self.horizon * 0.5), self.horizon), 2)
         except:
             mb = self.horizon
-        if self.actual_horizon is None or mb > self.actual_horizon:
-            self.actual_horizon = mb
         return mb
 
     def xy_to_num(self, x, y):
@@ -278,7 +280,7 @@ class Generator:
         f.write("]\n")
 
         f.write("instance1 = Instance.Instance(\"" + self.name + "\", map1, agents, " + str(
-            self.actual_horizon) + ", source=" + "\"" + self.source + "\"" + ")\n")
+            self.horizon) + ", source=" + "\"" + self.source + "\"" + ")\n")
 
 
 '''for type in ['FR', 'SC', 'AG', 'MT']:

@@ -1,28 +1,30 @@
 import math
 import os
-import random
-import numpy as np
 from generator import Generator
 import os
 
 
-class InstanceParser():
+class InstanceParser:
 
     def __init__(self, path, type, num_of_agents, horizon, name, factor=4):
-        source = os.path.basename(path).split('.')[0]
+        self.source = os.path.basename(path).split('.')[0]
         file = open(path)
         self.lines = [line for line in file]
         file.close()
         self.map = self.extract_map()
         self.FACTOR = factor
         self.reduce_map()
-        rows = len(self.map)
-        cols = len(self.map[0])
-        unpassable = self.get_unpassable()
-        self.gen = Generator(type, cols, rows, num_of_agents, horizon, source=source, unpassable=unpassable)
+        self.rows = len(self.map)
+        self.cols = len(self.map[0])
+        self.unpassable = self.get_unpassable()
+        self.num_of_agents = num_of_agents
+        self.horizon = horizon
+        self.type = type
 
-    def get_inst(self):
-        return self.gen.gen_instance()
+    def gen_instance(self):
+        gen = Generator(self.type, self.cols, self.rows,
+                        self.num_of_agents, self.horizon, source=self.source, unpassable=self.unpassable)
+        return gen.gen_instance()
 
     def map_to_string(self):
         string = ''
@@ -34,12 +36,6 @@ class InstanceParser():
                     string += '■'
             string += '■\n'
         return string
-
-    def generate_init_loc(self, agent_hash):
-        while True:
-            l = random.randint(1, self.rows * self.cols)
-            if l not in self.unpassable:
-                return l
 
     def reduce_map(self):
         factor = self.FACTOR
@@ -56,7 +52,6 @@ class InstanceParser():
         self.map = new_map
         self.cols = new_cols
         self.rows = new_rows
-
         print(self.map_to_string())
 
     def extract_map(self):
@@ -72,13 +67,11 @@ class InstanceParser():
         return map
 
     def get_unpassable(self):
-        if not hasattr(self, 'map'):
-            self.map = self.extract_map()
         unpassable = []
         for y in range(len(self.map)):
             for x in range(len(self.map[y])):
                 if self.map[y][x] != '.':
-                    unpassable.append(self.xy_to_num(x, y))
+                    unpassable.append(y * self.cols + x + 1)
         return unpassable
 
 
