@@ -38,7 +38,7 @@ class Instance:
         self.horizon = horizon  # int
         self.initial_state = (agents.copy(), map.copy())
         self.flybys = True
-        self.check_sums_of_probs_is_0()
+        #self.check_sums_of_probs_is_0()
         self.distance = {}
         self.source = source
 
@@ -80,11 +80,9 @@ class Instance:
 
     def check_sums_of_probs_is_0(self):
         for v in self.map:
-            try:
-                if 0 not in v.distribution:
-                    v.distribution[0] = 0
-            except: breakpoint()
-            if round(sum(v.distribution.values()), 7)!=1:
+            if 0 not in v.distribution:
+                v.distribution[0] = 0
+            if round(sum(v.distribution.values()), 7) != 1:
                 raise Exception("Sum of vertex "+str(v)+"'s probabilities is not 0!")
 
 

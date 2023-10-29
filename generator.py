@@ -32,14 +32,14 @@ class Generator:
         self.unpassable = [] if unpassable is None else unpassable  # Hashes of vertices that are not in the final map.
         match self.type:
             case 'MT':
-                self.NUM_OF_CENTERS = self.generate_num_of_centers()
+                self.num_of_centers = self.generate_num_of_centers()
                 self.decrease = 0.25
                 self.centers = self.generate_centers()
                 self.dist_to_center = self.generate_distances(self.centers)
             case 'AG':
                 self.max_value = self.max_reward
                 self.min_value = 1
-                self.a_locs = {a: self.generate_init_loc(a) for a in range(self.num_of_agents)}
+                self.a_locs = {a: self.generate_init_loc_hash(a) for a in range(self.num_of_agents)}
                 self.num_of_min_values = min(self.max_reward - 1,
                                              self.cols * self.rows - len(self.unpassable) - 1 - len(self.a_locs))
                 self.dists_to_agents = self.generate_distances(set(self.a_locs.values()))
@@ -52,24 +52,28 @@ class Generator:
                 self.small_vertices = [self.sorted_by_dists[i] for i in
                                        range(len(self.a_locs), len(self.a_locs) + self.num_of_min_values)]
                 self.horizon = max(self.dists_to_agents.values())
-        self.gen_names(name, rows, cols, agents, hor, source)
+        self.gen_names()
 
     def generate_num_of_centers(self):
-        return random.randint(1, max(self.rows * self.cols / 5, 1))
+        return random.randint(1, max(int(self.rows * self.cols / 5), 1))
 
-    def gen_names(self, name, rows, cols, agents, hor, source):
+    def gen_names(self, name=None):
         if name == None:
-            self.name = 'i_' + str(rows * cols) + '_' + str(cols) + \
-                        '_' + str(rows) + '_' + str(agents) + '_' + str(hor) + '_' + type + '_' + source
+            self.name = 'i_' + str(self.rows * self.cols-len(self.unpassable)) +\
+                        '_' + str(self.num_of_agents) + '_' + str(self.horizon) + '_' + self.type + '_' + self.source
         else:
             self.name = name
         self.file_name = self.name + ".py"
 
-    def generate_init_loc(self, agent_hash):
+    def generate_init_loc_hash(self, agent_hash):
         try:
             return self.a_locs[agent_hash]
         except:
-            return 1
+            for l in range(self.rows*self.cols):
+                if self.num_is_legal(l):
+                    return l
+            raise Exception("No legal squares")
+
 
     def generate_full_random_distr(self, vertex_hash):
         if self.max_reward > 1:
@@ -90,8 +94,10 @@ class Generator:
 
     def generate_centers(self):
         centers = set()
-        while len(centers) != self.NUM_OF_CENTERS:
-            centers.add(random.randint(1, self.rows * self.cols))
+        while len(centers) != self.num_of_centers:
+            center = random.randint(1, self.rows * self.cols)
+            if self.num_is_legal(center):
+                centers.add(center)
         return centers
 
     def each_connected_component_has_a_center(self, centers):
@@ -115,7 +121,7 @@ class Generator:
         next_level = centers
         for c in centers:
             distances[c] = level
-            if c in self.unpassable or not self.num_is_legal(c):
+            if not self.num_is_legal(c):
                 raise Exception("Center " + str(c) + " assigned incorectly")
 
         while len(distances.keys()) != self.rows * self.cols - len(self.unpassable):
@@ -192,7 +198,7 @@ class Generator:
         return [int(self.xy_to_num(m, n)) for (m, n) in potential_neighbours if self.xy_is_legal(m, n)]
 
     def num_is_legal(self, num):
-        return 0 < num <= self.cols * self.rows
+        return 0 < num <= self.cols * self.rows and not num in self.unpassable
 
     def xy_is_legal(self, x, y):
         if self.unpassable is None:
@@ -205,6 +211,8 @@ class Generator:
 
     def gen_instance(self):
         map = []
+        map_map = {}
+        neighbours_hashes = {}
         for y in range(self.rows):
             for x in range(self.cols):
                 vertex_hash = self.xy_to_num(x, y)
@@ -212,12 +220,15 @@ class Generator:
                     continue
                 v = Vertex.Vertex(vertex_hash)
                 v.distribution = self.generate_distr(vertex_hash)
-                v.neighbours = self.get_neighbours(x, y)
+                neighbours_hashes[v] = self.get_neighbours(x, y)
+                map_map[vertex_hash] = v
                 map.append(v)
+        for v in map:
+            v.neighbours = [map_map[n_hash] for n_hash in neighbours_hashes[v]]
         agents = []
-        for y in range(self.num_of_agents):
-            agent = Agent.Agent(y, self.generate_init_loc(y), self.generate_movement_budget(y),
-                                self.generate_utility_budget(y))
+        for a in range(self.num_of_agents):
+            agent = Agent.Agent(a, map_map[self.generate_init_loc_hash(a)], self.generate_movement_budget(a),
+                                self.generate_utility_budget(a))
             agents.append(agent)
         return Instance.Instance(self.name, map, agents, self.horizon, self.source)
 
@@ -253,7 +264,7 @@ class Generator:
         for y in range(self.num_of_agents):
             f.write(
                 "agent" + str(y) + " = Agent.Agent(" + str(y) + ", " + "vertex" + str(
-                    self.generate_init_loc(y)) + ", " +
+                    self.generate_init_loc_hash(y)) + ", " +
                 str(self.generate_movement_budget(y)) + ", " + str(self.generate_utility_budget(y)) + ")\n")
             agents.append("agent" + str(y))
 
@@ -304,7 +315,7 @@ class Generator:
         f.close()
         print(G.name + " added.")'''
 
-for type in ['FR', 'MT']:
+'''for type in ['FR', 'MT']:
     for size in range(3, 27, 6):
         for agents in range(1, 6):
             cols = max(random.randint(int(size * 0.75), int(size * 1.25)), 2)
@@ -326,3 +337,4 @@ for type in ['FR', 'MT']:
             break
         break
     break
+'''

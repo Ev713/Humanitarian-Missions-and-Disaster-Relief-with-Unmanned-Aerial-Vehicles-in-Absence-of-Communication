@@ -285,6 +285,14 @@ class Solver:
             raise Exception("No recognised type!")
         return instance
 
+    def det_mcts(self, inst):
+        self.type = 'U1D'
+        return self.mcts(inst)
+
+    def stoch_mcts(self, inst):
+        self.type = 'U1S'
+        return self.mcts(inst)
+
     def mcts(self, def_inst):
         self.restart()
         instance = self.make_instance(def_inst)
