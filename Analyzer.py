@@ -291,9 +291,9 @@ def main():
     '''
     for t in types:
         print(t + " BFS success rate: " + str(
-            analyzer.count_percentage(filter(list(analyzer.instances.values()), inst_is_type, t), inst_has_best_result)))
+            analyzer.count_percentage(filter(list(analyzer.old_instances.values()), inst_is_type, t), inst_has_best_result)))
         print(t + " MCTS success rate: " + str(
-            analyzer.count_percentage(filter(list(analyzer.instances.values()), inst_is_type, t), inst_has_mcts_result)))
+            analyzer.count_percentage(filter(list(analyzer.old_instances.values()), inst_is_type, t), inst_has_mcts_result)))
         print()    
     '''
 
@@ -306,7 +306,7 @@ def main():
     res[type, algo] = []
     time[type, algo] = []
 
-    for i in analyzer.instances.values():
+    for i in analyzer.old_instances.values():
         if i.map_type == 'FR' and i.best_value is not None:
             res[type, algo] += [r[0] for r in i.MCTS.results]
             time[type, algo] += [r[1] for r in i.MCTS.results]

@@ -1,14 +1,22 @@
 import pandas as pd
 import sys
 
-import instance_collector as collector
-#import THIRD_instance_collector as collector
+import instance_collector
+import instance_decoder as collector
+# import THIRD_instance_collector as collector
 import Solver
 
 '''
 Run using :
-    for i in {0..n}; do python3 run.py $i & done
-where n is the last index of instances i instance collector.
+    
+    for i in {0..n}; do
+      for strategy in 'MCTS_D' 'MCTS_S' 'BFS' 'BNB' 'BNBL'; do
+        python3 run.py $i $strategy &
+      done
+    done
+
+    
+where n is the last index of old_instances i instance collector.
 '''
 
 
@@ -21,11 +29,9 @@ def run_solver(inst, algo, default='-'):
     solution = None
     match algo:
         case 'MCTS_D':
-            solver.type = 'U1D'
-            solution = solver.mcts(inst)
+            solution = solver.det_mcts(inst)
         case 'MCTS_S':
-            solver.type = 'U1S'
-            solution = solver.mcts(inst)
+            solution = solver.stoch_mcts(inst)
         case 'BFS':
             solver.type = 'U1S'
             solution = solver.bfs(inst)
@@ -48,40 +54,37 @@ def run_solver(inst, algo, default='-'):
 
 def main():
     data_to_append = []
-    args = [2]#sys.argv[1:]
+    args = sys.argv[1:]
     inst = collector.instances[int(args[0])]
-    print("\n" + inst.file_name + " starts")
-    df = pd.DataFrame(columns=['inst_name','num_agents', 'map_size', 'source', 'horizon', 'algo',
+    algo = str(args[1])
+    print("\n" + inst.name + " with " + algo + " starts")
+    df = pd.DataFrame(columns=['inst_name', 'num_agents', 'map_size', 'source','type', 'horizon', 'algo',
                                'final_result', 'time', 'states', 'result'])
     # collected data:
-    # num_agents, map_size, if_bench_name, horizon, final result, time, states, result
-    for flybys in [True]:
-        inst.flybys = flybys
-        for algo in ['MCTS_D', 'MCTS_S', 'BFS', 'BNB', 'BNBL']:
-            fin_res, t, res, states = run_solver(inst, algo)
-            data_to_append.append({'inst_name':inst.file_name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
-                                   'source': inst.source,'horizon': inst.horizon, 'algo': algo,
-                                   'final_result': fin_res, 'time': t, 'states': states, 'result': res})
-            print({'inst_name':inst.file_name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
-                   'source': inst.source,'horizon': inst.horizon, 'algo': algo,
-                   'final_result': fin_res, 'time': t, 'states': states, })
+    # num_agents, map_size, source, type, horizon, final result, time, states, result
+    fin_res, t, res, states = run_solver(inst, algo)
+    data_to_append.append({'inst_name': inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
+                           'source': inst.source, 'type': inst.type, 'horizon': inst.horizon, 'algo': algo,
+                           'final_result': fin_res, 'time': t, 'states': states, 'result': res})
+    print({'inst_name': inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
+           'source': inst.source, 'type': inst.type, 'horizon': inst.horizon, 'algo': algo,
+           'final_result': fin_res, 'time': t, 'states': states, })
 
     # Concatenate the collected data to the DataFrame
     df = pd.concat([df, pd.DataFrame(data_to_append)], ignore_index=True)
 
     # Print the resulting DataFrame
-    print(inst.file_name + ' without preprocessing is done')
+    print(inst.name + ' without preprocessing is done')
     # df.to_csv(inst.name + "no_preprocessing.csv", index=False)
 
     df.to_csv('data/NEW_no_preprocessing_tot.csv', mode='a', index=False, header=False)
-    print("first file added")
     # df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
 
 
 '''
     data_to_append = []
     preprocess_time = preprocess_names = []
-    # Loop over instances and num_of_sim
+    # Loop over old_instances and num_of_sim
     import time
     start = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
     inst.map_reduce()

@@ -62,9 +62,9 @@ class InstanceParser:
         self.map = new_map
         self.cols = new_cols
         self.rows = new_rows
-        #print("Map size: ", self.get_map_size())
-        #print("Reduced map:")
-        #print(self.map_to_string())
+        # print("Map size: ", self.get_map_size())
+        # print("Reduced map:")
+        # print(self.map_to_string())
 
     def extract_map(self):
         map = []
@@ -85,16 +85,20 @@ class InstanceParser:
                     self.unpassable.append(y * self.cols + x + 1)
 
 
-for type in ['FR', 'MT']:
-    for filename in os.scandir("DragonAge_maps"):
-        if filename.is_file():
-            parser = InstanceParser(filename, type)
-            if not parser.file_is_too_big():
-                print("Map size: ", parser.get_map_size())
-                print("Reduced map:")
-                print(parser.map_to_string())
-                generated_instance = parser.gen_instance()
-                StringInstanceManager.to_string(generated_instance, filepath="DragonAge_encoded_instances")
-            # recoveredInstance = StringInstanceManager.to_inst("DragonAge_encoded_instances/"+generated_instance.name+'.txt')
-            # solver = Solver.Solver()
-            # solution = solver.det_mcts(recoveredInstance)
+def do():
+    for type in [ 'MT']:
+        for filename in os.scandir("DragonAge_maps"):
+            if filename.is_file():
+                parser = InstanceParser(filename, type)
+                if not parser.file_is_too_big():
+                    print("Map size: ", parser.get_map_size())
+                    print("Reduced map:")
+                    print(parser.map_to_string())
+                    generated_instance = parser.gen_instance()
+                    StringInstanceManager.to_string(generated_instance, filepath="DragonAge_encoded_instances/"+type)
+                # recoveredInstance = StringInstanceManager.to_inst("DragonAge_encoded_instances/"+generated_instance.name+'.txt')
+                # solver = Solver.Solver()
+                # solution = solver.det_mcts(recoveredInstance)
+
+
+do()

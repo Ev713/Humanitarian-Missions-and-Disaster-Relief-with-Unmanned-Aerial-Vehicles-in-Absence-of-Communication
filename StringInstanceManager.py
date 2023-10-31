@@ -23,7 +23,7 @@ def to_string(inst, filepath=''):
         for n in v.neighbours:
             file.write(str(n.hash()) + '\n')
         file.write('D' + '\n')
-        for r in range(len(v.distribution)):
+        for r in range(max(list(v.distribution.keys()))+1):
             if r not in v.distribution:
                 file.write('0' + '\n')
             else:

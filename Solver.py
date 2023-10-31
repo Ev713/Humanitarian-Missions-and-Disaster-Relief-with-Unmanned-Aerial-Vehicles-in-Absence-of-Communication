@@ -224,8 +224,7 @@ class Solver:
 
     def branch_and_bound(self, def_inst, upper_bound=None, lower_bound=None):
         self.restart()
-        if self.type == 'URD' or self.type == 'U1D':
-            raise Exception("Unfit type for bfs")
+        self.type = 'U1S'
         self.root = Node.Node(None)
         self.best_node = self.root
         instance = self.make_instance(def_inst)

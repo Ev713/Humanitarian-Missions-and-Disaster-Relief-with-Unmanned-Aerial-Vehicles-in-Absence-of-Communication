@@ -1,15 +1,22 @@
+import math
 import os
 import random
+import warnings
 
 import numpy as np
 
 import Agent
 import Instance
+import StringInstanceManager
 import Vertex
 
 
+class ConnectedComponentsException(Exception):
+    pass
+
+
 class Generator:
-    def __init__(self, type, cols, rows, num_of_agents, horizon, source='X', name=None, unpassable=None):
+    def __init__(self, type, cols, rows, num_of_agents, horizon, ag_p=None, source='X', name=None, unpassable=None):
 
         # types:
         # FR - Full Random - the rewards in each vertex are generated randomly.
@@ -21,6 +28,8 @@ class Generator:
         # expected paths by the border. (grid only)
         # EMPTY - Empty - empty.
 
+        self.file_name = None
+        self.name = None
         self.max_reward = 7
         self.source = source
         self.cols = cols
@@ -34,46 +43,59 @@ class Generator:
             case 'MT':
                 self.num_of_centers = self.generate_num_of_centers()
                 self.decrease = 0.25
-                self.centers = self.generate_centers()
-                self.dist_to_center = self.generate_distances(self.centers)
+                while True:
+                    try:
+                        self.centers = self.generate_centers()
+                        self.dist_to_center = self.generate_distances(self.centers)
+                    except ConnectedComponentsException:
+                        continue
+                    break
             case 'AG':
-                self.max_value = self.max_reward
-                self.min_value = 1
-                self.a_locs = {a: self.generate_init_loc_hash(a) for a in range(self.num_of_agents)}
-                self.num_of_min_values = min(self.max_reward - 1,
-                                             self.cols * self.rows - len(self.unpassable) - 1 - len(self.a_locs))
-                self.dists_to_agents = self.generate_distances(set(self.a_locs.values()))
-                self.sorted_by_dists = sorted(self.dists_to_agents.keys(), key=lambda x: self.dists_to_agents[x])
-                for i in range(self.rows * self.cols):
-                    if self.num_is_legal(i) and self.dists_to_agents[i] == horizon:
-                        self.big_vertex = self.sorted_by_dists[i]
-                        break
-                    raise Exception("No vertex fit for being the big vertex")
-                self.small_vertices = [self.sorted_by_dists[i] for i in
-                                       range(len(self.a_locs), len(self.a_locs) + self.num_of_min_values)]
-                self.horizon = max(self.dists_to_agents.values())
-        self.gen_names()
+                if ag_p is None:
+                    raise Exception("Type is anti-greedy but no probability parameter is given.")
+                self.ag_p = ag_p
+                if self.source != 'X':
+                    raise Exception("Parsing into AG is not supported.")
+                if self.horizon != self.rows:
+                    self.horizon = self.rows
+                    warnings.warn("Horizon was adjusted to be equal to number of rows as per definition"
+                                  " of anti-greedy.", UserWarning)
+                if self.max_reward != math.ceil(self.cols / self.ag_p):
+                    self.max_reward = math.ceil(self.cols / self.ag_p)
+                    warnings.warn("Mximum reward was adjusted as per definition"
+                                  " of anti-greedy.", UserWarning)
+                self.unpassable = [self.xy_to_num(x, y) for x in range(rows) for y in range(cols) if x != 0 and y != 0]
+            case 'SC':
+                if self.horizon != self.rows + self.cols - 2:
+                    self.horizon = self.rows + self.cols - 2
+                    warnings.warn("Horizon was adjusted to be equal to number of rows plus columns minus 2 as per "
+                                  "definition of sanity-check.", UserWarning)
+                if self.num_of_agents != 2:
+                    self.num_of_agents = 2
+                    warnings.warn("Number of agents was adjusted to be equal to 2 as per the definition of sanity "
+                                  "check.", UserWarning)
+        self.gen_names(name)
 
     def generate_num_of_centers(self):
-        return random.randint(1, max(int(self.rows * self.cols / 5), 1))
+        return math.ceil(self.get_map_size() / 20)
+
+    def get_map_size(self):
+        return self.rows * self.cols - len(self.unpassable)
 
     def gen_names(self, name=None):
-        if name == None:
-            self.name = 'i_' + str(self.rows * self.cols-len(self.unpassable)) +\
-                        '_' + str(self.num_of_agents) + '_' + str(self.horizon) + '_' + self.type + '_' + self.source
+        if name is None:
+            type = self.type if self.type != 'AG' else 'AG' + "".join(str(self.ag_p).split('.'))
+            self.name = 'i_' + str(self.rows * self.cols - len(self.unpassable)) + \
+                        '_' + str(self.num_of_agents) + '_' + str(self.horizon) + '_' + type + '_' + self.source
         else:
             self.name = name
         self.file_name = self.name + ".py"
 
     def generate_init_loc_hash(self, agent_hash):
-        try:
-            return self.a_locs[agent_hash]
-        except:
-            for l in range(self.rows*self.cols):
-                if self.num_is_legal(l):
-                    return l
-            raise Exception("No legal squares")
-
+        for l in range(self.rows * self.cols):
+            if self.num_is_legal(l):
+                return l
+        raise Exception("No legal squares")
 
     def generate_full_random_distr(self, vertex_hash):
         if self.max_reward > 1:
@@ -124,70 +146,102 @@ class Generator:
             if not self.num_is_legal(c):
                 raise Exception("Center " + str(c) + " assigned incorectly")
 
-        while len(distances.keys()) != self.rows * self.cols - len(self.unpassable):
+        while len(distances.keys()) != self.get_map_size():
             level += 1
             prev_level = next_level.copy()
             next_level = set()
             for c in prev_level:
                 ngbrs = self.get_neighbours(*self.num_to_xy(c))
-                pass
                 for n in ngbrs:
-                    next_level.add(int(n))
-            for v in next_level:
-                if v not in distances:
-                    distances[v] = level
+                    if n not in distances:
+                        next_level.add(int(n))
+                        distances[n] = level
+            if len(next_level) == 0:
+                for i in range(self.cols * self.rows):
+                    if self.num_is_legal(i) and i not in distances:
+                        distances[i] = -1
+                break
         return distances
 
     def distance_to_center_to_distr(self, x):
-        return {1: round(pow(self.decrease, (x + 1)), self.ACC),
-                0: round(1 - pow(self.decrease, (x + 1)), self.ACC)}
+        prob_of_zero = min(x * self.decrease, 1) if x != -1 else 1
+        return {1: round(1 - prob_of_zero, self.ACC),
+                0: round(prob_of_zero, self.ACC)}
 
     def generate_mountain_top_distr(self, vertex_hash):
         if self.centers is None:
             self.generate_centers()
         if not self.dist_to_center:
-            self.generate_distances(self.centers)
+            while True:
+                try:
+                    self.generate_distances(self.centers)
+                except ConnectedComponentsException:
+                    continue
+                break
+
         return self.distance_to_center_to_distr(self.dist_to_center[vertex_hash])
 
     def generate_distr(self, vertex_hash):
+        distr = None
         match self.type:
             case 'FR':
-                return self.generate_full_random_distr(vertex_hash)
+                distr = self.generate_full_random_distr(vertex_hash)
             case 'EMPTY':
-                return self.generate_empty_distr()
+                distr = self.generate_empty_distr()
             case 'MT':
-                return self.generate_mountain_top_distr(vertex_hash)
+                distr = self.generate_mountain_top_distr(vertex_hash)
             case 'AG':
-                return self.generate_anti_greed_distr(vertex_hash)
+                distr = self.generate_anti_greed_distr(vertex_hash)
             case 'SC':
-                return self.generate_sc_distr(vertex_hash)
+                distr = self.generate_sanity_check_distr(vertex_hash)
 
-    def generate_sc_distr(self, v):
+        if self.distr_is_legal(distr):
+            return distr
+        fixed_distr = self.fixed_distr(distr)
+        warnings.warn(
+            f"Illegal distribution was created in: {self.name}\nIllegal distribution: {distr}\n Fixed distribution: {fixed_distr}\n",
+            UserWarning)
+        return fixed_distr  # This line is reachable
+
+    def fixed_distr(self, distr):
+        distr_sum = sum(list(distr.values()))
+        new_distr = {}
+        if distr_sum == 0:
+            return {0: 1}
+        for r in distr:
+            new_distr[r] = distr[r] / distr_sum
+        return new_distr
+
+    def distr_is_legal(self, distr):
+        return round(sum(list(distr.values())), self.ACC) == 1
+
+    def generate_sanity_check_distr(self, v):
         x, y = self.num_to_xy(v)
         if x == 0 or y == 0 or x == self.cols or y == self.rows:
-            return {1: 1}
+            return {1: 1, 0: 0}
         else:
             return {0: 1}
 
     def generate_anti_greed_distr(self, v):
-        if v == self.big_vertex:
-            return {self.max_value * 10: 0.1, 0: 0.9}
-        if v in self.small_vertices:
-            return {self.min_value: 1}
-        else:
-            return {0: 1}
+        x, y = self.num_to_xy(v)
+        if x == 0:
+            if y == self.rows - 1:
+                distr = {math.ceil(self.cols / self.ag_p): self.ag_p, 0: 1 - self.ag_p}
+                return distr
+            else:
+                return {0: 1}
+        if y == 0:
+            return {1: 1, 0: 0}
 
     def generate_utility_budget(self, agent_hash):
         return max(random.randint(1, self.horizon), 3)
 
     def generate_movement_budget(self, agent_hash):
-        if self.type == 'AG':
+        if self.type == 'AG' or self.type == 'SC':
             return self.horizon
-        try:
-            mb = max(random.randint(int(self.horizon * 0.5), self.horizon), 2)
-        except:
-            mb = self.horizon
-        return mb
+        if self.horizon <= 2:
+            return 2
+        return random.randint(int(self.horizon * 0.5), self.horizon)
 
     def xy_to_num(self, x, y):
         num = y * self.cols + x + 1
@@ -293,27 +347,44 @@ class Generator:
         f.write("instance1 = Instance.Instance(\"" + self.name + "\", map1, agents, " + str(
             self.horizon) + ", source=" + "\"" + self.source + "\"" + ")\n")
 
+def generate():
+    for type in ['AG']:
+        if type == 'AG':
+            low = 5
+            high = 55
+            jump = 10
+        else:
+            low = 3
+            high = 20
+            jump = 1
+        for size in range(low, high, jump):
+            if (type == 'AG' and size % 10 != 5) or (type == 'SC' and size%3==1):
+                continue
+            if type != 'AG' and type != 'SC':
+                cols = max(random.randint(int(size * 0.75), int(size * 1.25)), 2)
+                rows = max(random.randint(round(size * 0.75), round(size * 1.25)), 2)
+            else:
+                cols = size
+                rows = size
+            agents = max((cols + rows) // 5, 1)
+            hor = max(random.randint(int(size * 0.9), int(size) * 2), 2)
+            mr = max(size // 2, 2)
+            if type != 'AG':
+                G = Generator(type, cols, rows, agents, hor)
+                G.ACC = 4
+                G.MAX_REWARD = mr
+                StringInstanceManager.to_string(G.gen_instance(), "Generated_encoded_instances/"+type)
+                print(G.name + " added.")
 
-'''for type in ['FR', 'SC', 'AG', 'MT']:
-    for size in range(2, 25):
-        if type == 'AG' and size < 3:
-            continue
-        cols = max(random.randint(int(size * 0.75), int(size * 1.25)), 2)
-        rows = max(random.randint(round(size * 0.75), round(size * 1.25)), 2)
-        agents = max((cols + rows) // 5, 1)
-        hor = max(random.randint(int(size * 0.9), int(size) * 2), 2)
-        mr = max(size // 2, 2)
-        G = Generator(str(size), type, rows, cols, agents, hor)
-        G.ACC = 4
-        G.MAX_REWARD = mr
-        f = open("instances/" + G.name, "w")
-        g = open("instance_collector.py", "a")
-        g.write("from instances import " + G.name_no_py + "\n")
-        g.write("instances.append(" + G.name_no_py + ".instance1)\n")
-        g.close()
-        G.gen_map(f)
-        f.close()
-        print(G.name + " added.")'''
+            else:
+                for p in [0.5, 0.1, 0.01]:
+                    G = Generator(type, cols, cols, 1, cols, ag_p=p)
+                    G.ACC = 4
+                    G.MAX_REWARD = mr
+                    StringInstanceManager.to_string(G.gen_instance(), "Generated_encoded_instances/AG")
+                    print(G.name + " added.")
+
+generate()
 
 '''for type in ['FR', 'MT']:
     for size in range(3, 27, 6):
@@ -330,7 +401,7 @@ class Generator:
             f = open("ready_maps/" + G.file_name, "w")
             g = open("THIRD_instance_collector.py", "a")
             g.write("from ready_maps import " + G.name + "\n")
-            g.write("instances.append(" + G.name + ".instance1)\n")
+            g.write("old_instances.append(" + G.name + ".instance1)\n")
             g.close()
             G.gen_map(f)
             f.close()

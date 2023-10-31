@@ -31,6 +31,7 @@ def product_dict(dict):
 class Instance:
     def __init__(self, name, map, agents, horizon, source='-'):
         self.name = name
+        self.type = self.name.split('_')[-2]
         self.map = map  # list of Vertices
         self.map_map = {v.hash(): v for v in map}
         self.agents = agents  # list of agents
@@ -38,7 +39,7 @@ class Instance:
         self.horizon = horizon  # int
         self.initial_state = (agents.copy(), map.copy())
         self.flybys = True
-        #self.check_sums_of_probs_is_0()
+        # self.check_sums_of_probs_is_0()
         self.distance = {}
         self.source = source
 
@@ -83,9 +84,7 @@ class Instance:
             if 0 not in v.distribution:
                 v.distribution[0] = 0
             if round(sum(v.distribution.values()), 7) != 1:
-                raise Exception("Sum of vertex "+str(v)+"'s probabilities is not 0!")
-
-
+                raise Exception("Sum of vertex " + str(v) + "'s probabilities is not 0!")
 
     def make_det_map_and_det_map_map(self):
         det_map = []
