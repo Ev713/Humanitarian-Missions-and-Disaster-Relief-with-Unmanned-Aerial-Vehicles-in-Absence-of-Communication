@@ -63,7 +63,7 @@ class Solver:
 
     def time_for_log(self):
         now = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
-        if now - self.prev_time_check > self.timeout / 100:
+        if self.prev_time_check-self.start == 0 or now - self.prev_time_check > self.timeout / 100:
             #print("time total: ", now-self.start, " time skip:", now-self.prev_time_check)
             self.prev_time_check = now
             self.timestamps.append(now)
@@ -74,7 +74,10 @@ class Solver:
         return self.get_time() > self.timeout
 
     def get_solution(self, timeout):
+        self.paths.append(self.best_node.get_path())
+        self.states_collector.append(self.num_of_states)
         return Solution(self.paths, self.timestamps, self.states_collector, timeout, self.num_of_states)
+
 
     def Heuristics_U1(self, state, instance):
         if self.type != 'U1S':

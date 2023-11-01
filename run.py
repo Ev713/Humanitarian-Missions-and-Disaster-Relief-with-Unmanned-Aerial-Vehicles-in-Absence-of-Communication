@@ -1,7 +1,7 @@
 import pandas as pd
 import sys
 
-import instance_collector
+# import instance_collector
 import instance_decoder as collector
 # import THIRD_instance_collector as collector
 import Solver
@@ -25,7 +25,7 @@ def run_solver(inst, algo, default='-'):
     solver = Solver.Solver()
     solver.NUMBER_OF_SIMULATIONS = 1000000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
-    solver.timeout = 240
+    solver.timeout = 420
     solution = None
     match algo:
         case 'MCTS_D':
@@ -58,7 +58,7 @@ def main():
     inst = collector.instances[int(args[0])]
     algo = str(args[1])
     print("\n" + inst.name + " with " + algo + " starts")
-    df = pd.DataFrame(columns=['inst_name', 'num_agents', 'map_size', 'source','type', 'horizon', 'algo',
+    df = pd.DataFrame(columns=['inst_name', 'num_agents', 'map_size', 'source', 'type', 'horizon', 'algo',
                                'final_result', 'time', 'states', 'result'])
     # collected data:
     # num_agents, map_size, source, type, horizon, final result, time, states, result
@@ -77,7 +77,7 @@ def main():
     print(inst.name + ' without preprocessing is done')
     # df.to_csv(inst.name + "no_preprocessing.csv", index=False)
 
-    df.to_csv('data/NEW_no_preprocessing_tot.csv', mode='a', index=False, header=False)
+    df.to_csv('data/small_maps_no_preprocessing_tot.csv', mode='a', index=False, header=False)
     # df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
 
 

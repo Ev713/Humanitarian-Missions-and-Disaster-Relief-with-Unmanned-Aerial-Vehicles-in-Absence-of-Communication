@@ -66,9 +66,9 @@ class Generator:
                                   " of anti-greedy.", UserWarning)
                 self.unpassable = [self.xy_to_num(x, y) for x in range(rows) for y in range(cols) if x != 0 and y != 0]
             case 'SC':
-                if self.horizon != self.rows + self.cols - 2:
-                    self.horizon = self.rows + self.cols - 2
-                    warnings.warn("Horizon was adjusted to be equal to number of rows plus columns minus 2 as per "
+                if self.horizon != self.rows + self.cols - 3:
+                    self.horizon = self.rows + self.cols - 3
+                    warnings.warn("Horizon was adjusted to be equal to number of rows plus columns minus 3 as per "
                                   "definition of sanity-check.", UserWarning)
                 if self.num_of_agents != 2:
                     self.num_of_agents = 2
@@ -217,7 +217,7 @@ class Generator:
 
     def generate_sanity_check_distr(self, v):
         x, y = self.num_to_xy(v)
-        if x == 0 or y == 0 or x == self.cols or y == self.rows:
+        if ((x == 0) ^ (y == 0)) or ((x == self.cols-1) ^ (y == self.rows-1)):
             return {1: 1, 0: 0}
         else:
             return {0: 1}
@@ -348,7 +348,7 @@ class Generator:
             self.horizon) + ", source=" + "\"" + self.source + "\"" + ")\n")
 
 def generate():
-    for type in ['AG']:
+    for type in ['SC']:
         if type == 'AG':
             low = 5
             high = 55
@@ -358,7 +358,7 @@ def generate():
             high = 20
             jump = 1
         for size in range(low, high, jump):
-            if (type == 'AG' and size % 10 != 5) or (type == 'SC' and size%3==1):
+            if (type == 'AG' and size % 10 != 5) or (type == 'SC' and size % 3 == 4):
                 continue
             if type != 'AG' and type != 'SC':
                 cols = max(random.randint(int(size * 0.75), int(size * 1.25)), 2)
@@ -384,7 +384,7 @@ def generate():
                     StringInstanceManager.to_string(G.gen_instance(), "Generated_encoded_instances/AG")
                     print(G.name + " added.")
 
-generate()
+#generate()
 
 '''for type in ['FR', 'MT']:
     for size in range(3, 27, 6):

@@ -1,6 +1,9 @@
+import statistics
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 
 # (inst.name, solver_type, algo, flybys)
@@ -16,7 +19,7 @@ class Run:
         self.fin_res = None
         self.states = 0
         self.map_type = None
-        #self.is_real = False
+        # self.is_real = False
         self.map_size = 0
 
     def is_timeout(self):
@@ -80,11 +83,12 @@ class Analyzer:
         self.runs = []
         self.instances = {}
 
-    def filter_inst(self, bfs_finished=None, mcts_s_more_than_percentage=None, mcts_d_more_than_percentage=None, mcts_s_before_time=None, mcts_d_before_time=None):
+    def filter_inst(self, bfs_finished=None, mcts_s_more_than_percentage=None, mcts_d_more_than_percentage=None,
+                    mcts_s_before_time=None, mcts_d_before_time=None):
         filtered_instances = []
         for i in list(self.instances.values()):
             if mcts_s_more_than_percentage is not None:
-                if i.best_value == -1 or i.MCTS_S.results==-1:
+                if i.best_value == -1 or i.MCTS_S.results == -1:
                     continue
                 try:
                     if mcts_s_before_time is None:
@@ -92,7 +96,7 @@ class Analyzer:
                     else:
                         id = 0
                         res = i.MCTS_S.results[0][1]
-                        while(i.MCTS_S.results[id][1]<mcts_s_before_time and id < len(i.MCTS_S.results)):
+                        while (i.MCTS_S.results[id][1] < mcts_s_before_time and id < len(i.MCTS_S.results)):
                             res = i.MCTS_S.results[id][1]
                             id += 1
                 except:
@@ -150,72 +154,24 @@ class Analyzer:
         p = num_of_sats / tot
         return p
 
-    def create_runs_NEW(self):
-        for i in range(len(self.df)):
-            row = self.df.loc[i, :].to_list()
-            run = Run()
-            run.inst_name = row[0]
-            run.num_of_agents = row[1]
-            run.map_size = row[2]
-            run.source = row[3]
-            run.horizon = row[4]
-            run.algo = row[5]
-            run.fin_res = row[6]
-            run.time = float(row[7]) if row[7] != '-' else -1
-            run.states = row[8]
-            run.results = [tuple(float(t.strip('()')) for t in i.strip('').strip(')').split(', ')) for i in
-                                   row[9].strip("()").split(', (')] if len(row[9]) > 2 else []
-            self.runs.append(run)
-
     def create_runs(self):
         for i in range(len(self.df)):
             row = self.df.loc[i, :].to_list()
-            run_info = row[0]
             run = Run()
-            run.inst_name = run_info.strip("()").split(', ')[0].strip('\'\'')
-            run.algo = run_info.strip("()").split(', ')[1].strip('\'\'')
-            # run.algo = run_info.strip("()").split(', ')[2].strip('\'\'')
-            # run.flybys = bool(run_info.strip("()").split(', ')[3].strip('\'\''))
-            run.fin_res = row[1]
-            run.states = row[4]
-            try:
-                run.time = float(row[2])
-            except:
-                run.time = -1
-            if run.time == -1:
-                try:
-                    run.results = [float(c) for c in row[3].replace(")", "").replace("(", "").strip(",").split(", ")]
-                except:
-                    run.results = -1
-            else:
-                temp = [i.strip('').strip(')').split(', ') for i in row[3].strip("()").split(', (')]
-                try:
-                    run.results = [tuple(float(t.strip('()')) for t in i.strip('').strip(')').split(', ')) for i in
-                                   row[3].strip("()").split(', (')]
-                except:
-                    run.results = -1
+            run.inst_name = row[0].strip("\"")
+            run.num_of_agents = row[1]
+            run.size = row[2]
+            run.source = row[3]
+            run.type = row[4]
+            run.horizon = row[5]
+            run.algo = row[6]
+            run.fin_res = row[7]
+            run.time = row[8] if row[8] != '-' else -1
+            run.states = row[9]
+            run.results = [[float(number.strip(",)")) for number in pair.split(", ")] for pair in
+                           row[10].strip("()").split("), (")]
 
-            run.inst_name_extract_type()
             self.runs.append(run)
-            if (run.inst_name, run.flybys, run.map_type) not in self.instances:
-                self.instances[(run.inst_name, run.flybys, run.map_type)] = Instance_data(run.inst_name, run.flybys,
-                                                                                          run.map_type)
-
-            id = self.instances[(run.inst_name, run.flybys, run.map_type)]
-            match run.algo:
-                case 'BFS':
-                    id.BFS = run
-                    if run.time != -1:
-                        id.best_value = run.fin_res
-                        id.BFS_time = run.time
-                    else:
-                        id.best_value = -1
-                case 'BNB':
-                    id.BNB = run
-                case 'MCTS_S':
-                    id.MCTS_S = run
-                case 'MCTS_D':
-                    id.MCTS_S = run
 
     def normalize(self):
         for i in self.instances.values():
@@ -258,7 +214,8 @@ class Analyzer:
         y = []
         for time in range(1, 100):
             t = time
-            y.append(len(self.filter_inst(mcts_s_more_than_percentage=percentage/100, mcts_s_before_time=t))/len(self.filter_inst(bfs_finished=True)))
+            y.append(len(self.filter_inst(mcts_s_more_than_percentage=percentage / 100, mcts_s_before_time=t)) / len(
+                self.filter_inst(bfs_finished=True)))
             x.append(t)
         plt.scatter(x, y)
         plt.legend('MCTS')
@@ -271,20 +228,61 @@ class Analyzer:
 
 def main():
     analyzer = Analyzer()
-    analyzer.create_runs_NEW()
-    #analyzer.get_success_rate_per_time(60)
-    #analyzer.get_success_rate_per_result(90)
-
+    analyzer.create_runs()
+    instances = {}
+    data_for_graphs = {}
+    data_for_tables = {}
     for run in analyzer.runs:
-        rewards = [r[0] for r in run.results if r[1]-run.results[0][1]<300]
-        times = [r[1]-run.results[0][1] for r in run.results if r[1]<300]
-        states = [r[2] for r in run.results if r[1]-run.results[0][1]<300]
-        plt.scatter(times, rewards)
-    plt.xlabel('time')
-    plt.ylabel('states')
-    plt.legend([run.algo for run in analyzer.runs])
+        if not run.inst_name in instances:
+            instances[run.inst_name] = {}
+        instances[run.inst_name][run.algo] = run
+    for instance in list(instances.values()):
+        if 'BFS' not in instance:
+            continue
+        bfs_time = instance['BFS'].results[-1][1]
+        bfs_result = instance['BFS'].results[-1][0]
+        bfs_states = instance['BFS'].states
+        for algo in instance:
+            run = instance[algo]
+            for pair in run.results:
+                pair[0] = round(pair[0] / bfs_result, 2)
+                pair[1] = round(pair[1] / bfs_time, 2)
+            if not algo in data_for_graphs:
+                data_for_graphs[algo] = []
+            data_for_graphs[algo].append(run)
+            if not algo in  data_for_tables:
+                data_for_tables[algo] = []
+            data_for_tables[algo].append(run.states/bfs_states)
+    graphs = {algo: [[], []] for algo in data_for_graphs}
+    for algo in data_for_graphs:
+        runs = data_for_graphs[algo]
+        for t100 in range(1, 100, 1):
+            t = t100 / 100
+            results = []
+            for run in runs:
+                for pair in run.results:
+                    if pair[1] == t:
+                        results.append(pair[0])
+                        break
+            avg_result = statistics.mean(results)
+            graphs[algo][0].append(t)
+            graphs[algo][1].append(avg_result)
+    plt.plot(graphs['BFS'][0], graphs['BFS'][1], graphs['BNBL'][0], graphs['BNBL'][1], graphs['BNB'][0],
+             graphs['BNB'][1], graphs['MCTS_S'][0], graphs['MCTS_S'][1], graphs['MCTS_D'][0], graphs['MCTS_D'][1], )
+    plt.legend(['BFS', 'BNBL', 'BNB', 'MCTS_S', 'MCTS_D'])
+    plt.xlabel("Time (relative to BFS time)")
+    plt.ylabel("Result (relative to BFS result)")
+
+    print("States (relative to BFS states):")
+    for algo in data_for_tables:
+        print(algo+": "+str(round(statistics.mean(data_for_tables[algo]), 3)))
+    #plt.savefig("COOL.png")
     plt.show()
-    #plt.savefig()
+
+
+    # analyzer.get_success_rate_per_time(60)
+    # analyzer.get_success_rate_per_result(90)
+
 
 
     types = ['FR', 'MT']

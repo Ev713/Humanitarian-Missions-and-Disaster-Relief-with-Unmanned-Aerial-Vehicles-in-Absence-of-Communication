@@ -46,12 +46,13 @@ def visualize(inst):
     plt.savefig("instance" + str(i) + ".png")
     plt.clf()
 
+
 def determine_cols(inst):
     for v in inst.map:
         for n in v.neighbours:
-            if v.number == n.number+1 or v.number == n.number-1:
+            if v.number == n.number + 1 or v.number == n.number - 1:
                 continue
-            return abs(v.number-n.number)
+            return abs(v.number - n.number)
     return 0
 
 
@@ -90,40 +91,42 @@ def vis_2(inst):
 
     plt.show()
 
+
 def vis3(inst):
     cols = determine_cols(inst)
-    rows = math.ceil(inst.map[-1].number/cols)
-    color_map = [['#000000' for _ in range(cols)]for _ in range (rows)]
+    rows = math.ceil(inst.map[-1].number / cols)
+    color_map = [['#000000' for _ in range(cols)] for _ in range(rows)]
     fig, ax = plt.subplots()
     for v in inst.map:
-        num = v.number-1
-        col = num % cols
-        row = int(num/cols)
+        x, y = (v.number - 1) % cols, (v.number - 1) // cols
         maximum = max(list([max(list(v.distribution.keys())) for v in inst.map]))
-        prob_of_something = 1-v.distribution[0]
-        distr_no_zero = v.distribution if prob_of_something == 0 else {r: v.distribution[r] / prob_of_something for r in v.distribution if r!=0}
-        e = (maximum-sum([distr_no_zero[r]*r for r in distr_no_zero]))/maximum
+        prob_of_something = 1 - v.distribution[0]
+        distr_no_zero = v.distribution if prob_of_something == 0 else {r: v.distribution[r] / prob_of_something for r in
+                                                                       v.distribution if r != 0}
+        e = (maximum - sum([distr_no_zero[r] * r for r in distr_no_zero])) / maximum
         # color = (prob_of_something, 0, e)
-        color = (prob_of_something*(1-e), 0, prob_of_something*e)
+        color = (prob_of_something * (1 - e), 0, prob_of_something * e)
 
         hex_color = "#{:02X}{:02X}{:02X}".format(int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
         try:
-            color_map[row][col] = hex_color
+            color_map[y][x] = hex_color
         except:
             breakpoint()
-        ax.add_patch(plt.Rectangle((row, col), 1, 1, color=hex_color))
+        ax.add_patch(plt.Rectangle((x, y), 1, 1, color=hex_color))
     ax.set_aspect('equal')
 
-        # Set axis limits
+    # Set axis limits
     ax.set_xlim(0, cols)
     ax.set_ylim(0, rows)
 
-        # Remove axis labels and ticks
+    # Remove axis labels and ticks
     ax.set_xticks([])
     ax.set_yticks([])
 
-        # Show the grid
+    # Show the grid
     print(color_map)
+    plt.savefig(inst.name+".png")
     plt.show()
 
-vis3(StringInstanceManager.to_inst("Generated_encoded_instances/AG/i_89_18_45_AG05_X.txt"))
+
+vis3(StringInstanceManager.to_inst("Generated_encoded_instances/AG/i_89_1_45_AG001_X.txt"))

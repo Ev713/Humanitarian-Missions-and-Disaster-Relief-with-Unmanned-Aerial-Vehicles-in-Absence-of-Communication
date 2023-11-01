@@ -86,7 +86,7 @@ class InstanceParser:
 
 
 def do():
-    for type in [ 'MT']:
+    for type in ['FR']:
         for filename in os.scandir("DragonAge_maps"):
             if filename.is_file():
                 parser = InstanceParser(filename, type)
@@ -101,4 +101,4 @@ def do():
                 # solution = solver.det_mcts(recoveredInstance)
 
 
-do()
+#do()
