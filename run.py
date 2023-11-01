@@ -9,11 +9,7 @@ import Solver
 '''
 Run using :
     
-    for i in {0..n}; do
-      for strategy in 'MCTS_D' 'MCTS_S' 'BFS' 'BNB' 'BNBL'; do
-        python3 run.py $i $strategy &
-      done
-    done
+    for i in {0..n}; do for strategy in 'MCTS_D' 'MCTS_S' 'BFS' 'BNB' 'BNBL'; do python3 run.py $i $strategy & done done
 
     
 where n is the last index of old_instances i instance collector.
