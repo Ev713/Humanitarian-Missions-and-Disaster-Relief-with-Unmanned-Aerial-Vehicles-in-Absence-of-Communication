@@ -23,20 +23,19 @@ def run_solver(inst, algo, default='-'):
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
     solver.timeout = 420
     solution = None
-    match algo:
-        case 'MCTS_D':
-            solution = solver.det_mcts(inst)
-        case 'MCTS_S':
-            solution = solver.stoch_mcts(inst)
-        case 'BFS':
-            solver.type = 'U1S'
-            solution = solver.bfs(inst)
-        case 'BNB':
-            solver.type = 'U1S'
-            solution = solver.branch_and_bound(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
-        case 'BNBL':
-            solver.type = 'U1S'
-            solution = solver.branch_and_bound(inst, solver.Heuristics_U1)
+    if algo == 'MCTS_D':
+        solution = solver.det_mcts(inst)
+    if algo == 'MCTS_S':
+        solution = solver.stoch_mcts(inst)
+    if algo == 'BFS':
+        solver.type = 'U1S'
+        solution = solver.bfs(inst)
+    if algo == 'BNB':
+        solver.type = 'U1S'
+        solution = solver.branch_and_bound(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
+    if algo == 'BNBL':
+        solver.type = 'U1S'
+        solution = solver.branch_and_bound(inst, solver.Heuristics_U1)
 
     timestamps = solution.timestamps
     states = solution.states
