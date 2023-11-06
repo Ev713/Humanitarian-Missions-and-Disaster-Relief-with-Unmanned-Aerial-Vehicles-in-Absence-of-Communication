@@ -6,11 +6,12 @@ import Node
 import State
 import StochInstance
 
-#import check_for_sasha as map
+
+# import check_for_sasha as map
 
 
 class Solution:
-    def __init__(self, paths, timestamps,states_collector, interrupted, opened_nodes):
+    def __init__(self, paths, timestamps, states_collector, interrupted, opened_nodes):
         self.paths = paths
         self.timestamps = timestamps
         self.states_collector = states_collector
@@ -55,16 +56,17 @@ class Solver:
         self.timestamps = []
         self.paths = []
         self.root = Node.Node(None)
+        self.best_node = self.root
         self.best_value = 0
         self.num_of_states = 0
 
     def get_time(self):
-        return time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)-self.start
+        return time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - self.start
 
     def time_for_log(self):
         now = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
-        if self.prev_time_check-self.start == 0 or now - self.prev_time_check > self.timeout / 100:
-            #print("time total: ", now-self.start, " time skip:", now-self.prev_time_check)
+        if self.prev_time_check - self.start == 0 or now - self.prev_time_check > self.timeout / 100:
+            # print("time total: ", now-self.start, " time skip:", now-self.prev_time_check)
             self.prev_time_check = now
             self.timestamps.append(now)
             return True
@@ -77,7 +79,6 @@ class Solver:
         self.paths.append(self.best_node.get_path())
         self.states_collector.append(self.num_of_states)
         return Solution(self.paths, self.timestamps, self.states_collector, timeout, self.num_of_states)
-
 
     def Heuristics_U1(self, state, instance):
         if self.type != 'U1S':
@@ -196,7 +197,7 @@ class Solver:
                         current_vertex,
                         state, instance, used_vertex, matrix[j][k:])
         return estimate_sum
-    
+
     def calculate_distance_between_vertices(self, inst):
         n = len(inst.map)
         for i in inst.map:
