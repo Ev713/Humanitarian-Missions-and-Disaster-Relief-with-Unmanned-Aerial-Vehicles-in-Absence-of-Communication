@@ -58,9 +58,9 @@ def main():
     # collected data:
     # num_agents, map_size, source, type, horizon, final result, time, states, result
     fin_res, t, res, states = run_solver(inst, algo)
-    data_to_append.append({'inst_name': inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
-                           'source': inst.source, 'type': inst.type, 'horizon': inst.horizon, 'algo': algo,
-                           'final_result': fin_res, 'time': t, 'states': states, 'result': res})
+    data_to_append.append({'inst_name': str(inst.name), 'num_agents': len(inst.agents), 'map_size': len(inst.map),
+                           'source': str(inst.source), 'type': str(inst.type), 'horizon': int(inst.horizon), 'algo': str(algo),
+                           'final_result': float(fin_res), 'time': float(t), 'states': int(states), 'result': res})
     print({'inst_name': inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
            'source': inst.source, 'type': inst.type, 'horizon': inst.horizon, 'algo': algo,
            'final_result': fin_res, 'time': t, 'states': states, })

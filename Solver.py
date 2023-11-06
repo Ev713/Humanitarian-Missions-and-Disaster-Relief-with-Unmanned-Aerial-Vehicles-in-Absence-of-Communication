@@ -251,12 +251,12 @@ class Solver:
             if not node.state.is_terminal():
                 node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state)])
                 for c in node.children:
-                    self.num_of_states += 1
                     hash = c.state.hash()
                     if self.dup_det:
                         if hash in visited_states:
                             continue
                         visited_states.add(hash)
+                    self.num_of_states += 1
                     v = instance.reward(c.state)
 
                     if upper_bound is not None:

@@ -227,6 +227,8 @@ class Analyzer:
 
 
 def main():
+    acc = 1
+
     analyzer = Analyzer()
     analyzer.create_runs()
     instances = {}
@@ -245,19 +247,19 @@ def main():
         for algo in instance:
             run = instance[algo]
             for pair in run.results:
-                pair[0] = round(pair[0] / bfs_result, 2)
-                pair[1] = round(pair[1] / bfs_time, 2)
+                pair[0] = round(pair[0] / bfs_result, acc)
+                pair[1] = round(pair[1] / bfs_time, acc)
             if not algo in data_for_graphs:
                 data_for_graphs[algo] = []
             data_for_graphs[algo].append(run)
-            if not algo in  data_for_tables:
+            if not algo in data_for_tables:
                 data_for_tables[algo] = []
-            data_for_tables[algo].append(run.states/bfs_states)
+            data_for_tables[algo].append(run.states / bfs_states)
     graphs = {algo: [[], []] for algo in data_for_graphs}
     for algo in data_for_graphs:
         runs = data_for_graphs[algo]
-        for t100 in range(1, 100, 1):
-            t = t100 / 100
+        for t100 in range(1, pow(10,acc), 1):
+            t = t100 / pow(10,acc)
             results = []
             for run in runs:
                 for pair in run.results:
@@ -275,15 +277,12 @@ def main():
 
     print("States (relative to BFS states):")
     for algo in data_for_tables:
-        print(algo+": "+str(round(statistics.mean(data_for_tables[algo]), 3)))
-    #plt.savefig("COOL.png")
+        print(algo + ": " + str(round(statistics.mean(data_for_tables[algo]), 3)))
+    # plt.savefig("COOL.png")
     plt.show()
-
 
     # analyzer.get_success_rate_per_time(60)
     # analyzer.get_success_rate_per_result(90)
-
-
 
     types = ['FR', 'MT']
     '''
