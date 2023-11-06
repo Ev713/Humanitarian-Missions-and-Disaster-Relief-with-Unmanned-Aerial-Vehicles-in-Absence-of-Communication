@@ -65,7 +65,7 @@ def main():
             'final_result',
             'time',
             'states',
-            'result', ]
+            'result', ], dtype=object
     )
     # collected data:
     # num_agents, map_size, source, type, horizon, final result, time, states, result
