@@ -19,9 +19,9 @@ where n is the last index of old_instances i instance collector.
 def run_solver(inst, algo, default='-'):
     # print("start " + inst.name)
     solver = Solver.Solver()
-    solver.NUMBER_OF_SIMULATIONS = 1000000
+    solver.NUMBER_OF_SIMULATIONS = 10000000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
-    solver.timeout = 420
+    solver.timeout = 900
     solution = None
     if algo == 'MCTS_D':
         solution = solver.det_mcts(inst)
@@ -73,7 +73,7 @@ def main():
     data_to_append.append({'inst_name': str(inst.name), 'num_agents': len(inst.agents), 'map_size': len(inst.map),
                            'source': str(inst.source), 'type': str(inst.type), 'horizon': int(inst.horizon),
                            'algo': str(algo),
-                           'final_result': float(fin_res), 'time': float(t), 'states': int(states), 'result': res})
+                           'final_result': float(fin_res), 'time': float(t) if t != '-' else '-', 'states': int(states), 'result': res})
     print({'inst_name': inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
            'source': inst.source, 'type': inst.type, 'horizon': inst.horizon, 'algo': algo,
            'final_result': fin_res, 'time': t, 'states': states, })
@@ -85,7 +85,7 @@ def main():
     print(inst.name + ' without preprocessing is done')
     # df.to_csv(inst.name + "no_preprocessing.csv", index=False)
 
-    df.to_csv('data/small_maps_no_preprocessing_tot.csv', mode='a', index=False, header=False)
+    df.to_csv('data/server_no_preprocessing_tot.csv', mode='a', index=False, header=False)
     # df = pd.DataFrame(columns=["run", "final result", "time", "result", 'states'])
 
 
