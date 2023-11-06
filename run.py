@@ -54,8 +54,19 @@ def main():
     algo = str(args[1])
     print("\n" + inst.name + " with " + algo + " starts")
     df = pd.DataFrame(
-        columns={'inst_name': str, 'num_agents': int, 'map_size': int, 'source': str, 'type': str, 'horizon': int,
-                 'algo': str, 'final_result': float, 'time': float, 'states': int, 'result': object})
+        columns=[
+            ('inst_name', str),
+             ('num_agents', int),
+             ('map_size', int),
+             ('source', str),
+             ('type', str),
+             ('horizon', int),
+             ('algo', str),
+             ('final_result', float),
+             ('time', float),
+             ('states', int),
+             ('result', list)
+            ])
     # collected data:
     # num_agents, map_size, source, type, horizon, final result, time, states, result
     fin_res, t, res, states = run_solver(inst, algo)
