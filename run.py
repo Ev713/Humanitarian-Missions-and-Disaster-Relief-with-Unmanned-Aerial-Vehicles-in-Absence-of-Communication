@@ -53,13 +53,15 @@ def main():
     inst = collector.instances[int(args[0])]
     algo = str(args[1])
     print("\n" + inst.name + " with " + algo + " starts")
-    df = pd.DataFrame(columns=['inst_name', 'num_agents', 'map_size', 'source', 'type', 'horizon', 'algo',
-                               'final_result', 'time', 'states', 'result'])
+    df = pd.DataFrame(
+        columns={'inst_name': str, 'num_agents': int, 'map_size': int, 'source': str, 'type': str, 'horizon': int,
+                 'algo': str, 'final_result': float, 'time': float, 'states': int, 'result': object})
     # collected data:
     # num_agents, map_size, source, type, horizon, final result, time, states, result
     fin_res, t, res, states = run_solver(inst, algo)
     data_to_append.append({'inst_name': str(inst.name), 'num_agents': len(inst.agents), 'map_size': len(inst.map),
-                           'source': str(inst.source), 'type': str(inst.type), 'horizon': int(inst.horizon), 'algo': str(algo),
+                           'source': str(inst.source), 'type': str(inst.type), 'horizon': int(inst.horizon),
+                           'algo': str(algo),
                            'final_result': float(fin_res), 'time': float(t), 'states': int(states), 'result': res})
     print({'inst_name': inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
            'source': inst.source, 'type': inst.type, 'horizon': inst.horizon, 'algo': algo,
