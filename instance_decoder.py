@@ -15,4 +15,4 @@ for type in ['FR', 'MT', 'SC', 'AG']:
             decoded_instance = StringInstanceManager.to_inst(filename)
             # if len(decoded_instance.map) <= 30:
             instances.append(decoded_instance)
-print(len(instances))
+#print(len(instances))

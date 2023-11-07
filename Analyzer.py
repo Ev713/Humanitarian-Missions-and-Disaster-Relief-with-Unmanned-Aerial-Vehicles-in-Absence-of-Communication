@@ -20,7 +20,13 @@ class Run:
         self.states = 0
         self.map_type = None
         # self.is_real = False
-        self.map_size = 0
+        self.size = 0
+
+    def ag_is_success(self):
+        return self.fin_res == (self.size - 1) / 2 + 1
+
+    def sc_is_success(self):
+        return self.fin_res == math.sqrt(self.size - 1) * 2
 
     def is_timeout(self):
         return self.time == -1
@@ -51,7 +57,7 @@ class Instance_data:
     def __init__(self, inst_name, flybys, map_type):
         self.inst_name = inst_name
         self.flybys = flybys
-        self.map_type = map_type
+        self.type = map_type
         self.BFS_time = None
         self.best_value = None
         self.BFS = None
@@ -60,7 +66,7 @@ class Instance_data:
         self.MCTS_S = None
 
     def clone(self):
-        cp = Instance_data(self.inst_name, self.flybys, self.map_type)
+        cp = Instance_data(self.inst_name, self.flybys, self.type)
         self.BFS_time = None
         self.best_value = None
         self.BFS = None
@@ -78,7 +84,7 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "data/NEW_no_preprocessing_tot.csv"
+        self.file_path = "data/server_no_preprocessing_tot.csv"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
@@ -130,7 +136,7 @@ class Analyzer:
                 continue
             if solver_type is not None and r.solver_type != solver_type:
                 continue
-            if map_type is not None and r.map_type != map_type:
+            if map_type is not None and r.type != map_type:
                 continue
             if inst_name is not None and r.inst_name != inst_name:
                 continue
@@ -228,7 +234,7 @@ class Analyzer:
 
 def main():
     acc = 1
-
+    algos = ['BFS', 'BNB', 'BNBL', 'MCTS_D', 'MCTS_S']
     analyzer = Analyzer()
     analyzer.create_runs()
     instances = {}
@@ -238,14 +244,34 @@ def main():
         if not run.inst_name in instances:
             instances[run.inst_name] = {}
         instances[run.inst_name][run.algo] = run
-    for instance in list(instances.values()):
-        if 'BFS' not in instance:
+
+    fin_ress = {algo: [] for algo in algos}
+    sizes = {algo: [] for algo in algos}
+    states = {algo: [] for algo in algos}
+
+    for instance in instances:
+
+        instance_runs = instances[instance]
+        if 'BFS' not in instance_runs or instance_runs['BFS'].results[-1][0] == 0:
             continue
-        bfs_time = instance['BFS'].results[-1][1]
-        bfs_result = instance['BFS'].results[-1][0]
-        bfs_states = instance['BFS'].states
-        for algo in instance:
-            run = instance[algo]
+
+#        if instance_runs['BFS'].source == 'X' or instance_runs['BFS'].type != 'MT':
+#            continue
+
+        bfs_time = instance_runs['BFS'].results[-1][1]
+        bfs_result = instance_runs['BFS'].results[-1][0]
+        bfs_states = instance_runs['BFS'].states
+        for algo in instance_runs:
+
+            run = instance_runs[algo]
+
+            size = run.size
+            fin_res = run.results[-1][0]
+
+            sizes[algo].append(size)
+            fin_ress[algo].append(fin_res)
+            states[algo].append(run.states)
+
             for pair in run.results:
                 pair[0] = round(pair[0] / bfs_result, acc)
                 pair[1] = round(pair[1] / bfs_time, acc)
@@ -255,11 +281,12 @@ def main():
             if not algo in data_for_tables:
                 data_for_tables[algo] = []
             data_for_tables[algo].append(run.states / bfs_states)
+
     graphs = {algo: [[], []] for algo in data_for_graphs}
     for algo in data_for_graphs:
         runs = data_for_graphs[algo]
-        for t100 in range(1, pow(10,acc), 1):
-            t = t100 / pow(10,acc)
+        for t100 in range(1, pow(10, acc), 1):
+            t = t100 / pow(10, acc)
             results = []
             for run in runs:
                 for pair in run.results:
@@ -269,45 +296,39 @@ def main():
             avg_result = statistics.mean(results)
             graphs[algo][0].append(t)
             graphs[algo][1].append(avg_result)
-    plt.plot(graphs['BFS'][0], graphs['BFS'][1], graphs['BNBL'][0], graphs['BNBL'][1], graphs['BNB'][0],
-             graphs['BNB'][1], graphs['MCTS_S'][0], graphs['MCTS_S'][1], graphs['MCTS_D'][0], graphs['MCTS_D'][1], )
-    plt.legend(['BFS', 'BNBL', 'BNB', 'MCTS_S', 'MCTS_D'])
-    plt.xlabel("Time (relative to BFS time)")
-    plt.ylabel("Result (relative to BFS result)")
+    # plt.plot(graphs['BFS'][0], graphs['BFS'][1], graphs['BNBL'][0], graphs['BNBL'][1], graphs['BNB'][0],
+    #         graphs['BNB'][1], graphs['MCTS_S'][0], graphs['MCTS_S'][1], graphs['MCTS_D'][0], graphs['MCTS_D'][1], )
+    # plt.legend(['BFS', 'BNBL', 'BNB', 'MCTS - Simulations', 'MCTS - Guessing'])
+    # plt.xlabel("Time (relative to BFS time)")
+    # plt.ylabel("Result (relative to BFS result)")
+
 
     print("States (relative to BFS states):")
     for algo in data_for_tables:
         print(algo + ": " + str(round(statistics.mean(data_for_tables[algo]), 3)))
-    # plt.savefig("COOL.png")
+
+    print("SC success rates:")
+    for algo in data_for_tables:
+        runs = []
+        for r in analyzer.runs:
+            if r.type in ['SC']:
+                if r.algo == algo:
+                    if r.sc_is_success():
+                        runs.append(r)
+        print(algo + ": " + str(round(len([r for r in analyzer.runs if r.type in ['AG05', 'AG01',
+                                                                                  'AG001'] and r.algo == algo and r.ag_is_success()]))))
+
+    algo = 'BNBL'
+    plt.scatter(sizes[algo], fin_ress[algo])
+    plt.title('BNB')
+    plt.xlabel("Size")
+    plt.ylabel("Reward")
+
+    # , sizes['BNB'], fin_ress['BNB'], sizes['BNBL'], fin_ress['BNBL'],
+    #            sizes['MCTS_S'], fin_ress['MCTS_S'], sizes['MCTS_D'], fin_ress['MCTS_D'])
+
+    # plt.savefig("data/Images/server_full_data.png")
     plt.show()
-
-    # analyzer.get_success_rate_per_time(60)
-    # analyzer.get_success_rate_per_result(90)
-
-    types = ['FR', 'MT']
-    '''
-    for t in types:
-        print(t + " BFS success rate: " + str(
-            analyzer.count_percentage(filter(list(analyzer.old_instances.values()), inst_is_type, t), inst_has_best_result)))
-        print(t + " MCTS success rate: " + str(
-            analyzer.count_percentage(filter(list(analyzer.old_instances.values()), inst_is_type, t), inst_has_mcts_result)))
-        print()    
-    '''
-
-    # analyzer.normalize()
-
-    '''type = 'FR'
-    algo = 'MCTS'
-    res = {}
-    time = {}
-    res[type, algo] = []
-    time[type, algo] = []
-
-    for i in analyzer.old_instances.values():
-        if i.map_type == 'FR' and i.best_value is not None:
-            res[type, algo] += [r[0] for r in i.MCTS.results]
-            time[type, algo] += [r[1] for r in i.MCTS.results]
-    '''
 
 
 if __name__ == '__main__':

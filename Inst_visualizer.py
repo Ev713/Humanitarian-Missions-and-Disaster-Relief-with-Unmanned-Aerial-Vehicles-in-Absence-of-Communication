@@ -129,4 +129,4 @@ def vis3(inst):
     plt.show()
 
 
-vis3(StringInstanceManager.to_inst("Generated_encoded_instances/AG/i_89_1_45_AG001_X.txt"))
+vis3(StringInstanceManager.to_inst("Generated_encoded_instances/FR/i_270_6_29_FR_X.txt"))

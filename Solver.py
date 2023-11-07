@@ -6,8 +6,8 @@ import Node
 import State
 import StochInstance
 
-
 # import check_for_sasha as map
+import instance_decoder
 
 
 class Solution:
@@ -262,7 +262,7 @@ class Solver:
 
                     if upper_bound is not None:
                         up = upper_bound(c.state, instance)
-                        low = lower_bound(self.best_node.state, instance) if lower_bound is not None else 0
+                        low = 0 if lower_bound is None else lower_bound(self.best_node.state, instance)
                         if v + up < self.best_value + low:
                             continue
                     if v > self.best_value:
@@ -402,29 +402,28 @@ def is_sorted_ascending(lst):
     return all(lst[i] <= lst[i + 1] for i in range(len(lst) - 1))
 
 
-'''
 solver = Solver()
-inst = map.instance1
+inst = instance_decoder.instances[10]
 inst.flybys = True
-# solver.type = "U1S"
-# stoch = solver.mcts(i)
+solver.type = "U1S"
+bnb = solver.branch_and_bound(inst, solver.Heuristics_U1)
+bnbl = solver.branch_and_bound(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
+breakpoint()
+# solver.dup_det = True
 
-solver.dup_det = True
 
+#
+# solver.type = "URD"
+# det = solver.mcts(inst)
 
+# path = {0: [State.Position( 1, False ), State.Position( 2, False ), State.Position( 3, False )],#, State.Position( 4, False ), State.Position( 5, False ), State.Position( 6, False )],
+#        1: [State.Position( 1, False ), State.Position( 2, False ), State.Position( 3, False )]}#, State.Position( 4, False ), State.Position( 5, False ), State.Position( 6, False )]}
+# print("Value of the best path found with det  is: ", solver.evaluate_path(inst, path))
 
-solver.type = "URD"
-det = solver.mcts(inst)
+# solver.type = "URS"
 
-path = {0: [State.Position( 1, False ), State.Position( 2, False ), State.Position( 3, False )],#, State.Position( 4, False ), State.Position( 5, False ), State.Position( 6, False )],
-        1: [State.Position( 1, False ), State.Position( 2, False ), State.Position( 3, False )]}#, State.Position( 4, False ), State.Position( 5, False ), State.Position( 6, False )]}
-print("Value of the best path found with det  is: ", solver.evaluate_path(inst, path))
+# print("Value of the best path found with bfs is: ", solver.evaluate_path(inst, path))
 
-solver.type = "URS"
-
-print("Value of the best path found with bfs is: ", solver.evaluate_path(inst, path))
-
-'''
 
 '''solver.type = "U1D"
 
