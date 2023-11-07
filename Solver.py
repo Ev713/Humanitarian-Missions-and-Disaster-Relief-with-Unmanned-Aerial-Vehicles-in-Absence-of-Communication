@@ -49,6 +49,7 @@ class Solver:
         self.best_node = None
         self.best_value = 0
         self.states = 0
+        self.map_reduced=False
 
     def restart(self):
         self.start = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
@@ -223,6 +224,43 @@ class Solver:
                             (k.hash(), j.hash())]
         self.dist_calculated = True
 
+    def map_reduce(self, inst):
+        self.calculate_distance_between_vertices(inst)
+        useful_vertex = []
+        starting_pos = []
+        for i in inst.agents:
+            starting_pos.append(i.loc)
+        for i in inst.map:
+            if (i.distribution[0] < 1) or (i in starting_pos):
+                useful_vertex.append(i)
+
+        is_used = set()
+        for start in useful_vertex:
+            for end in useful_vertex:
+                if self.is_timeout():
+                    return
+                queue = [(start, [])]
+                while (queue):
+                    cur, prev = queue.pop()
+                    if (cur == end):
+                        for t in prev:
+                            is_used.add(t)
+                        queue = []
+                    else:
+                        for t in cur.neighbours:
+                            queue.insert(0, (t, prev + [cur]))
+        new_map = []
+        for i in inst.map:
+            if (i in is_used) or (i in useful_vertex):
+                ngbr = []
+                for j in i.neighbours:
+                    if (j in is_used) or (j in useful_vertex):
+                        ngbr.append(j)
+                i.neighbours = ngbr
+                new_map.append(i)
+        inst.map = new_map
+        self.map_reduced = True
+
     def bfs(self, def_inst):
         return self.branch_and_bound(def_inst)
 
@@ -234,7 +272,7 @@ class Solver:
         instance = self.make_instance(def_inst)
         if upper_bound is not None or lower_bound is not None:
             self.calculate_distance_between_vertices(instance)
-            if not self.dist_calculated:
+            if not self.dist_calculated or not self.map_reduced:
                 print("Calculating distances failed")
                 return self.get_solution(True)
 
