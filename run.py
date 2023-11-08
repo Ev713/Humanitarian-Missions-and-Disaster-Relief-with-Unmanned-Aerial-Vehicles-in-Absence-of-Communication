@@ -21,7 +21,7 @@ def run_solver(inst, algo, default='-'):
     solver = Solver.Solver()
     solver.NUMBER_OF_SIMULATIONS = 10000000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
-    solver.timeout = 30
+    solver.timeout = 10
     solution = None
     if algo == 'MCTS_D':
         solution = solver.det_mcts(inst)
@@ -48,9 +48,9 @@ def run_solver(inst, algo, default='-'):
 
 
 def main():
-    data_to_append = []
     args = sys.argv[1:]
-    name = 'server'
+    args = [1, 'MCTS_S', 1]
+    name = 'testing_preprocessing'
     inst = collector.instances[int(args[0])]
     algo = str(args[1])
     preprocessing = int(args[2])
@@ -60,38 +60,23 @@ def main():
         # Loop over old_instances and num_of_sim
         import time
         start = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
-        inst.map_reduce()
+        solver = Solver.Solver()
+        solver.map_reduce(inst)
         finish = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
 
         preprocess_time = finish - start
 
-        df2 = pd.DataFrame({"inst_name": inst.name, "preprocess_time": preprocess_time, 'algo': algo})
+        df2 = pd.DataFrame({"inst_name": [inst.name], "preprocess_time": [preprocess_time]})
 
-        df2.to_csv('data/'+name+'_preprocess_time',mode='a', index=False)
-        print(inst.name + " " + algo + '_preprocess_time: ' + preprocess_time)
+        df2.to_csv('data/'+name+'_preprocess_time', mode='a', index=False, header=False)
+        print(inst.name + " " + algo + '_preprocess_time: ', preprocess_time)
 
-    df = pd.DataFrame(
-        columns=[
-            'inst_name',
-            'num_agents',
-            'map_size',
-            'source',
-            'type',
-            'horizon',
-            'algo',
-            'final_result',
-            'time',
-            'states',
-            'result', ], dtype=object
-    )
-    # collected data:
-    # num_agents, map_size, source, type, horizon, final result, time, states, result
     fin_res, t, res, states = run_solver(inst, algo)
-    data_to_append.append({'inst_name': str(inst.name), 'num_agents': len(inst.agents), 'map_size': len(inst.map),
-                           'source': str(inst.source), 'type': str(inst.type), 'horizon': int(inst.horizon),
-                           'algo': str(algo),
-                           'final_result': float(fin_res), 'time': float(t) if t != '-' else '-', 'states': int(states),
-                           'result': res})
+    df = pd.DataFrame({'inst_name': [str(inst.name)], 'num_agents': [len(inst.agents)], 'map_size': [len(inst.map)],
+                           'source': [str(inst.source)], 'type': [str(inst.type)], 'horizon': [int(inst.horizon)],
+                           'algo': [str(algo)],
+                           'final_result': [float(fin_res)], 'time': [float(t)] if t != '-' else '-', 'states': [int(states)],
+                           'result': [str(res)]})
     print({'inst_name': inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
            'source': inst.source, 'type': inst.type, 'horizon': inst.horizon, 'algo': algo,
            'final_result': fin_res, 'time': t, 'states': states, })

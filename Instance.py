@@ -43,14 +43,25 @@ class Instance:
         self.distance = {}
         self.source = source
 
-
-
     def check_sums_of_probs_is_0(self):
         for v in self.map:
             if 0 not in v.distribution:
                 v.distribution[0] = 0
             if round(sum(v.distribution.values()), 7) != 1:
                 raise Exception("Sum of vertex " + str(v) + "'s probabilities is not 0!")
+
+    def map_is_connected(self):
+        connected = [self.map[0]]
+        while True:
+            no_new_vertices = True
+            for v in connected:
+                for n in v.neighbours:
+                    if n not in connected:
+                        connected.append(n)
+                        no_new_vertices = False
+            if no_new_vertices:
+                break
+        return len(self.map) == len(connected)
 
     def make_det_map_and_det_map_map(self):
         det_map = []

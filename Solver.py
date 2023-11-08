@@ -1,14 +1,34 @@
 import random
 import time
 
+import numpy
+
 import DetInstance
 import Node
 import State
 import StochInstance
+from numpy import array as matrix
 
 # import check_for_sasha as map
+import StringInstanceManager
 import instance_decoder
 
+
+def apd(A, n: int):
+    """Compute the shortest-paths lengths."""
+    if all(A[i][j] for i in range(n) for j in range(n) if i != j):
+        return A
+    Z = numpy.matmul(A, A)
+    B = matrix([
+        [1 if i != j and (A[i][j] == 1 or Z[i][j] > 0) else 0 for j in range(n)]
+        for i in range(n)])
+    T = apd(B, n)
+    X = numpy.matmul(T, A)
+    degree = [sum(A[i][j] for j in range(n)) for i in range(n)]
+    D = matrix([
+        [2 * T[i][j] if X[i][j] >= T[i][j] * degree[j] else 2 * T[i][j] - 1 for j in range(n)]
+        for i in range(n)])
+    return D
 
 class Solution:
     def __init__(self, paths, timestamps, states_collector, interrupted, opened_nodes):
@@ -27,7 +47,7 @@ class Solution:
 class Solver:
     def __init__(self):
         self.dist_calculated = False
-        self.distance = {}
+        self.all_pair_distances = {}
         self.num_of_states = None
         self.type = None
         self.dup_det = False
@@ -36,7 +56,7 @@ class Solver:
         self.NUMBER_OF_SIMULATIONS = 5000
         self.JUMP = self.NUMBER_OF_SIMULATIONS / min(self.NUMBER_OF_SIMULATIONS, 100)
         self.DISCOUNT = 1
-        self.timeout = 10
+        self.timeout = 60
         self.start = 0
 
         self.root = None
@@ -49,7 +69,7 @@ class Solver:
         self.best_node = None
         self.best_value = 0
         self.states = 0
-        self.map_reduced=False
+        self.map_reduced = False
 
     def restart(self):
         self.start = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
@@ -89,7 +109,7 @@ class Solver:
             current_vertex = state.a_pos[agent.hash()].loc
             winner_list = []
             for v in instance.map:
-                if v.hash() == current_vertex or self.distance[(v.hash(), current_vertex)] > (
+                if v.hash() == current_vertex or self.all_pair_distances[(v.hash(), current_vertex)] > (
                         agent.movement_budget - (instance.horizon - state.time_left)):
                     continue
                 winner_list += [state.calculate_vertex_estimate(v, instance)]
@@ -111,7 +131,7 @@ class Solver:
             return 0
         winner_list = []
         for v in instance.map:
-            if v.hash() == current_vertex or self.distance[(v.hash(), current_vertex)] > (
+            if v.hash() == current_vertex or self.all_pair_distances[(v.hash(), current_vertex)] > (
                     movement_budget - (instance.horizon - state.time_left)):
                 continue
             winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
@@ -137,7 +157,7 @@ class Solver:
             current_vertex = state.a_pos[agent.hash()].loc
             winner_list = []
             for v in instance.map:
-                if v.hash() == current_vertex or self.distance[(v.hash(), current_vertex)] > (
+                if v.hash() == current_vertex or self.all_pair_distances[(v.hash(), current_vertex)] > (
                         agent.movement_budget - (instance.horizon - state.time_left)):
                     continue
                 winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
@@ -159,7 +179,7 @@ class Solver:
             return 0
         winner_list = []
         for v in instance.map:
-            if v.hash() == current_vertex or self.distance[(v.hash(), current_vertex)] > (
+            if v.hash() == current_vertex or self.all_pair_distances[(v.hash(), current_vertex)] > (
                     movement_budget - (instance.horizon - state.time_left)):
                 continue
             winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
@@ -183,7 +203,7 @@ class Solver:
             current_vertex = state.a_pos[agent.hash()].loc
             winner_list = []
             for v in instance.map:
-                if v.hash() == current_vertex or self.distance[(v.hash(), current_vertex)] > (
+                if v.hash() == current_vertex or self.all_pair_distances[(v.hash(), current_vertex)] > (
                         agent.movement_budget - (instance.horizon - state.time_left)):
                     continue
                 winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
@@ -200,66 +220,84 @@ class Solver:
         return estimate_sum
 
     def calculate_distance_between_vertices(self, inst):
+        if not inst.map_is_connected():
+            return
         n = len(inst.map)
         for i in inst.map:
             for j in inst.map:
-                if self.is_timeout():
-                    return
-                self.distance[(i.hash(), j.hash())] = 100000000
+                self.all_pair_distances[(i.hash(), j.hash())] = 9999999
         for i in range(n):
             for j in inst.map[i].neighbours:
-                if self.is_timeout():
-                    return
-                self.distance[(inst.map[i].hash(), j.hash())] = 1
-                self.distance[(j.hash(), inst.map[i].hash())] = 1
-            self.distance[(inst.map[i].hash(), inst.map[i].hash())] = 0
+                self.all_pair_distances[(inst.map[i].hash(), j.hash())] = 1
+                self.all_pair_distances[(j.hash(), inst.map[i].hash())] = 1
+            self.all_pair_distances[(inst.map[i].hash(), inst.map[i].hash())] = 0
         for i in inst.map:
             for j in inst.map:
                 for k in inst.map:
-                    if self.is_timeout():
-                        return
-                    if (self.distance[(i.hash(), j.hash())] > self.distance[(i.hash(), k.hash())] + self.distance[
+                    if (self.all_pair_distances[(i.hash(), j.hash())] > self.all_pair_distances[(i.hash(), k.hash())] + self.all_pair_distances[
                         (k.hash(), j.hash())]):
-                        self.distance[(i.hash(), j.hash())] = self.distance[(i.hash(), k.hash())] + self.distance[
+                        self.all_pair_distances[(i.hash(), j.hash())] = self.all_pair_distances[(i.hash(), k.hash())] + self.all_pair_distances[
                             (k.hash(), j.hash())]
         self.dist_calculated = True
 
+    def calculate_all_pairs_distances_with_Seidel(self, inst):
+        n = len(inst.map)
+        A = matrix([[1 if (inst.map[j] in inst.map[i].neighbours) else 0 for i in range(n)] for j in range(n)])
+        D = apd(A, n)
+        self.all_pair_distances = {(inst.map[i].number, inst.map[j].number): D[i][j] for i in range(n) for j in range(n)}
+
     def map_reduce(self, inst):
-        self.calculate_distance_between_vertices(inst)
-        useful_vertex = []
-        starting_pos = []
-        for i in inst.agents:
-            starting_pos.append(i.loc)
-        for i in inst.map:
-            if (i.distribution[0] < 1) or (i in starting_pos):
-                useful_vertex.append(i)
+        if not inst.map_is_connected():
+            return
+        print("Gathering vertices that may not be empty or are initial locations for agents. ")
+        self.calculate_all_pairs_distances_with_Seidel(inst)
+        essential_vertices = []
+        init_locs = []
+        for a in inst.agents:
+            init_locs.append(a.loc)
+        for v in inst.map:
+            if ((v.distribution[0] < 1) or (v in init_locs)) and v not in essential_vertices:
+                essential_vertices.append(v)
+        print("Essential vertices: ", len(essential_vertices))
+        print("Determining vertices that may be used in an optimal run.")
 
         is_used = set()
-        for start in useful_vertex:
-            for end in useful_vertex:
-                if self.is_timeout():
-                    return
+        for start in essential_vertices:
+            print("Start ", start.number)
+            for end in essential_vertices:
+                print("End ", end.number)
+                if end == start:
+                    continue
                 queue = [(start, [])]
-                while (queue):
-                    cur, prev = queue.pop()
-                    if (cur == end):
-                        for t in prev:
-                            is_used.add(t)
-                        queue = []
+                checked = []
+                while True:
+                    v, path_to_v = queue.pop()
+                    checked.append(v)
+                    if v == end:
+                        for t in path_to_v:
+                            if t not in is_used:
+                                is_used.add(t)
+                        break
                     else:
-                        for t in cur.neighbours:
-                            queue.insert(0, (t, prev + [cur]))
+                        for t in v.neighbours:
+                            if t not in checked:
+                                queue.insert(0, (t, path_to_v + [v]))
+                                checked.append(t)
+
+        print("Creating new map that contains only \"useful\" vertices")
         new_map = []
-        for i in inst.map:
-            if (i in is_used) or (i in useful_vertex):
-                ngbr = []
-                for j in i.neighbours:
-                    if (j in is_used) or (j in useful_vertex):
-                        ngbr.append(j)
-                i.neighbours = ngbr
-                new_map.append(i)
+        for v in inst.map:
+            if (v in is_used) or (v in essential_vertices):
+                new_neighbours = []
+                for j in v.neighbours:
+                    if (j in is_used) or (j in essential_vertices):
+                        new_neighbours.append(j)
+                v.neighbours = new_neighbours
+                new_map.append(v)
         inst.map = new_map
         self.map_reduced = True
+        print("Done")
+        encoded = StringInstanceManager.to_string(inst)
 
     def bfs(self, def_inst):
         return self.branch_and_bound(def_inst)
@@ -271,8 +309,8 @@ class Solver:
         self.best_node = self.root
         instance = self.make_instance(def_inst)
         if upper_bound is not None or lower_bound is not None:
-            self.calculate_distance_between_vertices(instance)
-            if not self.dist_calculated or not self.map_reduced:
+            self.calculate_all_pairs_distances_with_Seidel(instance)
+            if not self.dist_calculated:
                 print("Calculating distances failed")
                 return self.get_solution(True)
 
@@ -440,15 +478,19 @@ def is_sorted_ascending(lst):
     return all(lst[i] <= lst[i + 1] for i in range(len(lst) - 1))
 
 
-solver = Solver()
-inst = instance_decoder.instances[10]
-inst.flybys = True
-solver.type = "U1S"
-bnb = solver.branch_and_bound(inst, solver.Heuristics_U1)
-bnbl = solver.branch_and_bound(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
-breakpoint()
-# solver.dup_det = True
+def do():
+    solver = Solver()
+    inst = instance_decoder.instances[10]
+    inst.flybys = True
+    solver.type = "U1S"
+    solver.map_reduce(inst)
+    bnb = solver.branch_and_bound(inst, solver.Heuristics_U1)
+    bnbl = solver.branch_and_bound(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
+    breakpoint()
+    # solver.dup_det = True
 
+
+# do()
 
 #
 # solver.type = "URD"
