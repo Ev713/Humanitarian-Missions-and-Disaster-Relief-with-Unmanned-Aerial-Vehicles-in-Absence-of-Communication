@@ -129,4 +129,4 @@ def vis3(inst):
     plt.show()
 
 
-vis3(StringInstanceManager.to_inst("DragonAge_encoded_instances/FR/i_155_4_36_FR_den312d.txt"))
+vis3(StringInstanceManager.to_inst("DragonAge_encoded_instances/MT/i_133_2_32_MT_orz704d.txt"))

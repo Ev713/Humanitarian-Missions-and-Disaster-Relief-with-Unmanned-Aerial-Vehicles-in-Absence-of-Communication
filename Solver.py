@@ -247,9 +247,11 @@ class Solver:
         self.all_pair_distances = {(inst.map[i].number, inst.map[j].number): D[i][j] for i in range(n) for j in range(n)}
 
     def map_reduce(self, inst):
+        want_to_print = False
         if not inst.map_is_connected():
             return
-        print("Gathering vertices that may not be empty or are initial locations for agents. ")
+        if want_to_print:
+            print("Gathering vertices that may not be empty or are initial locations for agents. ")
         self.calculate_all_pairs_distances_with_Seidel(inst)
         essential_vertices = []
         init_locs = []
@@ -258,14 +260,17 @@ class Solver:
         for v in inst.map:
             if ((v.distribution[0] < 1) or (v in init_locs)) and v not in essential_vertices:
                 essential_vertices.append(v)
-        print("Essential vertices: ", len(essential_vertices))
-        print("Determining vertices that may be used in an optimal run.")
+        if want_to_print:
+            print("Essential vertices: ", len(essential_vertices))
+            print("Determining vertices that may be used in an optimal run.")
 
         is_used = set()
         for start in essential_vertices:
-            print("Start ", start.number)
+            if want_to_print:
+                print("Start ", start.number)
             for end in essential_vertices:
-                print("End ", end.number)
+                if want_to_print:
+                    print("End ", end.number)
                 if end == start:
                     continue
                 queue = [(start, [])]
@@ -297,7 +302,7 @@ class Solver:
         inst.map = new_map
         self.map_reduced = True
         print("Done")
-        encoded = StringInstanceManager.to_string(inst)
+        encoded = StringInstanceManager.to_string(inst, 'Reduced_maps/'+('DA' if inst.source!= 'X' else 'Gen')+"/"+inst.type)
 
     def bfs(self, def_inst):
         return self.branch_and_bound(def_inst)

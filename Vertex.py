@@ -15,6 +15,18 @@ class Vertex:
     def __str__(self):
         return "v" + str(self.number)
 
+    def expectation(self):
+        return sum([r * self.distribution[r] for r in self.distribution])
+
+    def q(self):
+        return 1 - self.distribution[0]
+
+    def p(self):
+        return self.distribution[0]
+
+    def bernoulli(self):
+        return 0 if self.q() == 0 else sum([r * self.distribution[r] for r in self.distribution]) / self.q()
+
 
 class DetVertex(Vertex):
     def __init__(self, number):
@@ -36,7 +48,7 @@ class DetVertex(Vertex):
                 return
 
     def __str__(self):
-        return "det_v" + str(self.number)+" "+str(self.reward)+" "+str(self.is_empty)
+        return "det_v" + str(self.number) + " " + str(self.reward) + " " + str(self.is_empty)
 
 
 class Stoch_Vertex(Vertex):

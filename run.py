@@ -49,7 +49,7 @@ def run_solver(inst, algo, default='-'):
 
 def main():
     args = sys.argv[1:]
-    args = [1, 'MCTS_S', 1]
+    args = [53, 'MCTS_S', 1]
     name = 'testing_preprocessing'
     inst = collector.instances[int(args[0])]
     algo = str(args[1])
