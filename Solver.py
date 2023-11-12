@@ -123,30 +123,49 @@ class Solver:
         return winner_list[i][0] * probs[0] + self.get_greedy_bound_U1(movement_budget - 1, winner_list[i][1], state,
                                                                        instance, used_vertex, probs[1:])
 
-    def Lower_bound_U1(self, state, instance):
-        if self.type != 'U1S':
-            raise Exception("U1S type required!")
-        estimate_sum = 0
-        used_vertex = {}
+    def lower_bound_base_plus_utility(self, state, instance):
+        vertexes_with_agents = []
         for agent in instance.agents:
-            current_vertex = state.a_pos[agent.hash()].loc
-            winner_list = []
-            for v in instance.map:
-                if v.hash() == current_vertex or self.all_pair_distances[(v.hash(), current_vertex)] > (
-                        agent.movement_budget - (instance.horizon - state.time_left)):
-                    continue
-                winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
-                used_vertex[v.hash()] = 0
-            winner_list = sorted(winner_list, reverse=True)
+            vertexes_with_agents.append(state.a_pos[agent.hash()].loc)
+        reachable_vertexes = []
+        for v in instance.map:
+            for cur in vertexes_with_agents:
+                if (self.all_pair_distances[v.hash(), cur] <= (
+                        instance.horizon - state.time_left) and v not in reachable_vertexes):
+                    reachable_vertexes.append(v)
+        estimated_utility_left = 0
+        for agent in instance.agents:
             matrix = state.matrices[agent.hash()]
-            ##print(matrix)
-            for j in range(matrix.shape[0]):
-                for k in range(matrix.shape[1] - 1):
-                    estimate_sum += self.get_greedy_bound_U1(
-                        min(matrix.shape[1] - k, agent.movement_budget - (instance.horizon - state.time_left)),
-                        current_vertex,
-                        state, instance, used_vertex, matrix[j][k:])
-        return estimate_sum
+            for i in range(matrix.shape[0]):
+                for j in range(matrix.shape[1]):
+                    estimated_utility_left += (matrix.shape[0] - i) * matrix[i][j]
+        possible_rewards = []
+        for v in reachable_vertexes:
+            possible_rewards.append(v.expectation())
+        possible_rewards = sorted(possible_rewards)
+        return sum(possible_rewards[:min(len(possible_rewards), estimated_utility_left)])
+
+    def upper_bound_base_plus_utility(self, state, instance):
+        vertexes_with_agents = []
+        for agent in instance.agents:
+            vertexes_with_agents.append(state.a_pos[agent.hash()].loc)
+        reachable_vertexes = []
+        for v in instance.map:
+            for cur in vertexes_with_agents:
+                if (self.all_pair_distances[v.hash(), cur] <= (
+                        instance.horizon - state.time_left) and v not in reachable_vertexes):
+                    reachable_vertexes.append(v)
+        estimated_utility_left = 0
+        for agent in instance.agents:
+            matrix = state.matrices[agent.hash()]
+            for i in range(matrix.shape[0]):
+                for j in range(matrix.shape[1]):
+                    estimated_utility_left += (matrix.shape[0] - i) * matrix[i][j]
+        possible_rewards = []
+        for v in reachable_vertexes:
+            possible_rewards.append(v.expectation())
+        possible_rewards = sorted(possible_rewards, reverse=True)
+        return sum(possible_rewards[:min(len(possible_rewards), estimated_utility_left)])
 
     def map_reduce(self, inst):
         InstanceManager.map_reduce(inst)

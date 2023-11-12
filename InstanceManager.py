@@ -104,6 +104,8 @@ def map_reduce(inst):
             v.neighbours = new_neighbours
             new_map.append(v)
     inst.map = new_map
+    for a in inst.agents:
+        a.loc = new_map[0]
     print("Done")
 
 
@@ -166,16 +168,17 @@ def filter_unconnected(inst):
     connected_component_size = {}
     connected = {}
     for vertex in inst.map:
-        connected[vertex.hash(0)] = {vertex.hash()}
+        connected[vertex.hash()] = [vertex.hash()]
         no_more_connected_vertices = False
         while not no_more_connected_vertices:
             no_more_connected_vertices = True
-            for v in connected:
+            for v in connected[vertex.hash()]:
                 for n in neighbours[v]:
-                    if n not in connected:
-                        connected[vertex.hash()].add(n)
+                    if n not in connected[vertex.hash()]:
+                        connected[vertex.hash()].append(n)
                         no_more_connected_vertices = False
-        connected_component_size[vertex.hash()] = len(connected)
+
+        connected_component_size[vertex.hash()] = len(connected[vertex.hash()])
     vertex_in_biggest_connected = [k[0] for k in sorted(connected_component_size.items(), key=lambda item: item[1])][-1]
     new_map = []
     for v in inst.map:

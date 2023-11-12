@@ -2,20 +2,49 @@ import os
 
 import InstanceManager
 
-instances = []
-small_only = True
-for type in ['FR', 'MT']:
-    for filename in os.scandir("DragonAge_encoded_instances/"+type):
-        if filename.is_file():
-            decoded_instance = StringInstanceManager.to_inst(filename)
-            if len(decoded_instance.map) > 30 and small_only:
-                continue
-            instances.append(decoded_instance)
-for type in ['FR', 'MT', 'SC', 'AG']:
-    for filename in os.scandir("Generated_encoded_instances/"+type):
-        if filename.is_file():
-            decoded_instance = StringInstanceManager.to_inst(filename)
-            if len(decoded_instance.map) > 30 and small_only:
-                continue
-            instances.append(decoded_instance)
-print(len(instances))
+
+class Decoder:
+    def __init__(self):
+        self.instances = []
+
+    def decode(self, small_only=False, mid_only=False, save=False):
+        for type in ['FR', 'MT']:
+            for filename in os.scandir("DragonAge_encoded_instances/" + type):
+                if filename.is_file():
+                    decoded_instance = InstanceManager.to_inst(filename)
+                    if len(decoded_instance.map) > 30 and small_only:
+                        continue
+                    if len(decoded_instance.map) < 30 or len(decoded_instance.map) > 100 and mid_only:
+                        continue
+                    self.instances.append(decoded_instance)
+        for type in ['FR', 'MT', 'SC', 'AG']:
+            for filename in os.scandir("Generated_encoded_instances/" + type):
+                if filename.is_file():
+                    decoded_instance = InstanceManager.to_inst(filename)
+                    if len(decoded_instance.map) > 30 and small_only:
+                        continue
+                    if len(decoded_instance.map) < 30 or len(decoded_instance.map) > 100 and mid_only:
+                        continue
+                    if type != 'MT':
+                        continue
+                    self.instances.append(decoded_instance)
+        if save:
+            for instance in self.instances:
+                InstanceManager.filter_unconnected(instance)
+                InstanceManager.map_reduce(instance)
+            for instance in self.instances:
+                InstanceManager.to_string(instance, "Reduced_maps")
+
+    def decode_reduced(self, small_only=False, mid_only=False, big_only=False):
+        for filename in os.scandir("Reduced_maps"):
+            if filename.is_file():
+                decoded_instance = InstanceManager.to_inst(filename)
+                if len(decoded_instance.map) > 30 and small_only:
+                    continue
+                if len(decoded_instance.map) < 30 or len(decoded_instance.map) > 100 and mid_only:
+                    continue
+                if len(decoded_instance.map) < 100 and big_only:
+                    continue
+
+                self.instances.append(decoded_instance)
+        return self.instances

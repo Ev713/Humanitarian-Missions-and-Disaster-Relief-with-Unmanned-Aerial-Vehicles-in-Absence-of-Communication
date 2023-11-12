@@ -84,7 +84,7 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "data/small_BFS_BNB_no_preprocessing_tot.csv"
+        self.file_path = "data/"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
@@ -249,9 +249,9 @@ def main():
     sizes = {algo: [] for algo in algos}
     states = {algo: [] for algo in algos}
 
-    for instance in instances:
+    for inst_name in instances:
 
-        instance_runs = instances[instance]
+        instance_runs = instances[inst_name]
         if 'BFS' not in instance_runs or instance_runs['BFS'].results[-1][0] == 0:
             continue
 
@@ -261,10 +261,10 @@ def main():
         bfs_time = instance_runs['BFS'].results[-1][1]
         bfs_result = instance_runs['BFS'].results[-1][0]
         bfs_states = instance_runs['BFS'].states
-        for algo in instance_runs:
-
+        for algo in algos:
+            if algo not in instance_runs:
+                continue
             run = instance_runs[algo]
-
             size = run.size
             fin_res = run.results[-1][0]
 
@@ -285,18 +285,26 @@ def main():
     graphs = {algo: [[], []] for algo in data_for_graphs}
     for algo in data_for_graphs:
         runs = data_for_graphs[algo]
-        for t100 in range(1, pow(10, acc), 1):
+        runs_complete_results = []
+        for run in runs:
+            run_complete_data = {0: 0}
+            for t100 in range(1, pow(10, acc)+1, 1):
+                t = t100 / pow(10, acc)
+                for r in run.results:
+                    if r[1] == t:
+                        run_complete_data[t] = r[1]
+                if t not in run_complete_data:
+                    prev = round(t-1/pow(10, acc), acc)
+                    run_complete_data[t] = run_complete_data[prev]
+            runs_complete_results.append(run_complete_data)
+        for t100 in range(1, pow(10, acc)+1, 1):
             t = t100 / pow(10, acc)
             results = []
-            for run in runs:
-                for pair in run.results:
-                    if pair[1] == t:
-                        results.append(pair[0])
-                        break
-            if results != []:
+            for run in runs_complete_results:
+                results.append(run[t])
                 avg_result = statistics.mean(results)
-                graphs[algo][0].append(t)
-                graphs[algo][1].append(avg_result)
+            graphs[algo][0].append(t)
+            graphs[algo][1].append(avg_result)
     plt.plot(graphs['BFS'][0], graphs['BFS'][1], graphs['BNB'][0],
         graphs['BNB'][1] )
     plt.legend(['BFS',  'BNB'])

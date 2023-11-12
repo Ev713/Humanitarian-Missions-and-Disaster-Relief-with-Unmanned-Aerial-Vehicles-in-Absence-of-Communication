@@ -2,7 +2,8 @@ import pandas as pd
 import sys
 
 # import instance_collector
-import instance_decoder as collector
+#import Inst_visualizer
+import instance_decoder
 # import THIRD_instance_collector as collector
 import Solver
 
@@ -32,10 +33,11 @@ def run_solver(inst, algo, default='-'):
         solution = solver.bfs(inst)
     if algo == 'BNBL':
         solver.type = 'U1S'
-        solution = solver.branch_and_bound(inst, solver.base_upper_bound, solver.Lower_bound_U1)
+        solution = solver.branch_and_bound(inst, solver.upper_bound_base_plus_utility,
+                                           solver.lower_bound_base_plus_utility)
     if algo == 'BNB':
         solver.type = 'U1S'
-        solution = solver.branch_and_bound(inst, solver.base_upper_bound)
+        solution = solver.branch_and_bound(inst, solver.upper_bound_base_plus_utility)
 
     timestamps = solution.timestamps
     states = solution.states
@@ -49,9 +51,12 @@ def run_solver(inst, algo, default='-'):
 
 def main():
     args = sys.argv[1:]
-    #args = [150, 'BFS', 0]
-    name = 'small_BFS_BNB'
-    inst = collector.instances[int(args[0])]
+    args = [10, 'BNBL', 0]
+    name = 'big_heuristic_check'
+    decoder = instance_decoder.Decoder()
+    decoder.decode_reduced(big_only=True)
+    inst = decoder.instances[int(args[0])]
+    #Inst_visualizer.vis3(inst, name)
     algo = str(args[1])
     preprocessing = int(args[2])
     print("\n" + inst.name + " with " + algo + " starts")

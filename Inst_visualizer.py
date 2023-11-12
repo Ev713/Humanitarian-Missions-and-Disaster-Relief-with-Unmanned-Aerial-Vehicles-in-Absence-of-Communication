@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import InstanceManager
+import instance_decoder
 
 
 class GraphVisualization:
@@ -53,7 +54,7 @@ def determine_cols(inst):
             if v.number == n.number + 1 or v.number == n.number - 1:
                 continue
             return abs(v.number - n.number)
-    return 0
+    return 1
 
 
 def vis_2(inst):
@@ -92,7 +93,7 @@ def vis_2(inst):
     plt.show()
 
 
-def vis3(inst):
+def vis3(inst, path = ''):
     cols = determine_cols(inst)
     rows = math.ceil(inst.map[-1].number / cols)
     color_map = [['#000000' for _ in range(cols)] for _ in range(rows)]
@@ -122,11 +123,15 @@ def vis3(inst):
     # Remove axis labels and ticks
     ax.set_xticks([])
     ax.set_yticks([])
+    plt.title(inst.name)
 
     # Show the grid
-    print(color_map)
-    plt.savefig(inst.name+".png")
+    # print(color_map)
+    plt.savefig("maps_images/"+path+"/" + inst.name + ".png")
     plt.show()
 
 
-vis3(StringInstanceManager.to_inst("DragonAge_encoded_instances/MT/i_133_2_32_MT_orz704d.txt"))
+decoder = instance_decoder.Decoder()
+decoder.decode_reduced()
+for inst in decoder.instances:
+    vis3(inst)
