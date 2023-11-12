@@ -4,15 +4,15 @@
 if [ -n "$1" ]; then
     n=$(($1 - 1))
 else
-    n=172  # Default value if not provided
+    n=60  # Default value if not provided
 fi
 
-strategies=('MCTS_D' 'MCTS_S' 'BFS' 'BNB' 'BNBL')
+strategies=('BFS' 'BNB' 'BNBL')
 
 # Loop through processes and strategies
 for i in $(seq 0 $n); do
     for strategy in "${strategies[@]}"; do
-        for preprocessing in 0 1; do
+        for preprocessing in 0; do
             python3 run.py "$i" "$strategy" "$preprocessing" &
         done
     done
