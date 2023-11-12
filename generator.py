@@ -7,7 +7,7 @@ import numpy as np
 
 import Agent
 import Instance
-import StringInstanceManager
+import InstanceManager
 import Vertex
 
 

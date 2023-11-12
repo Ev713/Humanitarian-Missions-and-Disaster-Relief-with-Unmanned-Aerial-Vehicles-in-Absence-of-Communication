@@ -2,7 +2,7 @@ import math
 import os
 from generator import Generator
 import os
-import StringInstanceManager
+import InstanceManager
 import Solver
 
 

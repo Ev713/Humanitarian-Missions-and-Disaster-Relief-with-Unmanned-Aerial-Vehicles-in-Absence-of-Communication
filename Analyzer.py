@@ -84,7 +84,7 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "data/server_no_preprocessing_tot.csv"
+        self.file_path = "data/small_BFS_BNB_no_preprocessing_tot.csv"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
@@ -233,8 +233,8 @@ class Analyzer:
 
 
 def main():
-    acc = 1
-    algos = ['BFS', 'BNB', 'BNBL', 'MCTS_D', 'MCTS_S']
+    acc = 2
+    algos = ['BFS', 'BNB']
     analyzer = Analyzer()
     analyzer.create_runs()
     instances = {}
@@ -293,14 +293,15 @@ def main():
                     if pair[1] == t:
                         results.append(pair[0])
                         break
-            avg_result = statistics.mean(results)
-            graphs[algo][0].append(t)
-            graphs[algo][1].append(avg_result)
-    # plt.plot(graphs['BFS'][0], graphs['BFS'][1], graphs['BNBL'][0], graphs['BNBL'][1], graphs['BNB'][0],
-    #         graphs['BNB'][1], graphs['MCTS_S'][0], graphs['MCTS_S'][1], graphs['MCTS_D'][0], graphs['MCTS_D'][1], )
-    # plt.legend(['BFS', 'BNBL', 'BNB', 'MCTS - Simulations', 'MCTS - Guessing'])
-    # plt.xlabel("Time (relative to BFS time)")
-    # plt.ylabel("Result (relative to BFS result)")
+            if results != []:
+                avg_result = statistics.mean(results)
+                graphs[algo][0].append(t)
+                graphs[algo][1].append(avg_result)
+    plt.plot(graphs['BFS'][0], graphs['BFS'][1], graphs['BNB'][0],
+        graphs['BNB'][1] )
+    plt.legend(['BFS',  'BNB'])
+    plt.xlabel("Time (relative to BFS time)")
+    plt.ylabel("Result (relative to BFS result)")
 
 
     print("States (relative to BFS states):")
@@ -318,11 +319,11 @@ def main():
         print(algo + ": " + str(round(len([r for r in analyzer.runs if r.type in ['AG05', 'AG01',
                                                                                   'AG001'] and r.algo == algo and r.ag_is_success()]))))
 
-    algo = 'BNBL'
-    plt.scatter(sizes[algo], fin_ress[algo])
-    plt.title('BNB')
-    plt.xlabel("Size")
-    plt.ylabel("Reward")
+    #algo = 'BNBL'
+    #plt.scatter(sizes[algo], fin_ress[algo])
+    #plt.title('BNB')
+    #plt.xlabel("Size")
+    #plt.ylabel("Reward")
 
     # , sizes['BNB'], fin_ress['BNB'], sizes['BNBL'], fin_ress['BNBL'],
     #            sizes['MCTS_S'], fin_ress['MCTS_S'], sizes['MCTS_D'], fin_ress['MCTS_D'])

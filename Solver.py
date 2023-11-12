@@ -10,25 +10,9 @@ import StochInstance
 from numpy import array as matrix
 
 # import check_for_sasha as map
-import StringInstanceManager
+import InstanceManager
 import instance_decoder
 
-
-def apd(A, n: int):
-    """Compute the shortest-paths lengths."""
-    if all(A[i][j] for i in range(n) for j in range(n) if i != j):
-        return A
-    Z = numpy.matmul(A, A)
-    B = matrix([
-        [1 if i != j and (A[i][j] == 1 or Z[i][j] > 0) else 0 for j in range(n)]
-        for i in range(n)])
-    T = apd(B, n)
-    X = numpy.matmul(T, A)
-    degree = [sum(A[i][j] for j in range(n)) for i in range(n)]
-    D = matrix([
-        [2 * T[i][j] if X[i][j] >= T[i][j] * degree[j] else 2 * T[i][j] - 1 for j in range(n)]
-        for i in range(n)])
-    return D
 
 class Solution:
     def __init__(self, paths, timestamps, states_collector, interrupted, opened_nodes):
@@ -101,78 +85,23 @@ class Solver:
         self.states_collector.append(self.num_of_states)
         return Solution(self.paths, self.timestamps, self.states_collector, timeout, self.num_of_states)
 
-    def Heuristics_U1(self, state, instance):
-        if self.type != 'U1S':
-            raise Exception("U1S type required!")
-        estimate_sum = 0
+    def base_upper_bound(self, state, instance):
+        possible_destinations_expectations = {}
         for agent in instance.agents:
             current_vertex = state.a_pos[agent.hash()].loc
-            winner_list = []
             for v in instance.map:
                 if v.hash() == current_vertex or self.all_pair_distances[(v.hash(), current_vertex)] > (
                         agent.movement_budget - (instance.horizon - state.time_left)):
                     continue
-                winner_list += [state.calculate_vertex_estimate(v, instance)]
-            winner_list = sorted(winner_list, reverse=True)
+                possible_destinations_expectations[v.hash()] = v.expectation()
+        max_visits = sum([agent.movement_budget - (instance.horizon - state.time_left) for agent in instance.agents])
+        best_vertices = [k[0] for k in sorted(possible_destinations_expectations.items(), key=lambda item: item[1])][
+                        0:max_visits - 1:]
+        return sum([possible_destinations_expectations[v] for v in best_vertices])
 
-            matrix = state.matrices[agent.hash()]
-            ##print(matrix)
-            for j in range(matrix.shape[0]):
-                for k in range(matrix.shape[1] - 1):
-                    for t in range(min(matrix.shape[1] - 1, len(winner_list) - k)):
-                        estimate_sum += matrix[j][k] * winner_list[t]
-            ##estimate_sum += state.calculate_estimate(winner_list[i])
-        return estimate_sum
-
-    def get_greedy_bound_UR(self, movement_budget, current_vertex, state, instance, used_vertex, probs):
-        if movement_budget == 0:
-            return 0
-        if (len(probs) == 0):
-            return 0
-        winner_list = []
-        for v in instance.map:
-            if v.hash() == current_vertex or self.all_pair_distances[(v.hash(), current_vertex)] > (
-                    movement_budget - (instance.horizon - state.time_left)):
-                continue
-            winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
-            used_vertex[v.hash()] = 0
-        winner_list = sorted(winner_list, reverse=True)
-        i = 0
-        while i < len(winner_list) and ([winner_list[i]][1] >= 1 or winner_list[i][0] >= len(probs)):
-            i += 1
-        if i == len(winner_list):
-            return 0
-        if (winner_list[i][0] >= len(probs)):
-            return 0
-        used_vertex[winner_list[i][1]] += probs[0]
-        return winner_list[i][0] * probs[0] + self.get_greedy_bound_UR(movement_budget - 1, winner_list[i][1], state,
-                                                                       instance, probs[round(winner_list[i][0]):])
-
-    def Lower_bound_UR(self, state, instance):
-        if self.type != 'URS':
-            raise Exception("URS type required!")
-        estimate_sum = 0
-        used_vertex = {}
-        for agent in instance.agents:
-            current_vertex = state.a_pos[agent.hash()].loc
-            winner_list = []
-            for v in instance.map:
-                if v.hash() == current_vertex or self.all_pair_distances[(v.hash(), current_vertex)] > (
-                        agent.movement_budget - (instance.horizon - state.time_left)):
-                    continue
-                winner_list += [(state.calculate_vertex_estimate(v, instance), v.hash())]
-                used_vertex[v.hash()] = 0
-            winner_list = sorted(winner_list, reverse=True)
-
-            matrix = state.matrices[agent.hash()]
-            ##print(matrix)
-            for j in range(matrix.shape[0]):
-                for k in range(matrix.shape[1] - 1):
-                    estimate_sum += self.get_greedy_bound_UR(
-                        min(matrix.shape[1] - k, agent.movement_budget - (instance.horizon - state.time_left)),
-                        current_vertex, state, instance, used_vertex, matrix[j][k:])
-            ##estimate_sum += state.calculate_estimate(winner_list[i])
-        return estimate_sum
+    def calculate_all_pairs_distances_with_Seidel(self, inst):
+        self.all_pair_distances = InstanceManager.calculate_all_pairs_distances_with_Seidel(inst)
+        self.dist_calculated = True
 
     def get_greedy_bound_U1(self, movement_budget, current_vertex, state, instance, used_vertex, probs):
         if movement_budget == 0:
@@ -219,90 +148,9 @@ class Solver:
                         state, instance, used_vertex, matrix[j][k:])
         return estimate_sum
 
-    def calculate_distance_between_vertices(self, inst):
-        if not inst.map_is_connected():
-            return
-        n = len(inst.map)
-        for i in inst.map:
-            for j in inst.map:
-                self.all_pair_distances[(i.hash(), j.hash())] = 9999999
-        for i in range(n):
-            for j in inst.map[i].neighbours:
-                self.all_pair_distances[(inst.map[i].hash(), j.hash())] = 1
-                self.all_pair_distances[(j.hash(), inst.map[i].hash())] = 1
-            self.all_pair_distances[(inst.map[i].hash(), inst.map[i].hash())] = 0
-        for i in inst.map:
-            for j in inst.map:
-                for k in inst.map:
-                    if (self.all_pair_distances[(i.hash(), j.hash())] > self.all_pair_distances[(i.hash(), k.hash())] + self.all_pair_distances[
-                        (k.hash(), j.hash())]):
-                        self.all_pair_distances[(i.hash(), j.hash())] = self.all_pair_distances[(i.hash(), k.hash())] + self.all_pair_distances[
-                            (k.hash(), j.hash())]
-        self.dist_calculated = True
-
-    def calculate_all_pairs_distances_with_Seidel(self, inst):
-        n = len(inst.map)
-        A = matrix([[1 if (inst.map[j] in inst.map[i].neighbours) else 0 for i in range(n)] for j in range(n)])
-        D = apd(A, n)
-        self.all_pair_distances = {(inst.map[i].number, inst.map[j].number): D[i][j] for i in range(n) for j in range(n)}
-
     def map_reduce(self, inst):
-        want_to_print = False
-        if not inst.map_is_connected():
-            return
-        if want_to_print:
-            print("Gathering vertices that may not be empty or are initial locations for agents. ")
-        self.calculate_all_pairs_distances_with_Seidel(inst)
-        essential_vertices = []
-        init_locs = []
-        for a in inst.agents:
-            init_locs.append(a.loc)
-        for v in inst.map:
-            if ((v.distribution[0] < 1) or (v in init_locs)) and v not in essential_vertices:
-                essential_vertices.append(v)
-        if want_to_print:
-            print("Essential vertices: ", len(essential_vertices))
-            print("Determining vertices that may be used in an optimal run.")
-
-        is_used = set()
-        for start in essential_vertices:
-            if want_to_print:
-                print("Start ", start.number)
-            for end in essential_vertices:
-                if want_to_print:
-                    print("End ", end.number)
-                if end == start:
-                    continue
-                queue = [(start, [])]
-                checked = []
-                while True:
-                    v, path_to_v = queue.pop()
-                    checked.append(v)
-                    if v == end:
-                        for t in path_to_v:
-                            if t not in is_used:
-                                is_used.add(t)
-                        break
-                    else:
-                        for t in v.neighbours:
-                            if t not in checked:
-                                queue.insert(0, (t, path_to_v + [v]))
-                                checked.append(t)
-
-        print("Creating new map that contains only \"useful\" vertices")
-        new_map = []
-        for v in inst.map:
-            if (v in is_used) or (v in essential_vertices):
-                new_neighbours = []
-                for j in v.neighbours:
-                    if (j in is_used) or (j in essential_vertices):
-                        new_neighbours.append(j)
-                v.neighbours = new_neighbours
-                new_map.append(v)
-        inst.map = new_map
+        InstanceManager.map_reduce(inst)
         self.map_reduced = True
-        print("Done")
-        encoded = StringInstanceManager.to_string(inst, 'Reduced_maps/'+('DA' if inst.source!= 'X' else 'Gen')+"/"+inst.type)
 
     def bfs(self, def_inst):
         return self.branch_and_bound(def_inst)
@@ -489,8 +337,8 @@ def do():
     inst.flybys = True
     solver.type = "U1S"
     solver.map_reduce(inst)
-    bnb = solver.branch_and_bound(inst, solver.Heuristics_U1)
-    bnbl = solver.branch_and_bound(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
+    bnb = solver.branch_and_bound(inst, solver.base_upper_bound)
+    bnbl = solver.branch_and_bound(inst, solver.base_upper_bound, solver.Lower_bound_U1)
     breakpoint()
     # solver.dup_det = True
 

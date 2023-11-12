@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 # Defining a Class
 import numpy as np
 
-import StringInstanceManager
+import InstanceManager
 
 
 class GraphVisualization:

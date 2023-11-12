@@ -21,7 +21,7 @@ def run_solver(inst, algo, default='-'):
     solver = Solver.Solver()
     solver.NUMBER_OF_SIMULATIONS = 10000000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
-    solver.timeout = 10
+    solver.timeout = 420
     solution = None
     if algo == 'MCTS_D':
         solution = solver.det_mcts(inst)
@@ -32,10 +32,10 @@ def run_solver(inst, algo, default='-'):
         solution = solver.bfs(inst)
     if algo == 'BNBL':
         solver.type = 'U1S'
-        solution = solver.branch_and_bound(inst, solver.Heuristics_U1, solver.Lower_bound_U1)
+        solution = solver.branch_and_bound(inst, solver.base_upper_bound, solver.Lower_bound_U1)
     if algo == 'BNB':
         solver.type = 'U1S'
-        solution = solver.branch_and_bound(inst, solver.Heuristics_U1)
+        solution = solver.branch_and_bound(inst, solver.base_upper_bound)
 
     timestamps = solution.timestamps
     states = solution.states
@@ -49,8 +49,8 @@ def run_solver(inst, algo, default='-'):
 
 def main():
     args = sys.argv[1:]
-    args = [53, 'MCTS_S', 1]
-    name = 'testing_preprocessing'
+    #args = [150, 'BFS', 0]
+    name = 'small_BFS_BNB'
     inst = collector.instances[int(args[0])]
     algo = str(args[1])
     preprocessing = int(args[2])
