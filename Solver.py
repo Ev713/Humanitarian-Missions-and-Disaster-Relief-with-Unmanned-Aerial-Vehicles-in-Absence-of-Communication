@@ -1,3 +1,4 @@
+import math
 import random
 import time
 
@@ -143,7 +144,7 @@ class Solver:
         for v in reachable_vertexes:
             possible_rewards.append(v.expectation())
         possible_rewards = sorted(possible_rewards)
-        return sum(possible_rewards[:min(len(possible_rewards), estimated_utility_left)])
+        return sum(possible_rewards[:min(len(possible_rewards), math.ceil(estimated_utility_left))])
 
     def upper_bound_base_plus_utility(self, state, instance):
         vertexes_with_agents = []
@@ -165,7 +166,7 @@ class Solver:
         for v in reachable_vertexes:
             possible_rewards.append(v.expectation())
         possible_rewards = sorted(possible_rewards, reverse=True)
-        return sum(possible_rewards[:min(len(possible_rewards), estimated_utility_left)])
+        return sum(possible_rewards[:min(len(possible_rewards), math.ceil(estimated_utility_left))])
 
     def map_reduce(self, inst):
         InstanceManager.map_reduce(inst)
