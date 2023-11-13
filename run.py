@@ -51,7 +51,7 @@ def run_solver(inst, algo, default='-'):
 
 def main():
     args = sys.argv[1:]
-    args = [10, 'BNBL', 0]
+    #args = [10, 'BNBL', 0]
     name = 'big_heuristic_check'
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(big_only=True)
