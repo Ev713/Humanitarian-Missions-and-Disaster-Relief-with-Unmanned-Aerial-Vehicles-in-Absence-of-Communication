@@ -22,7 +22,7 @@ def run_solver(inst, algo, default='-'):
     solver = Solver.Solver()
     solver.NUMBER_OF_SIMULATIONS = 10000000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
-    solver.timeout = 10
+    solver.timeout = 900
     solution = None
     if algo == 'MCTS_D':
         solution = solver.det_mcts(inst)
@@ -52,9 +52,9 @@ def run_solver(inst, algo, default='-'):
 def main():
     args = sys.argv[1:]
     #args = [10, 'BNBL', 0]
-    name = 'scratch'
+    name = 'sever_full_heur_states'
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(mid_only=True)
+    decoder.decode_reduced()
     inst = decoder.instances[int(args[0])]
     #Inst_visualizer.vis3(inst, name)
     algo = str(args[1])
