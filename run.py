@@ -52,7 +52,7 @@ def run_solver(inst, algo, default='-'):
 def main():
     args = sys.argv[1:]
     #args = [10, 'BNBL', 0]
-    name = 'mid_heuristic_check'
+    name = 'scratch'
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(mid_only=True)
     inst = decoder.instances[int(args[0])]
