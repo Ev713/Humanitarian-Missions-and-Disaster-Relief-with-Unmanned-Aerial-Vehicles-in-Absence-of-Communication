@@ -4,10 +4,10 @@
 if [ -n "$1" ]; then
     n=$(($1 - 1))
 else
-    n=60  # Default value if not provided
+    n=172  # Default value if not provided
 fi
 
-strategies=('MCTS_S' 'MCTS_D' )
+strategies=('MCTS_S' 'MCTS_D' 'BFS' 'BNB' 'BNBL')
 
 # Loop through processes and strategies
 for i in $(seq 0 $n); do
