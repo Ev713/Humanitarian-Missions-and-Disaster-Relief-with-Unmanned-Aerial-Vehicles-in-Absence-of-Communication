@@ -7,7 +7,7 @@ else
     n=60  # Default value if not provided
 fi
 
-strategies=('BFS' 'BNB' 'BNBL')
+strategies=('MCTS_S' 'MCTS_D' )
 
 # Loop through processes and strategies
 for i in $(seq 0 $n); do

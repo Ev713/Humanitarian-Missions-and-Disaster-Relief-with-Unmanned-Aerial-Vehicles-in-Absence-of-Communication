@@ -84,7 +84,7 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "data/"
+        self.file_path = "data/big_heuristic_check_no_preprocessing_tot.csv"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
@@ -234,7 +234,7 @@ class Analyzer:
 
 def main():
     acc = 2
-    algos = ['BFS', 'BNB']
+    algos = ['BFS', 'BNB', 'BNBL', 'MCTS_S', 'MCTS_D']
     analyzer = Analyzer()
     analyzer.create_runs()
     instances = {}
@@ -255,8 +255,8 @@ def main():
         if 'BFS' not in instance_runs or instance_runs['BFS'].results[-1][0] == 0:
             continue
 
-#        if instance_runs['BFS'].source == 'X' or instance_runs['BFS'].type != 'MT':
-#            continue
+        if instance_runs['BFS'].source == 'X' or instance_runs['BFS'].type != 'MT':
+            continue
 
         bfs_time = instance_runs['BFS'].results[-1][1]
         bfs_result = instance_runs['BFS'].results[-1][0]
@@ -292,7 +292,7 @@ def main():
                 t = t100 / pow(10, acc)
                 for r in run.results:
                     if r[1] == t:
-                        run_complete_data[t] = r[1]
+                        run_complete_data[t] = r[0]
                 if t not in run_complete_data:
                     prev = round(t-1/pow(10, acc), acc)
                     run_complete_data[t] = run_complete_data[prev]
@@ -302,12 +302,13 @@ def main():
             results = []
             for run in runs_complete_results:
                 results.append(run[t])
-                avg_result = statistics.mean(results)
+            avg_result = statistics.mean(results)
             graphs[algo][0].append(t)
             graphs[algo][1].append(avg_result)
     plt.plot(graphs['BFS'][0], graphs['BFS'][1], graphs['BNB'][0],
-        graphs['BNB'][1] )
-    plt.legend(['BFS',  'BNB'])
+        graphs['BNB'][1], graphs['BNBL'][0], graphs['BNBL'][1],)
+             #graphs['MCTS_S'][0], graphs['MCTS_S'][1],graphs['MCTS_D'][0], graphs['MCTS_D'][1] )
+    plt.legend(algos)
     plt.xlabel("Time (relative to BFS time)")
     plt.ylabel("Result (relative to BFS result)")
 

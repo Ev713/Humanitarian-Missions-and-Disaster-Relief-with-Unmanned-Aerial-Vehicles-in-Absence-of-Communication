@@ -39,11 +39,11 @@ class Decoder:
         for filename in os.scandir("Reduced_maps"):
             if filename.is_file():
                 decoded_instance = InstanceManager.to_inst(filename)
-                if len(decoded_instance.map) > 30 and small_only:
+                if len(decoded_instance.map) > 20 and small_only:
                     continue
-                if len(decoded_instance.map) < 30 or len(decoded_instance.map) > 100 and mid_only:
+                if len(decoded_instance.map) < 20 or len(decoded_instance.map) > 80 and mid_only:
                     continue
-                if len(decoded_instance.map) < 100 and big_only:
+                if len(decoded_instance.map) < 80 and big_only:
                     continue
 
                 self.instances.append(decoded_instance)

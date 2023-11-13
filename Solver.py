@@ -65,6 +65,7 @@ class Solver:
         self.best_node = self.root
         self.best_value = 0
         self.num_of_states = 0
+        self.states_collector = []
 
     def get_time(self):
         return time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID) - self.start
@@ -197,10 +198,19 @@ class Solver:
         while que:
             if self.is_timeout():
                 return self.get_solution(True)
+            if self.time_for_log():
+                self.paths.append(self.best_node.get_path())
+                self.states_collector.append(self.num_of_states)
             node = que.pop()
             if not node.state.is_terminal():
                 node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state)])
                 for c in node.children:
+                    if self.is_timeout():
+                        return self.get_solution(True)
+                    if self.time_for_log():
+                        self.paths.append(self.best_node.get_path())
+                        self.states_collector.append(self.num_of_states)
+
                     hash = c.state.hash()
                     if self.dup_det:
                         if hash in visited_states:
@@ -218,10 +228,6 @@ class Solver:
                         self.best_value = v
                         self.best_node = c
                     que = [c] + que
-
-            if self.time_for_log():
-                self.paths.append(self.best_node.get_path())
-                self.states_collector.append(self.num_of_states)
         return self.get_solution(False)
 
     def make_instance(self, def_inst):
@@ -312,6 +318,7 @@ class Solver:
                     while not node.state.is_terminal() and len(node.children) != 0:
                         node = node.highest_value_child()
                     self.paths.append(node.get_path())
+                self.states_collector.append(self.num_of_states)
         # root.get_tree()
         # returning
         return self.get_solution(False)

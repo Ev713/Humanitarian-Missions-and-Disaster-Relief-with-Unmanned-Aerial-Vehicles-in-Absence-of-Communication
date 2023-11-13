@@ -43,7 +43,7 @@ def run_solver(inst, algo, default='-'):
     states = solution.states
     solver.type = 'U1S'
     solution.set_rewards(solver, inst)
-    res = tuple(zip(solution.rewards, timestamps))
+    res = tuple(zip(solution.rewards, solution.states_collector, timestamps, ))
     fin_res = solution.rewards[-1] if len(solution.rewards) > 0 else default
     time = timestamps[-1] if not solution.interrupted else default
     return fin_res, time, res, states
@@ -52,9 +52,9 @@ def run_solver(inst, algo, default='-'):
 def main():
     args = sys.argv[1:]
     #args = [10, 'BNBL', 0]
-    name = 'big_heuristic_check'
+    name = 'mid_heuristic_check'
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(big_only=True)
+    decoder.decode_reduced(mid_only=True)
     inst = decoder.instances[int(args[0])]
     #Inst_visualizer.vis3(inst, name)
     algo = str(args[1])
@@ -77,11 +77,11 @@ def main():
         print(inst.name + " " + algo + '_preprocess_time: ', preprocess_time)
 
     fin_res, t, res, states = run_solver(inst, algo)
-    df = pd.DataFrame({'inst_name': [str(inst.name)], 'num_agents': [len(inst.agents)], 'map_size': [len(inst.map)],
-                           'source': [str(inst.source)], 'type': [str(inst.type)], 'horizon': [int(inst.horizon)],
-                           'algo': [str(algo)],
-                           'final_result': [float(fin_res)], 'time': [float(t)] if t != '-' else '-', 'states': [int(states)],
-                           'result': [str(res)]})
+    df = pd.DataFrame({'inst_name': str(inst.name), 'num_agents': len(inst.agents), 'map_size': len(inst.map),
+                           'source': str(inst.source), 'type': str(inst.type), 'horizon': int(inst.horizon),
+                           'algo': str(algo),
+                           'final_result': float(fin_res), 'time': [float(t)] if t != '-' else '-', 'states': int(states),
+                           'result': str(res)})
     print({'inst_name': inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
            'source': inst.source, 'type': inst.type, 'horizon': inst.horizon, 'algo': algo,
            'final_result': fin_res, 'time': t, 'states': states, })
