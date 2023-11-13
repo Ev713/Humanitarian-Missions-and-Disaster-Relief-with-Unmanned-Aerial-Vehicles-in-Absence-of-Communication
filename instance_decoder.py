@@ -8,7 +8,7 @@ class Decoder:
         self.instances = []
 
     def decode(self, small_only=False, mid_only=False, save=False):
-        for type in ['FR', 'MT']:
+        for type in []:
             for filename in os.scandir("DragonAge_encoded_instances/" + type):
                 if filename.is_file():
                     decoded_instance = InstanceManager.to_inst(filename)
@@ -17,7 +17,7 @@ class Decoder:
                     if len(decoded_instance.map) < 30 or len(decoded_instance.map) > 100 and mid_only:
                         continue
                     self.instances.append(decoded_instance)
-        for type in ['FR', 'MT', 'SC', 'AG']:
+        for type in ['MT']:
             for filename in os.scandir("Generated_encoded_instances/" + type):
                 if filename.is_file():
                     decoded_instance = InstanceManager.to_inst(filename)
@@ -25,9 +25,8 @@ class Decoder:
                         continue
                     if len(decoded_instance.map) < 30 or len(decoded_instance.map) > 100 and mid_only:
                         continue
-                    if type != 'MT':
-                        continue
                     self.instances.append(decoded_instance)
+
         if save:
             for instance in self.instances:
                 InstanceManager.filter_unconnected(instance)
@@ -48,3 +47,4 @@ class Decoder:
 
                 self.instances.append(decoded_instance)
         return self.instances
+
