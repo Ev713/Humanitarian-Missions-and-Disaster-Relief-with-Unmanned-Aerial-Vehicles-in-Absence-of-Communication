@@ -52,7 +52,7 @@ def run_solver(inst, algo, default='-'):
 def main():
     args = sys.argv[1:]
     #args = [10, 'BNBL', 0]
-    name = 'server_full_updated_heur_added_states'
+    name = 'scratch'
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(mid_only=True)
     inst = decoder.instances[int(args[0])]
