@@ -84,7 +84,7 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "data/big_heuristic_check_no_preprocessing_tot.csv"
+        self.file_path = "data/sever_full_heur_states_no_preprocessing_tot.csv"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
@@ -240,6 +240,16 @@ def main():
     instances = {}
     data_for_graphs = {}
     data_for_tables = {}
+
+    for run in analyzer.runs:
+        if run.algo != 'MCTS_S':
+            continue
+        max = 0
+        for r in run.results:
+            if r[0]>=max:
+                max = r[0]
+            else: breakpoint()
+
     for run in analyzer.runs:
         if not run.inst_name in instances:
             instances[run.inst_name] = {}
@@ -254,13 +264,16 @@ def main():
         instance_runs = instances[inst_name]
         if 'BFS' not in instance_runs or instance_runs['BFS'].results[-1][0] == 0:
             continue
+        if instance_runs['BFS'].type != 'MT':
+            continue
 
         if instance_runs['BFS'].source == 'X' or instance_runs['BFS'].type != 'MT':
             continue
 
-        bfs_time = instance_runs['BFS'].results[-1][1]
         bfs_result = instance_runs['BFS'].results[-1][0]
+        bfs_time = instance_runs['BFS'].results[-1][2]
         bfs_states = instance_runs['BFS'].states
+
         for algo in algos:
             if algo not in instance_runs:
                 continue
@@ -274,13 +287,16 @@ def main():
 
             for pair in run.results:
                 pair[0] = round(pair[0] / bfs_result, acc)
-                pair[1] = round(pair[1] / bfs_time, acc)
-            if not algo in data_for_graphs:
+                pair[1] = round(pair[1] / bfs_states, acc)
+                pair[2] = round(pair[2] / bfs_time, acc)
+            if algo not in data_for_graphs:
                 data_for_graphs[algo] = []
             data_for_graphs[algo].append(run)
-            if not algo in data_for_tables:
+            if algo not in data_for_tables:
                 data_for_tables[algo] = []
             data_for_tables[algo].append(run.states / bfs_states)
+
+    relative_to_states = False
 
     graphs = {algo: [[], []] for algo in data_for_graphs}
     for algo in data_for_graphs:
@@ -288,16 +304,17 @@ def main():
         runs_complete_results = []
         for run in runs:
             run_complete_data = {0: 0}
-            for t100 in range(1, pow(10, acc)+1, 1):
+            for t100 in range(1, pow(10, acc) + 1, 1):
                 t = t100 / pow(10, acc)
                 for r in run.results:
-                    if r[1] == t:
+                    if (relative_to_states and r[1] == t) \
+                            or (not relative_to_states and r[2] == t):
                         run_complete_data[t] = r[0]
                 if t not in run_complete_data:
-                    prev = round(t-1/pow(10, acc), acc)
+                    prev = round(t - 1 / pow(10, acc), acc)
                     run_complete_data[t] = run_complete_data[prev]
             runs_complete_results.append(run_complete_data)
-        for t100 in range(1, pow(10, acc)+1, 1):
+        for t100 in range(1, pow(10, acc), 1):
             t = t100 / pow(10, acc)
             results = []
             for run in runs_complete_results:
@@ -305,19 +322,26 @@ def main():
             avg_result = statistics.mean(results)
             graphs[algo][0].append(t)
             graphs[algo][1].append(avg_result)
-    plt.plot(graphs['BFS'][0], graphs['BFS'][1], graphs['BNB'][0],
-        graphs['BNB'][1], graphs['BNBL'][0], graphs['BNBL'][1],)
-             #graphs['MCTS_S'][0], graphs['MCTS_S'][1],graphs['MCTS_D'][0], graphs['MCTS_D'][1] )
+    plt.plot(graphs['BFS'][0], graphs['BFS'][1],
+             graphs['BNB'][0], graphs['BNB'][1],
+             graphs['BNBL'][0], graphs['BNBL'][1],
+             graphs['MCTS_S'][0], graphs['MCTS_S'][1],
+             graphs['MCTS_D'][0], graphs['MCTS_D'][1],
+             )
+    # graphs['MCTS_S'][0], graphs['MCTS_S'][1],graphs['MCTS_D'][0], graphs['MCTS_D'][1] )
     plt.legend(algos)
-    plt.xlabel("Time (relative to BFS time)")
+    if not relative_to_states:
+        plt.xlabel("Time (relative to BFS time)")
+    else:
+        plt.xlabel("States (relative to BFS states)")
     plt.ylabel("Result (relative to BFS result)")
-
+    plt.title("All maps, new heuristics")
 
     print("States (relative to BFS states):")
     for algo in data_for_tables:
         print(algo + ": " + str(round(statistics.mean(data_for_tables[algo]), 3)))
 
-    print("SC success rates:")
+    '''print("SC success rates:")
     for algo in data_for_tables:
         runs = []
         for r in analyzer.runs:
@@ -326,13 +350,13 @@ def main():
                     if r.sc_is_success():
                         runs.append(r)
         print(algo + ": " + str(round(len([r for r in analyzer.runs if r.type in ['AG05', 'AG01',
-                                                                                  'AG001'] and r.algo == algo and r.ag_is_success()]))))
-
-    #algo = 'BNBL'
-    #plt.scatter(sizes[algo], fin_ress[algo])
-    #plt.title('BNB')
-    #plt.xlabel("Size")
-    #plt.ylabel("Reward")
+                                                                                'AG001'] and r.algo == algo and r.ag_is_success()]))))
+'''
+    # algo = 'BNBL'
+    # plt.scatter(sizes[algo], fin_ress[algo])
+    # plt.title('BNB')
+    # plt.xlabel("Size")
+    # plt.ylabel("Reward")
 
     # , sizes['BNB'], fin_ress['BNB'], sizes['BNBL'], fin_ress['BNBL'],
     #            sizes['MCTS_S'], fin_ress['MCTS_S'], sizes['MCTS_D'], fin_ress['MCTS_D'])

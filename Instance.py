@@ -2,6 +2,7 @@ import itertools
 import random
 import copy
 import sys
+import warnings
 
 import Agent
 import MatricesFunctions
@@ -33,6 +34,10 @@ class Instance:
         self.name = name
         self.type = self.name.split('_')[-2]
         self.map = map  # list of Vertices
+        if not self.sum_of_probs_is_1():
+            for v in self.map:
+                sum_of_probs = sum(v.distribution.values())
+                v.distribution = {r: round(v.distribution[r]/sum_of_probs, 3) for r in v.distribution}
         self.map_map = {v.hash(): v for v in map}
         self.agents = agents  # list of agents
         self.agents_map = {a.hash(): a for a in agents}
@@ -43,12 +48,15 @@ class Instance:
         self.distance = {}
         self.source = source
 
-    def check_sums_of_probs_is_0(self):
+    def sum_of_probs_is_1(self):
         for v in self.map:
             if 0 not in v.distribution:
                 v.distribution[0] = 0
             if round(sum(v.distribution.values()), 7) != 1:
-                raise Exception("Sum of vertex " + str(v) + "'s probabilities is not 0!")
+                warnings.warn("Sum of probabilities in vertex "+str(v)+" is not 1!\nThe Distribution will be fixed",
+                              UserWarning)
+                return False
+        return True
 
     def map_is_connected(self):
         connected = [self.map[0]]

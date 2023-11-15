@@ -5,32 +5,19 @@ import Instance
 import numpy
 
 
-def shift_right(mtrx, x):
-    num_of_columns = mtrx.shape[1]
-    if num_of_columns >= x:
-        matrix = mtrx.copy()
-        for _ in range(x):
-            last_column = matrix[:, mtrx.shape[1] - 1]
-            matrix[:, mtrx.shape[1] - 2] = np.add(matrix[:, mtrx.shape[1] - 1], matrix[:, mtrx.shape[1] - 2])
-            shape = (matrix.shape[0], 1)
-            zeros = numpy.zeros(shape)
-            matrix = numpy.concatenate((zeros, matrix), axis=1)
-            matrix = numpy.delete(matrix, matrix.shape[1] - 1, axis=1)
-        return matrix
-    else:
-        return [[sum(mtrx[r, :])] for r in range(mtrx.shape[0])]
+def shift_right(mtrx):
+    matrix = mtrx.copy()
+    shape = (matrix.shape[0], 1)
+    zeros = numpy.zeros(shape)
+    matrix = numpy.concatenate((zeros, matrix), axis=1)
+    matrix = numpy.delete(matrix, matrix.shape[1] - 1, axis=1)
+    return matrix
 
 
 def shift_down(mtrx, x):
     matrix = mtrx.copy()
-    last_column = mtrx[:, mtrx.shape[1] - 1].copy()
-    for _ in range(x):
-        last_column = np.append(last_column, 0)
-    for _ in range(x):
-        matrix = np.concatenate((np.zeros((1, matrix.shape[1])), matrix))
-    vs = np.vstack(last_column)
-    lc = matrix[:, matrix.shape[1] - 1]
-    matrix[:, matrix.shape[1] - 1] = last_column
+    zeros = numpy.zeros((x, matrix.shape[1]))
+    matrix = numpy.concatenate((zeros, matrix), axis=0)
     return matrix
 
 
@@ -55,28 +42,6 @@ def get_matrix_value(matrix, reward, used):
         return matrix[reward][used]
 
 
-def get_stay_matrix(matrix, max_r, max_u, prob, theta):
-    stay_matrix = np.zeros((max_r + 1, max_u + 1))
-    for reward in range(len(matrix)):
-        stay_matrix[reward][max_u] = get_matrix_value(matrix, reward, max_u)
-        for used in range(max_u):
-            stay_matrix[reward][used] = (theta * prob[0] + 1 - theta) * get_matrix_value(matrix, reward, used)
-    return stay_matrix
-
-
-def get_go_matrix(matrix, max_r, max_u, prob, theta):
-    go_matrix = np.zeros((max_r + 1, max_u + 1))
-    for reward in range(max_r + 1):
-        for used in range(max_u + 1):
-            go_matrix[reward][used] = 0
-            for r in prob:
-                if r != 0:
-                    go_matrix[reward][used] = go_matrix[reward][used] + theta * prob[r] * get_matrix_value(matrix,
-                                                                                                           reward - r,
-                                                                                                           used - 1)
-    return go_matrix
-
-
 def add_zeros_to_bottom(mtrx, x):
     matrix = mtrx.copy()
     for _ in range(x):
@@ -94,22 +59,72 @@ def add_diff_height_mtrxs(mtrx1, mtrx2):
 
 
 def new_matrix(mtrx, prob, theta):
+
+    m_sum = round(np.sum(mtrx), 5)
+    if m_sum != 1:
+        raise Exception("Input matrix is invalid, sum is: "+str(m_sum))
     if 0 not in prob:
         prob[0] = 0
-    new_matrix = (1 - theta) * mtrx.copy()
+
+    # Theta represents the probability that the vertex has not been visited by an agent with non-zero utility
+    # in which case the vertex is definitely empty; at the start it is always 1.
+    # Therefore, at this point the new matrix represents the probability
+    # that the agent did not spend any of its utility because another drone has already done it in that vertex.
+    # If that matrix is zero, no agent has visited this vertex (or the original matrix was zero).
+
+    updated_matrix = (1 - theta) * mtrx.copy()
+
+    # R-matrix represents the case in which there is reward r in the vertex.
+    # The assumptions that we are making is that:
+    #   a. The reward in the vertex is indeed r, which happens with probability p.
+    #   b. The vertex has not been visited by another agent which happens with probability theta.
+    # Under those assumptions, the effect on the matrix would be a shift to right by one that represents that
+    # the utility spent by the agent has risen by one (if r is not zero) and a shift down by r which means
+    # that reward collected by the agent has risen by r (note that the right-most column doesn't move since if
+    # there is no utility left in agent it doesn't collect the reward). Note that if r is zero than r-matrix is just
+    # the copy of the original. Also note the sum of values in the r-matrix is the same as in the original matrix
+    # and is 1.
+
+    u_left_zero = np.concatenate((np.zeros((mtrx.shape[0], mtrx.shape[1] - 1)),
+                                  np.reshape(mtrx[:, - 1], (mtrx.shape[0], 1))), axis=1)
+    # Probabilities that the utility left is zero are just the last column.
+    # All the other values are filled with zeroes.
+
+    u_spent1 = shift_right(mtrx)
+
+    # The effect of spending one utility unit on the matrix would be a shift to the right which is the same
+    # as removing the last column (which is not relevant because in that case we cannot spend utility, and so
+    # we look at it as a separate case) and adding a column filled with zeros as the first column. The shape
+    # of the matrix doesn't change.
+
+    # The u_left_zero and u_spent1 are used in every iteration therefore we compute now, them outside the loop.
+
     for r in prob:
         p = prob[r]
+        if p == 0:
+            continue
         if r == 0:
-            u = 0
+            r_matrix = mtrx.copy()
         else:
-            u = 1  # might change
-        p_matrix = theta * p * shift_right(shift_down(mtrx.copy(), r), u)
-        new_matrix = add_diff_height_mtrxs(new_matrix, p_matrix)
-        if new_matrix is None:
-            print()
-        # print("r:"+ str(r)+ ", p:"+str(p))
-        # print(new_matrix)
-    return new_matrix
+            u_spent1_r_collected = shift_down(u_spent1, r)
+
+            # The effect of collecting a reward that equals to r is just shifting the matrix down by r or adding r empty
+            # rows to the upper part of the matrix.
+
+            r_matrix = add_diff_height_mtrxs(u_left_zero, u_spent1_r_collected)
+
+            if round(np.sum(r_matrix), 5) != 1:
+                breakpoint()
+                raise Exception("bug in computing r-matrix")
+
+            # So, the r-matrix that we get from collecting reward r by using 1 utility unit is the sum
+            # of the matrix that represents the possibility that the agent had no utility left and the matrix that
+            # represents the possibility that we have actually used utility and collected reward.
+
+        updated_matrix = add_diff_height_mtrxs(updated_matrix, p * theta * r_matrix)
+    if round(np.sum(updated_matrix), 5) != 1:
+        raise Exception("Bug in updating matrix")
+    return updated_matrix
 
 
 def update_theta(matrix, theta):
@@ -125,12 +140,13 @@ def get_matrices_reward(matrices):
                 sum += m[r][u] * r
     return sum
 
+
 def get_vectors_reward(vectors):
     sum = 0
     for a_hash in vectors:
         v = vectors[a_hash]
         for u in range(len(v)):
-            sum += v[u] * (len(v)-1-u)
+            sum += v[u] * (len(v) - 1 - u)
     return sum
 
 
@@ -140,12 +156,13 @@ def get_starting_vector(agent, v):
     matrix[max_utility] = 1
     return matrix
 
+
 def accumulative_vector(v):
     sorted_v = np.sort(v)
     acc_v = np.zeros(len(v))
     acc_v[0] = 1
     for k in range(1, len(sorted_v)):
-        acc_v[k] = acc_v[k-1]-v[k-1]
+        acc_v[k] = acc_v[k - 1] - v[k - 1]
     return acc_v
 
 
@@ -153,9 +170,9 @@ def stoch_subtract(v1, v2):
     new_vector1 = np.zeros(v1.shape)
     for v1_left in range(1, len(v1)):
         for v1_was in range(v1_left, len(v1)):
-            if v1_was - v1_left > len(v2)-1:
+            if v1_was - v1_left > len(v2) - 1:
                 break
-            new_vector1[v1_left] += v1[v1_was]*v2[v1_was - v1_left]
+            new_vector1[v1_left] += v1[v1_was] * v2[v1_was - v1_left]
     acc_v2 = accumulative_vector(v2)
     for v1_was in range(0, min(len(v2), len(v1))):
         new_vector1[0] += v1[v1_was] * acc_v2[v1_was]

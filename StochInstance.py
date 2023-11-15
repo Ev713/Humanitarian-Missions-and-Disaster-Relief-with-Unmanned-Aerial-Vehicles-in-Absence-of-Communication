@@ -1,5 +1,7 @@
 from abc import ABC
 
+import numpy as np
+
 import State
 import Instance
 import Vertex

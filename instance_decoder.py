@@ -34,7 +34,8 @@ class Decoder:
             for instance in self.instances:
                 InstanceManager.to_string(instance, "Reduced_maps")
 
-    def decode_reduced(self, small_only=False, mid_only=False, big_only=False):
+    def decode_reduced(self, small_only=False, mid_only=False, big_only=False,
+                       types_allowed=('FR', 'MT', 'SC', 'AG001', 'AG05', 'AG01')):
         for filename in os.scandir("Reduced_maps"):
             if filename.is_file():
                 decoded_instance = InstanceManager.to_inst(filename)
@@ -44,7 +45,8 @@ class Decoder:
                     continue
                 if len(decoded_instance.map) < 80 and big_only:
                     continue
-
+                if decoded_instance.type not in types_allowed:
+                    continue
                 self.instances.append(decoded_instance)
         return self.instances
 

@@ -25,8 +25,9 @@ class Solution:
         self.states = opened_nodes
 
     def set_rewards(self, solver, inst):
+        instance = solver.make_instance(inst)
         for p in self.paths:
-            self.rewards.append(round(solver.evaluate_path(inst, p), 2))
+            self.rewards.append(round(solver.evaluate_path(instance, p), 2))
 
 
 class Solver:
@@ -293,7 +294,7 @@ class Solver:
             rollout_reward = instance.reward(rollout_state)
 
             # Deterministic approach allows us to memorize the best path
-            if (self.type == 'U1S' or self.type == 'URS') and rollout_reward > best_value:
+            if self.type == 'U1S' and rollout_reward > best_value:
                 best_value = rollout_reward
                 best_path = path
 
@@ -311,7 +312,7 @@ class Solver:
             if self.time_for_log():
                 self.states_collector.append(self.num_of_states)
                 # Deterministic approach allows us to takeout the best path without checking
-                if (self.type == 'U1S' or self.type == 'URS') and node.value < self.best_value:
+                if self.type == 'U1S':
                     self.paths.append(best_path)
                 else:
                     node = self.root
@@ -325,31 +326,18 @@ class Solver:
 
     def evaluate_path(self, def_inst, path, NUM_OF_SIMS=100000):
         if self.type == "U1D":
-            instance = DetInstance.DetU1Instance(def_inst)
-            state = State.DetState(instance)
+            instance = self.make_instance(def_inst)
+            state = instance.initial_state.copy()
             state.path = path
             return instance.reward(state, NUM_OF_SIMS)
         if self.type == "U1S":
-            instance = StochInstance.U1StochInstance(def_inst)
+            instance = self.make_instance(def_inst)
             state = instance.initial_state.copy()
             for t in range(1, len(list(path.values())[0])):
                 action = {a: path[a][t] for a in path}
                 state = instance.make_action(action, state)
-            return instance.reward(state)
-        if self.type == "URS":
-            instance = StochInstance.UisRStochInstance(def_inst)
-            state = instance.initial_state.copy()
-            for t in range(1, len(list(path.values())[0])):
-                action = {a: path[a][t] for a in path}
-                state = instance.make_action(action, state)
-            return instance.reward(state)
-        if self.type == "URD":
-            instance = DetInstance.DetUisRInstance(def_inst)
-            state = instance.initial_state.copy()
-            for t in range(1, len(list(path.values())[0])):
-                action = {a: path[a][t] for a in path}
-                state = instance.make_action(action, state)
-            return instance.reward(state, NUM_OF_SIMS)
+            reward = instance.reward(state)
+            return reward
         else:
             raise Exception("No recognised type!")
 
