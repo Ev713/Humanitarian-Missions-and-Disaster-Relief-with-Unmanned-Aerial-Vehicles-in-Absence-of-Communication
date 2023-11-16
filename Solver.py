@@ -279,7 +279,7 @@ class Solver:
                             while node.state.path[a][first_none] is not None:
                                 first_none += 1
                             action = {a: node.state.path[a][first_none-1] for a in path}
-                        path[a].append(action[a])
+                        path[a].append(action)
                 else:
                     break
 

@@ -52,7 +52,7 @@ def run_solver(inst, algo, default='-'):
 def main():
     args = sys.argv[1:]
     #args = [172, 'MCTS_S', 0]
-    name = 'all_maps_only_mctss'
+    name = 'only_mctss'
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
     inst = decoder.instances[int(args[0])]
