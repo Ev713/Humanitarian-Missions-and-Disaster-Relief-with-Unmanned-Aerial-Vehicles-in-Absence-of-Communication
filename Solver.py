@@ -260,7 +260,6 @@ class Solver:
         best_value = 0
         best_path = None
 
-
         for t in range(self.NUMBER_OF_SIMULATIONS):
             if self.is_timeout():
                 return self.get_solution(True)
@@ -273,7 +272,14 @@ class Solver:
                 if not node.state.is_terminal():
                     node = node.highest_uct_child(t)
                     for a in path:
-                        path[a].append(node.state.a_pos[a])                    # , exp_rate=EXPLORATION_RATE)
+                        if self.type == 'U1S':
+                            action = node.state.a_pos[a]
+                        else:
+                            first_none = 0
+                            while node.state.path[a][first_none] is not None:
+                                first_none += 1
+                            action = {a: node.state.path[a][first_none-1] for a in path}
+                        path[a].append(action[a])
                 else:
                     break
 
@@ -284,28 +290,33 @@ class Solver:
             if node.children:
                 node.times_visited += 1
                 node = node.pick_unvisited_child()
-
                 for a in path:
-                    path[a].append(node.state.a_pos[a])
+                    if self.type == 'U1S':
+                        action = node.state.a_pos[a]
+                    else:
+                        first_none = 0
+                        while node.state.path[a][first_none] is not None:
+                            first_none += 1
+                        action = node.state.path[a][first_none - 1]
+                    path[a].append(action)
                 self.num_of_states += 1
 
             node.times_visited += 1
 
             # simulation
             rollout_state = node.state.copy()
-            #ROLLOUT_STATES = []
-            #PARENT = node
-            #while PARENT is not None:
+            # ROLLOUT_STATES = []
+            # PARENT = node
+            # while PARENT is not None:
             #    ROLLOUT_STATES.insert(0, PARENT.state.copy())
             #    PARENT= PARENT.parent
-
 
             while not rollout_state.is_terminal():
                 action = random.choice(instance.actions(rollout_state))
                 for a in path:
                     path[a].append(action[a])
                 rollout_state = instance.make_action(action, rollout_state)
-                #ROLLOUT_STATES.append(rollout_state)
+                # ROLLOUT_STATES.append(rollout_state)
             rollout_reward = instance.reward(rollout_state)
 
             # Deterministic approach allows us to memorize the best path
@@ -313,7 +324,7 @@ class Solver:
                 best_value = rollout_reward
                 best_path = path
 
-                #self.find_bug(def_inst, path, rollout_reward, ROLLOUT_STATES)
+                # self.find_bug(def_inst, path, rollout_reward, ROLLOUT_STATES)
 
             discounted_reward = rollout_reward * pow(self.DISCOUNT, node.depth)
 
@@ -358,6 +369,7 @@ class Solver:
         else:
             raise Exception("No recognised type!")
 
+
 ''' def find_bug(self, inst, path, rollout_reward, rolloutstates):
             r = self.evaluate_path(inst, path)
             if r != rollout_reward:
@@ -372,8 +384,6 @@ class Solver:
                     for m in range(len(states[i].matrices)):
                         if np.array_equal(states[i].matrices[m], rolloutstates[i].matrices[m]):
                             breakpoint()'''
-
-
 
 
 def is_sorted_ascending(lst):
