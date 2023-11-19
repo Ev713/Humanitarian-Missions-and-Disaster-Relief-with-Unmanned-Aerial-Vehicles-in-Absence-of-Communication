@@ -310,18 +310,12 @@ class Solver:
 
             # simulation
             rollout_state = node.state.copy()
-            # ROLLOUT_STATES = []
-            # PARENT = node
-            # while PARENT is not None:
-            #    ROLLOUT_STATES.insert(0, PARENT.state.copy())
-            #    PARENT= PARENT.parent
 
             while not rollout_state.is_terminal():
                 action = random.choice(instance.actions(rollout_state))
                 for a in path:
                     path[a].append(action[a])
                 rollout_state = instance.make_action(action, rollout_state)
-                # ROLLOUT_STATES.append(rollout_state)
             rollout_reward = instance.reward(rollout_state)
 
             # Deterministic approach allows us to memorize the best path
@@ -329,13 +323,19 @@ class Solver:
                 best_value = rollout_reward
                 best_path = path
 
-                # self.find_bug(def_inst, path, rollout_reward, ROLLOUT_STATES)
-
             discounted_reward = rollout_reward * pow(self.DISCOUNT, node.depth)
 
             # backpropagation
             while True:
-                node.value = max(node.value, discounted_reward)
+                if self.type == 'U1D' and (not node.all_children_visited() or node.state.is_terminal()):
+                    avg_of_node = (node.value*node.times_visited+discounted_reward)/(node.times_visited+1)
+                    node.value = avg_of_node
+                    discounted_reward = avg_of_node
+                else:
+                    if node.value < discounted_reward:
+                        node.value = discounted_reward
+                    else:
+                        break
                 if node is self.root:
                     break
                 node = node.parent

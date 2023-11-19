@@ -22,7 +22,7 @@ def run_solver(inst, algo, default='-'):
     solver = Solver.Solver()
     solver.NUMBER_OF_SIMULATIONS = 10000000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
-    solver.timeout = 5400
+    solver.timeout = 1800
     solution = None
     if algo == 'MCTS_D' or 'MCTS_E':
         solution = solver.det_mcts(inst)
