@@ -343,6 +343,7 @@ class Solver:
 
             # gathering data
             if self.time_for_log():
+                print(instance.name+" logging")
                 self.states_collector.append(self.num_of_states)
                 # Deterministic approach allows us to takeout the best path without checking
                 if self.type == 'U1S':
