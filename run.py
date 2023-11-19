@@ -54,7 +54,7 @@ def main():
     #args = [0, 'MCTS_S', 0]
     name = 'why_is_mcts_so_awesome'
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(specifics=('i_72_3_14_FR_X'))
+    decoder.decode_reduced(size_higher_bound=100)
     inst = decoder.instances[int(args[0])]
     #Inst_visualizer.vis3(inst, name)
     algo = str(args[1])
