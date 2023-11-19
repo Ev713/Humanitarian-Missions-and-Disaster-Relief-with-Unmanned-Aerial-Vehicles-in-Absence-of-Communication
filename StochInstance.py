@@ -57,7 +57,7 @@ class U1StochInstance(GenStochInstance):
         super().__init__(instance)
 
     def get_default_state(self, instance):
-        return State.StochU1RState(instance)
+        return State.StochU1State(instance)
 
     def make_action(self, action, state):
         new_state = state.copy()

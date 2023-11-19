@@ -240,18 +240,22 @@ def main():
     instances = {}
     data_for_graphs = {}
     data_for_tables = {}
+    counter = 0
 
     for run in analyzer.runs:
+
         if run.algo != 'MCTS_S':
             continue
         max = 0
         for r in run.results:
-            if r[0]>=max:
+            if r[0] >= max:
                 max = r[0]
-            else: breakpoint()
+            else:
+                counter += 1
+                break
 
     for run in analyzer.runs:
-        if not run.inst_name in instances:
+        if run.inst_name not in instances:
             instances[run.inst_name] = {}
         instances[run.inst_name][run.algo] = run
 
@@ -262,6 +266,15 @@ def main():
     for inst_name in instances:
 
         instance_runs = instances[inst_name]
+
+        all_algos = True
+        for algo in algos:
+            if algo not in instance_runs:
+                all_algos = False
+
+        if not all_algos:
+            continue
+
         if 'BFS' not in instance_runs or instance_runs['BFS'].results[-1][0] == 0:
             continue
         if instance_runs['BFS'].type != 'MT':

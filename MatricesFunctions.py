@@ -132,48 +132,11 @@ def update_theta(matrix, theta):
 
 
 def get_matrices_reward(matrices):
-    sum = 0
+    tot_reward = 0
     for a_hash in matrices:
         m = matrices[a_hash]
         for r in range(m.shape[0]):
             for u in range(m.shape[1]):
-                sum += m[r][u] * r
-    return sum
+                tot_reward += m[r][u] * r
+    return tot_reward
 
-
-def get_vectors_reward(vectors):
-    sum = 0
-    for a_hash in vectors:
-        v = vectors[a_hash]
-        for u in range(len(v)):
-            sum += v[u] * (len(v) - 1 - u)
-    return sum
-
-
-def get_starting_vector(agent, v):
-    max_utility = agent.utility_budget
-    matrix = numpy.zeros((max_utility + 1))
-    matrix[max_utility] = 1
-    return matrix
-
-
-def accumulative_vector(v):
-    sorted_v = np.sort(v)
-    acc_v = np.zeros(len(v))
-    acc_v[0] = 1
-    for k in range(1, len(sorted_v)):
-        acc_v[k] = acc_v[k - 1] - v[k - 1]
-    return acc_v
-
-
-def stoch_subtract(v1, v2):
-    new_vector1 = np.zeros(v1.shape)
-    for v1_left in range(1, len(v1)):
-        for v1_was in range(v1_left, len(v1)):
-            if v1_was - v1_left > len(v2) - 1:
-                break
-            new_vector1[v1_left] += v1[v1_was] * v2[v1_was - v1_left]
-    acc_v2 = accumulative_vector(v2)
-    for v1_was in range(0, min(len(v2), len(v1))):
-        new_vector1[0] += v1[v1_was] * acc_v2[v1_was]
-    return new_vector1

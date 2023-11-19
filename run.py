@@ -22,11 +22,11 @@ def run_solver(inst, algo, default='-'):
     solver = Solver.Solver()
     solver.NUMBER_OF_SIMULATIONS = 10000000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
-    solver.timeout = 900
+    solver.timeout = 5400
     solution = None
-    if algo == 'MCTS_D':
+    if algo == 'MCTS_D' or 'MCTS_E':
         solution = solver.det_mcts(inst)
-    if algo == 'MCTS_S':
+    if algo == 'MCTS_S' or 'MCTS_V':
         solution = solver.stoch_mcts(inst)
     if algo == 'BFS':
         solver.type = 'U1S'
@@ -51,10 +51,10 @@ def run_solver(inst, algo, default='-'):
 
 def main():
     args = sys.argv[1:]
-    #args = [172, 'MCTS_S', 0]
-    name = 'only_mctss'
+    #args = [0, 'MCTS_S', 0]
+    name = 'why_is_mcts_so_awesome'
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced()
+    decoder.decode_reduced(specifics=('i_72_3_14_FR_X'))
     inst = decoder.instances[int(args[0])]
     #Inst_visualizer.vis3(inst, name)
     algo = str(args[1])

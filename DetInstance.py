@@ -82,28 +82,3 @@ class DetU1Instance(DetInstance):
             tot_reward += round_reward
         return tot_reward / NUM_OF_SIMS
 
-
-class DetUisRInstance(DetInstance):
-    def reward(self, state, NUM_OF_SIMS=1):
-        tot_reward = 0
-        for _ in range(NUM_OF_SIMS):
-            self.regenerate_instance()
-            round_reward = 0
-            for t in range(len(list(state.path.values())[0])):
-                for a_hash in self.agents_map:
-                    if state.path[a_hash][t] is None:
-                        continue
-                    a_loc_hash = state.path[a_hash][t].loc
-                    if a_loc_hash == -1 or state.path[a_hash][t].flyby:
-                        continue
-                    a_loc = self.map_map[a_loc_hash]
-                    a = self.agents_map[a_hash]
-                    if a_loc.reward == 0 or a.current_utility_budget == 0:
-                        continue
-                    utility_used = min(a_loc.reward, a.current_utility_budget)
-                    a_loc.reward -= utility_used
-                    a.current_utility_budget -= utility_used
-                    round_reward += utility_used
-
-            tot_reward += round_reward
-        return tot_reward / NUM_OF_SIMS

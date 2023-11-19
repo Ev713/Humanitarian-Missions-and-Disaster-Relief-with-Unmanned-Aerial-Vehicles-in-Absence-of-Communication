@@ -79,31 +79,7 @@ def dict_to_np_arr(dict):
     return arr
 
 
-class StochUisRState(StochState):
-    def __init__(self, instance=None):
-        super().__init__(instance)
-        self.distr = {}
-        self.vectors = {}
-        if instance is not None:
-            for a in instance.agents:
-                self.vectors[a.hash()] = MatricesFunctions.get_starting_vector(a, a.loc)
-            for v_hash in instance.map_map:
-                self.distr[v_hash] = dict_to_np_arr(instance.map_map[v_hash].distribution.copy())
-
-    def copy(self):
-        copy_state = StochUisRState()
-        copy_state.a_pos = copy.deepcopy(self.a_pos)
-        copy_state.vectors = copy.deepcopy(self.vectors)
-        copy_state.distr = copy.deepcopy(self.distr)
-        copy_state.time_left = self.time_left
-        return copy_state
-
-    def hash(self):
-        return str(self), tuple([(a, str(self.vectors[a])) for a in self.vectors]), \
-               tuple([(v, str(self.distr[v])) for v in self.distr])
-
-
-class StochU1RState(StochState):
+class StochU1State(StochState):
     def __init__(self, instance=None):
         super().__init__(instance)
         self.thetas = {}  # v_hash: [0, 1]
@@ -120,7 +96,7 @@ class StochU1RState(StochState):
         return sum([theta * probs[i] * i for i in probs.keys()])
 
     def copy(self):
-        copy_state = StochU1RState()
+        copy_state = StochU1State()
         copy_state.a_pos = copy.deepcopy(self.a_pos)
         copy_state.matrices = copy.deepcopy(self.matrices)
         copy_state.thetas = copy.deepcopy(self.thetas)
