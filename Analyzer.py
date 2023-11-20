@@ -84,7 +84,7 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "data/sever_full_heur_states_no_preprocessing_tot.csv"
+        self.file_path = "data/nov_19_2023_maps_under_200_all_algos_no_preprocessing_tot.csv"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
@@ -234,7 +234,7 @@ class Analyzer:
 
 def main():
     acc = 2
-    algos = ['BFS', 'BNB', 'BNBL', 'MCTS_S', 'MCTS_D']
+    algos = ['BFS', 'BNB', 'BNBL', 'MCTS_V', 'MCTS_E']
     analyzer = Analyzer()
     analyzer.create_runs()
     instances = {}
@@ -244,7 +244,7 @@ def main():
 
     for run in analyzer.runs:
 
-        if run.algo != 'MCTS_S':
+        if run.algo != 'MCTS_S' or run.algo != 'MCTS_V':
             continue
         max = 0
         for r in run.results:
@@ -267,21 +267,21 @@ def main():
 
         instance_runs = instances[inst_name]
 
-        all_algos = True
-        for algo in algos:
-            if algo not in instance_runs:
-                all_algos = False
+        #all_algos = True
+        #for algo in algos:
+        #    if algo not in instance_runs:
+        #        all_algos = False
 
-        if not all_algos:
-            continue
+        #if not all_algos:
+        #    continue
 
         if 'BFS' not in instance_runs or instance_runs['BFS'].results[-1][0] == 0:
             continue
         if instance_runs['BFS'].type != 'MT':
             continue
 
-        if instance_runs['BFS'].source == 'X' or instance_runs['BFS'].type != 'MT':
-            continue
+        #if instance_runs['BFS'].source == 'X' or instance_runs['BFS'].type != 'MT':
+        #    continue
 
         bfs_result = instance_runs['BFS'].results[-1][0]
         bfs_time = instance_runs['BFS'].results[-1][2]
@@ -338,8 +338,8 @@ def main():
     plt.plot(graphs['BFS'][0], graphs['BFS'][1],
              graphs['BNB'][0], graphs['BNB'][1],
              graphs['BNBL'][0], graphs['BNBL'][1],
-             graphs['MCTS_S'][0], graphs['MCTS_S'][1],
-             graphs['MCTS_D'][0], graphs['MCTS_D'][1],
+             graphs['MCTS_V'][0], graphs['MCTS_V'][1],
+             graphs['MCTS_E'][0], graphs['MCTS_E'][1],
              )
     # graphs['MCTS_S'][0], graphs['MCTS_S'][1],graphs['MCTS_D'][0], graphs['MCTS_D'][1] )
     plt.legend(algos)

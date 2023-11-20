@@ -52,7 +52,7 @@ def run_solver(inst, algo, default='-'):
 def main():
     args = sys.argv[1:]
     #args = [0, 'MCTS_S', 0]
-    name = 'nov_19_2023_maps_under_200_all_algos'
+    name = 'nov_20_2023_30_mins_maps_under_200_mctss_only'
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(size_higher_bound=200)
     inst = decoder.instances[int(args[0])]
