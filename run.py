@@ -22,11 +22,11 @@ def run_solver(inst, algo, default='-'):
     solver = Solver.Solver()
     solver.NUMBER_OF_SIMULATIONS = 10000000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
-    solver.timeout = 1800
+    solver.timeout = 300
     solution = None
-    if algo == 'MCTS_D' or 'MCTS_E':
+    if algo == 'MCTS_D' or algo == 'MCTS_E':
         solution = solver.det_mcts(inst)
-    if algo == 'MCTS_S' or 'MCTS_V':
+    if algo == 'MCTS_S' or algo == 'MCTS_V':
         solution = solver.stoch_mcts(inst)
     if algo == 'BFS':
         solver.type = 'U1S'
@@ -38,6 +38,10 @@ def run_solver(inst, algo, default='-'):
     if algo == 'BNB':
         solver.type = 'U1S'
         solution = solver.branch_and_bound(inst, solver.upper_bound_base_plus_utility)
+
+    if algo == 'GBFS':
+        solver.type = 'U1S'
+        solution = solver.greedy_best_first_search(inst)
 
     timestamps = solution.timestamps
     states = solution.states
@@ -51,10 +55,11 @@ def run_solver(inst, algo, default='-'):
 
 def main():
     args = sys.argv[1:]
-    #args = [0, 'MCTS_S', 0]
-    name = 'nov_20_2023_30_mins_maps_under_200_mctss_only'
+    #args = [0, 'MCTS_V', 0]
+    #name = 'nov_20_2023_30_mins_maps_under_200_mctss_only'
+    name = 'ar_you_ok'
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(size_higher_bound=200)
+    decoder.decode_reduced(size_lower_bound=50)
     inst = decoder.instances[int(args[0])]
     #Inst_visualizer.vis3(inst, name)
     algo = str(args[1])
@@ -86,7 +91,7 @@ def main():
            'source': inst.source, 'type': inst.type, 'horizon': inst.horizon, 'algo': algo,
            'final_result': fin_res, 'time': t, 'states': states, })
 
-    df.to_csv('data/'+name+('_with_' if preprocessing == 1 else'_no_')+'preprocessing_tot.csv', mode='a', index=False, header=False)
+    df.to_csv('data/'+name+('_with_preprocessing_' if preprocessing == 1 else'')+'.csv', mode='a', index=False, header=False)
 
 
 

@@ -82,36 +82,3 @@ class U1StochInstance(GenStochInstance):
         state.reward = MatricesFunctions.get_matrices_reward(state.matrices)
         return state.reward
 
-
-class UisRStochInstance(GenStochInstance):
-    def __init__(self, i):
-        super().__init__(i)
-
-    def get_default_state(self, instance):
-        return State.StochUisRState(instance)
-
-    def make_action(self, action, state):
-        new_state = state.copy()
-        new_state.time_left -= 1
-        new_state.a_pos = copy.deepcopy(action)
-
-        for a_hash in self.agents_map:
-            if action[a_hash] is None:
-                continue
-            if action[a_hash].flyby:
-                continue
-            if self.agents_map[a_hash].movement_budget < self.horizon - new_state.time_left:
-                continue
-            vertex_hash = action[a_hash].loc
-            new_vector = MatricesFunctions.stoch_subtract(state.vectors[a_hash], new_state.distr[vertex_hash])
-            new_distr = MatricesFunctions.stoch_subtract(new_state.distr[vertex_hash], state.vectors[a_hash])
-            new_state.vectors[a_hash] = new_vector
-            new_state.distr[vertex_hash] = new_distr
-
-        return new_state
-
-    def reward(self, state):
-        if state.reward is not None:
-            return state.reward
-        state.reward = MatricesFunctions.get_vectors_reward(state.vectors)
-        return state.reward

@@ -14,7 +14,7 @@ from numpy import array as matrix
 # import check_for_sasha as map
 import InstanceManager
 import instance_decoder
-
+from DataStructures import MaxPriorityQueue
 
 class Solution:
     def __init__(self, paths, timestamps, states_collector, interrupted, opened_nodes):
@@ -30,9 +30,9 @@ class Solution:
         for p in self.paths:
             emp_reward = round(solver.evaluate_path(instance, p, emp=True, NUM_OF_SIMS=50000), 5)
             mat_reward = round(solver.evaluate_path(instance, p), 5)
-            print('empirically evaluated reward: ', emp_reward)
-            print('reward evaluated with matrices : ', mat_reward)
-            print('----------')
+            # print('empirically evaluated reward: ', emp_reward)
+            # print('reward evaluated with matrices : ', mat_reward)
+            # print('----------')
             self.rewards.append(round(solver.evaluate_path(instance, p), 2))
 
 
@@ -211,44 +211,81 @@ class Solver:
             node = que.pop()
             if not node.state.is_terminal():
                 node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state)])
-                for c in node.children:
+                for child in node.children:
                     if self.is_timeout():
                         return self.get_solution(True)
                     if self.time_for_log():
                         self.paths.append(self.best_node.get_path())
                         self.states_collector.append(self.num_of_states)
 
-                    hash = c.state.hash()
+                    hash = child.state.hash()
                     if self.dup_det:
                         if hash in visited_states:
                             continue
                         visited_states.add(hash)
                     self.num_of_states += 1
-                    v = instance.reward(c.state)
+                    v = instance.reward(child.state)
+
+                    if v > self.best_value:
+                        self.best_value = v
+                        self.best_node = child
 
                     if upper_bound is not None:
-                        up = upper_bound(c.state, instance)
+                        up = upper_bound(child.state, instance)
                         low = 0 if lower_bound is None else lower_bound(self.best_node.state, instance)
                         if v + up < self.best_value + low:
                             continue
-                    if v > self.best_value:
-                        self.best_value = v
-                        self.best_node = c
-                    que = [c] + que
+
+                    que = [child] + que
         return self.get_solution(False)
 
-    def make_instance(self, def_inst):
-        if self.type == "U1D":
-            instance = DetInstance.DetU1Instance(def_inst)
-        elif self.type == "URD":
-            instance = DetInstance.DetUisRInstance(def_inst)
-        elif self.type == "U1S":
-            instance = StochInstance.U1StochInstance(def_inst)
-        elif self.type == "URS":
-            instance = StochInstance.UisRStochInstance(def_inst)
-        else:
-            raise Exception("No recognised type!")
-        return instance
+    def value_plus_upper_bound(self, inst, state):
+        return inst.reward(state)+self.upper_bound_base_plus_utility(state, inst)
+
+    def greedy_best_first_search(self, def_inst, heuristic=value_plus_upper_bound):
+        self.restart()
+        self.type = 'U1S'
+        self.root = Node.Node(None)
+        self.best_node = self.root
+        instance = self.make_instance(def_inst)
+        self.root.state = instance.initial_state.copy()
+        self.root.value = instance.reward(self.best_node.state)
+        self.best_node = self.root
+        self.best_value = self.root.value
+        nodes = MaxPriorityQueue()
+        nodes.push(self.root)
+        visited_states = set()
+        while not nodes.is_empty():
+            if self.is_timeout():
+                return self.get_solution(True)
+            if self.time_for_log():
+                self.paths.append(self.best_node.get_path())
+                self.states_collector.append(self.num_of_states)
+
+            best_unexpanded_node = nodes.pop()
+            best_unexpanded_node.expand([instance.make_action(action, best_unexpanded_node.state)
+                                         for action in instance.actions(best_unexpanded_node.state)])
+            for child in best_unexpanded_node.children:
+                if self.is_timeout():
+                    return self.get_solution(True)
+                if self.time_for_log():
+                    self.paths.append(self.best_node.get_path())
+                    self.states_collector.append(self.num_of_states)
+
+                hash = child.state.hash()
+                if self.dup_det:
+                    if hash in visited_states:
+                        continue
+                    visited_states.add(hash)
+                self.num_of_states += 1
+                child.value = heuristic(self, child.state, instance)
+                if child.value > self.best_value:
+                    self.best_value = child.value
+                    self.best_node = child
+                if not child.state.is_terminal():
+                    nodes.push(child)
+        return self.get_solution(False)
+
 
     def det_mcts(self, inst):
         self.type = 'U1D'
@@ -344,7 +381,6 @@ class Solver:
 
             # gathering data
             if self.time_for_log():
-                print(instance.name+" logging")
                 self.states_collector.append(self.num_of_states)
                 # Deterministic approach allows us to takeout the best path without checking
                 if self.type == 'U1S':
@@ -381,6 +417,15 @@ class Solver:
                 state = instance.make_action(action, state)
             reward = instance.reward(state)
             return reward
+
+    def make_instance(self, def_inst):
+        if self.type == "U1D":
+            instance = DetInstance.DetU1Instance(def_inst)
+        elif self.type == "U1S":
+            instance = StochInstance.U1StochInstance(def_inst)
+        else:
+            raise Exception("No recognised type!")
+        return instance
 
 
 ''' def find_bug(self, inst, path, rollout_reward, rolloutstates):
