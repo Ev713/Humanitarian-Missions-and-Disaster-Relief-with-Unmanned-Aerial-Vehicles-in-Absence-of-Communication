@@ -12,6 +12,7 @@ else
     else
         start_index = 0
         end_index = 172
+    fi
 fi
 
 algos=('BFS' 'BNB' 'BNBL' 'MCTS_V' 'MCTS_E' 'GBFS' )
