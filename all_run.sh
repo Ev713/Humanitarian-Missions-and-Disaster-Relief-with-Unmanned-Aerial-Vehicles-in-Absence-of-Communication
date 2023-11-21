@@ -6,7 +6,7 @@ if [ -n "$1" ] && [ -n "$2" ]; then
     start_index = $1
     end_index = $2
 else
-    if[ -n "$1"]; then
+    if [ -n "$1"]; then
         start_index = 0
         end_inedx = $1
     else
