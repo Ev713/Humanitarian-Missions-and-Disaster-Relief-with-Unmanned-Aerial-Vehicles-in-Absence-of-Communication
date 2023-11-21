@@ -3,15 +3,15 @@
 # Define the number of processes and strategies
 
 if [ -n "$1" ] && [ -n "$2" ]; then
-    start_index = $1
-    end_index = $2
+    start_index=$1
+    end_index=$2
 else
-    if [ -n "$1"]; then
-        start_index = 0
-        end_inedx = $1
+    if [ -n "$1" ]; then
+        start_index=0
+        end_inedx=$1
     else
-        start_index = 0
-        end_index = 172
+        start_index=0
+        end_index=172
     fi
 fi
 
