@@ -8,7 +8,7 @@ if [ -n "$1" ] && [ -n "$2" ]; then
 else
     if [ -n "$1" ]; then
         start_index=0
-        end_inedx=$1
+        end_index=$1
     else
         start_index=0
         end_index=172
