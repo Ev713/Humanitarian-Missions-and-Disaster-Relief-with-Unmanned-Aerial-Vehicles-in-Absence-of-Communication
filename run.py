@@ -22,7 +22,7 @@ def run_solver(inst, algo, default='-'):
     solver = Solver.Solver()
     solver.NUMBER_OF_SIMULATIONS = 10000000
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 20)
-    solver.timeout = 300
+    solver.timeout = 1800
     solution = None
     if algo == 'MCTS_D' or algo == 'MCTS_E':
         solution = solver.det_mcts(inst)
@@ -56,8 +56,8 @@ def run_solver(inst, algo, default='-'):
 def main():
     args = sys.argv[1:]
     #args = [0, 'GBFS', 0]
-    #name = 'nov_21_2023_30_mins_maps_under_50'
-    name = 'are_you_ok'
+    name = 'nov_21_2023_30mins_size-lt50'
+    #name = 'scratch'
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(size_lower_bound=50)
     inst = decoder.instances[int(args[0])]
