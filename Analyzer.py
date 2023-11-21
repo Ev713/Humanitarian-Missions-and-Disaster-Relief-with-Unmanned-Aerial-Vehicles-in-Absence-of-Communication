@@ -84,7 +84,7 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "data/nov_20_2023_30_mins_maps_under_200_mctss_only_no_preprocessing_tot.csv"
+        self.file_path = "data/are_you_ok.csv"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
@@ -234,7 +234,7 @@ class Analyzer:
 
 def main():
     acc = 2
-    algos = ['MCTS_V', 'MCTS_E']
+    algos = ['BFS', 'BNB', 'BNBL','MCTS_V', 'MCTS_E', 'GBFS']
     analyzer = Analyzer()
     analyzer.create_runs()
     instances = {}
@@ -244,8 +244,7 @@ def main():
 
     for run in analyzer.runs:
 
-        if run.algo != 'MCTS_S' or run.algo != 'MCTS_V':
-            continue
+
         max = 0
         for r in run.results:
             if r[0] >= max:
@@ -262,7 +261,7 @@ def main():
     fin_ress = {algo: [] for algo in algos}
     sizes = {algo: [] for algo in algos}
     states = {algo: [] for algo in algos}
-    default = 'MCTS_V'
+    default = 'BFS'
     for inst_name in instances:
 
         instance_runs = instances[inst_name]
@@ -338,11 +337,12 @@ def main():
             graphs[algo][0].append(t)
             graphs[algo][1].append(avg_result)
     plt.plot(
-             #graphs['BFS'][0], graphs['BFS'][1],
-             #graphs['BNB'][0], graphs['BNB'][1],
-             #graphs['BNBL'][0], graphs['BNBL'][1],
+             graphs['BFS'][0], graphs['BFS'][1],
+             graphs['BNB'][0], graphs['BNB'][1],
+             graphs['BNBL'][0], graphs['BNBL'][1],
              graphs['MCTS_V'][0], graphs['MCTS_V'][1],
              graphs['MCTS_E'][0], graphs['MCTS_E'][1],
+             graphs['GBFS'][0], graphs['GBFS'][1],
              )
     # graphs['MCTS_S'][0], graphs['MCTS_S'][1],graphs['MCTS_D'][0], graphs['MCTS_D'][1] )
     plt.legend(algos)

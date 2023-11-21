@@ -28,12 +28,12 @@ class Solution:
     def set_rewards(self, solver, inst):
         instance = solver.make_instance(inst)
         for p in self.paths:
-            emp_reward = round(solver.evaluate_path(instance, p, emp=True, NUM_OF_SIMS=50000), 5)
+            #emp_reward = round(solver.evaluate_path(instance, p, emp=True, NUM_OF_SIMS=50000), 5)
             mat_reward = round(solver.evaluate_path(instance, p), 5)
             # print('empirically evaluated reward: ', emp_reward)
             # print('reward evaluated with matrices : ', mat_reward)
             # print('----------')
-            self.rewards.append(round(solver.evaluate_path(instance, p), 2))
+            self.rewards.append(mat_reward)
 
 
 class Solver:
@@ -155,6 +155,9 @@ class Solver:
         return sum(possible_rewards[:min(len(possible_rewards), math.ceil(estimated_utility_left))])
 
     def upper_bound_base_plus_utility(self, state, instance):
+        if not self.dist_calculated:
+            self.calculate_all_pairs_distances_with_Seidel(instance)
+            self.dist_calculated = True
         vertexes_with_agents = []
         for agent in instance.agents:
             vertexes_with_agents.append(state.a_pos[agent.hash()].loc)
@@ -239,7 +242,7 @@ class Solver:
                     que = [child] + que
         return self.get_solution(False)
 
-    def value_plus_upper_bound(self, inst, state):
+    def value_plus_upper_bound(self, state, inst):
         return inst.reward(state)+self.upper_bound_base_plus_utility(state, inst)
 
     def greedy_best_first_search(self, def_inst, heuristic=value_plus_upper_bound):

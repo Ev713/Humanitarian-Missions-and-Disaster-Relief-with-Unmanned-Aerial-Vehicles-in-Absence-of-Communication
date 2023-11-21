@@ -21,7 +21,7 @@ def run_solver(inst, algo, default='-'):
     # print("start " + inst.name)
     solver = Solver.Solver()
     solver.NUMBER_OF_SIMULATIONS = 10000000
-    solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 100)
+    solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 20)
     solver.timeout = 300
     solution = None
     if algo == 'MCTS_D' or algo == 'MCTS_E':
@@ -55,15 +55,16 @@ def run_solver(inst, algo, default='-'):
 
 def main():
     args = sys.argv[1:]
-    #args = [0, 'MCTS_V', 0]
-    #name = 'nov_20_2023_30_mins_maps_under_200_mctss_only'
-    name = 'ar_you_ok'
+    #args = [0, 'GBFS', 0]
+    #name = 'nov_21_2023_30_mins_maps_under_50'
+    name = 'are_you_ok'
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(size_lower_bound=50)
     inst = decoder.instances[int(args[0])]
     #Inst_visualizer.vis3(inst, name)
     algo = str(args[1])
-    preprocessing = int(args[2])
+    #preprocessing = int(args[2])
+    preprocessing = 0
     print("\n" + inst.name + " with " + algo + " starts")
 
     if preprocessing == 1:

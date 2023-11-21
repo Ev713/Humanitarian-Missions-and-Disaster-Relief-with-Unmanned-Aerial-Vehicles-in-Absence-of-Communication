@@ -25,3 +25,4 @@ class MaxPriorityQueue:
 
     def is_empty(self):
         return len(self._queue) == 0
+
