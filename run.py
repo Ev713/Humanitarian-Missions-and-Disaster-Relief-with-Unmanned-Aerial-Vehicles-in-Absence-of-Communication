@@ -56,7 +56,7 @@ def run_solver(inst, algo, default='-'):
 def main():
     args = sys.argv[1:]
     #args = [0, 'GBFS', 0]
-    name = 'nov_21_2023_30mins_size-lt50'
+    name = 'nov_21_2023_30mins_size_lt50'
     #name = 'scratch'
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(size_lower_bound=50)
