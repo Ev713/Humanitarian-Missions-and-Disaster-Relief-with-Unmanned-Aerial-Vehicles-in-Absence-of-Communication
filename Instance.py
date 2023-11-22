@@ -36,9 +36,9 @@ class Instance:
             for v in self.map:
                 sum_of_probs = sum(v.distribution.values())
                 if sum_of_probs == 0:
-                    v.distribution = {0:1.0}
+                    v.distribution = {0: 1.0}
                 else:
-                    v.distribution = {r: round(v.distribution[r]/sum_of_probs, 3) for r in v.distribution}
+                    v.distribution = {r: round(v.distribution[r]/sum_of_probs, 5) for r in v.distribution}
         self.map_map = {v.hash(): v for v in map}
         self.agents = agents  # list of agents
         self.agents_map = {a.hash(): a for a in agents}
