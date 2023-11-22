@@ -68,7 +68,7 @@ class Instance:
             fly_by_options = [False]
         # time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
         time = self.horizon - state.time_left
-        for a_hash in state.path:
+        for a_hash in self.agents_map:
             a_loc_hash = state.get_a_pos(a_hash).loc
             a_loc = self.map_map[a_loc_hash]
             if self.agents_map[a_hash].movement_budget <= time:
