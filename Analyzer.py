@@ -84,7 +84,7 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "data/nov_21_2023_30mins_size_gt50.csv"
+        self.file_path = "data/nov_22_2023_30mins_size_lt_200.csv"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
@@ -323,7 +323,7 @@ def main():
                 for r in run.results:
                     if (relative_to_states and r[1] == t) \
                             or (not relative_to_states and r[2] == t):
-                        run_complete_data[t] = r[0]
+                        run_complete_data[t] = r[1] # 2 for result 1 for states
                 if t not in run_complete_data:
                     prev = round(t - 1 / pow(10, acc), acc)
                     run_complete_data[t] = run_complete_data[prev]

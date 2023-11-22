@@ -43,7 +43,7 @@ class DetU1Instance(DetInstance):
             round_reward = 0
             for t in range(self.horizon + 1):
                 for a in self.agents:
-                    if a.movement_budget < t or a.current_utility_budget == 0:
+                    if a.movement_budget < t or a.current_utility_budget == 0 or state.path[a.hash()][t] is None:
                         continue
                     a_loc_hash = state.path[a.hash()][t].loc
                     if a_loc_hash == -1 or state.path[a.hash()][t].flyby:
