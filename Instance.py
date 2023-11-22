@@ -39,6 +39,7 @@ class Instance:
                     v.distribution = {0: 1.0}
                 else:
                     v.distribution = {r: round(v.distribution[r]/sum_of_probs, 5) for r in v.distribution}
+                    v.distribution[0] = 1 - (sum(list(v.distribution.values())) - v.distribution[0])
         self.map_map = {v.hash(): v for v in map}
         self.agents = agents  # list of agents
         self.agents_map = {a.hash(): a for a in agents}
