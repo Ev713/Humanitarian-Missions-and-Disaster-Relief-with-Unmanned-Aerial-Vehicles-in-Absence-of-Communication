@@ -55,11 +55,11 @@ def run_solver(inst, algo, default='-'):
 
 def main():
     args = sys.argv[1:]
-    args = [0, 'MCTS_E']
-    #name = 'nov_21_2023_30mins_size_lt50'
-    name = 'scratch'
+    #args = [0, 'MCTS_E']
+    name = 'nov_22_2023_30mins_size_lt_200'
+    #name = 'scratch'
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(size_higher_bound=20)
+    decoder.decode_reduced(size_higher_bound=200)
     inst = decoder.instances[int(args[0])]
     #Inst_visualizer.vis3(inst, name)
     algo = str(args[1])

@@ -84,7 +84,7 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "data/nov_21_2023_30mins_size_lt50.csv"
+        self.file_path = "data/nov_21_2023_30mins_size_gt50.csv"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
