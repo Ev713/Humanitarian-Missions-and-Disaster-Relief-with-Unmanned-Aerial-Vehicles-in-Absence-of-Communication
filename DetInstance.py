@@ -17,33 +17,10 @@ class DetInstance(Instance.Instance):
         self.initial_state = State.DetState(instance)
         self.flybys = instance.flybys
 
-    def actions(self, state):
-        # action: {a1: v_k, a2: v_m, ...  }
-        agent_actions = {}
-        if self.flybys:
-            fly_by_options = [False, True]
-        else:
-            fly_by_options = [False]
-        #time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
-        time = self.horizon - state.time_left
-        for a_hash in state.path:
-            if self.agents_map[a_hash].movement_budget <= time:
-                agent_actions[a_hash] = [None]
-            else:
-                a_loc_hash = state.path[a_hash][time].loc
-                a_loc = self.map_map[a_loc_hash]
-                agent_actions[a_hash] = [State.Position(a_loc_hash, b) for b in fly_by_options] +\
-                                        [State.Position(n.hash(), b) for n in a_loc.neighbours for b in fly_by_options]
-
-
-        actions = [a for a in Instance.product_dict(agent_actions)]
-        return actions
-
     def regenerate_instance(self):
         for v in self.map:
             v.generate_reward()
         for a in self.agents:
-            a.current_movement_budget = a.movement_budget
             a.current_utility_budget = a.utility_budget
 
     def make_action(self, action, state):
@@ -64,11 +41,9 @@ class DetU1Instance(DetInstance):
         for _ in range(NUM_OF_SIMS):
             self.regenerate_instance()
             round_reward = 0
-            for t in range(len(list(state.path.values())[0])):
+            for t in range(self.horizon + 1):
                 for a in self.agents:
-                    if a.current_movement_budget + 1 <= t or \
-                            a.current_utility_budget < 1 or \
-                            state.path[a.hash()][t] is None:
+                    if a.movement_budget < t or a.current_utility_budget == 0:
                         continue
                     a_loc_hash = state.path[a.hash()][t].loc
                     if a_loc_hash == -1 or state.path[a.hash()][t].flyby:

@@ -28,6 +28,8 @@ class State:
     def is_terminal(self):
         return self.time_left == 0
 
+    def get_a_pos(self, a_hash):
+        pass
 
 class DetState(State):
     def __init__(self, instance=None):
@@ -39,6 +41,14 @@ class DetState(State):
             for a in instance.agents:
                 self.path[a.hash()] = [None for _ in range(instance.horizon + 1)]
                 self.path[a.hash()][0] = Position(a.loc.hash(), False)
+
+    def get_a_pos(self, a_hash):
+        if self.path[a_hash][-1] is not None:
+            return self.path[a_hash][-1]
+        first_none = 0
+        while self.path[a_hash][first_none] is not None:
+            first_none += 1
+            return self.path[a_hash][first_none-1]
 
     def copy(self):
         copy_state = DetState()
@@ -59,6 +69,9 @@ class StochState(State):
             for a in instance.agents:
                 self.time_left = instance.horizon
                 self.a_pos[a.hash()] = Position(a.loc.hash(), False)  # a.hash(): v.hash()
+
+    def get_a_pos(self, a_hash):
+        return self.a_pos[a_hash]
 
     def __str__(self):
         return str((self.a_pos, self.time_left))

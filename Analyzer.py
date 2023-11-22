@@ -84,7 +84,7 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "data/are_you_ok.csv"
+        self.file_path = "data/nov_21_2023_30mins_size_lt50.csv"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
@@ -285,7 +285,7 @@ def main():
         #    continue
 
         bfs_result = instance_runs[default].results[-1][0]
-        bfs_time = instance_runs[default].results[-1][2]
+        bfs_time = 1800# instance_runs[default].results[-1][2]
         bfs_states = instance_runs[default].states
 
         for algo in algos:

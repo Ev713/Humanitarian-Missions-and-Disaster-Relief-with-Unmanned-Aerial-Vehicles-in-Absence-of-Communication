@@ -25,7 +25,6 @@ class StochAgent(Agent):
 class DetAgent(Agent):
     def __init__(self, number, loc, movement_budget, utility_budget):
         super().__init__(number, loc, movement_budget, utility_budget)
-        self.current_movement_budget = movement_budget
         self.current_utility_budget = utility_budget
 
     def __str__(self):

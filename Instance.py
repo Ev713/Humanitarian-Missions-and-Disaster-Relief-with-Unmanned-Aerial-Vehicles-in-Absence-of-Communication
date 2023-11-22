@@ -4,13 +4,11 @@ import copy
 import sys
 import warnings
 
-import Agent
-import MatricesFunctions
 import State
 import Vertex
 
 
-def product_dict(dict):
+def one_val_per_key_combinations(dict):
     """
     :param dict: {a1: [v1_1, v2_1, ... , v_n_1], a2: [v1_2, v2_2, ... , v_n_2], ... }
     :return: [{a1:v1_1, a2: v1_2, ...}, {a1:v2_1, a2: v1_2, ...},{,a1:v1_1, a2: v2_2, ...} {a1:v2_1, a2: v2_2, ...}...]
@@ -19,14 +17,14 @@ def product_dict(dict):
     for key in dict:
         for l in dict[key]:
             mini_dicts[key].append({key: l})
-    big_dict = [a for a in itertools.product(*mini_dicts.values())]
-    dict_actions = []
+    big_dict = [combo for combo in itertools.product(*mini_dicts.values())]
+    combinations = []
     for a in big_dict:
         a_dict = {}
         for mini_dict in a:
             a_dict.update(mini_dict)
-        dict_actions.append(a_dict)
-    return dict_actions
+        combinations.append(a_dict)
+    return combinations
 
 
 class Instance:
@@ -60,6 +58,26 @@ class Instance:
                               UserWarning)
                 return False
         return True
+
+    def actions(self, state):
+        # action: {a1: v_k, a2: v_m, ...  }
+        agent_actions = {}
+        if self.flybys:
+            fly_by_options = [False, True]
+        else:
+            fly_by_options = [False]
+        # time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
+        time = self.horizon - state.time_left
+        for a_hash in state.path:
+            a_loc_hash = state.get_a_pos(a_hash).loc
+            a_loc = self.map_map[a_loc_hash]
+            if self.agents_map[a_hash].movement_budget <= time:
+                agent_actions[a_hash] = [State.Position(a_loc_hash, True)]
+            else:
+                agent_actions[a_hash] = [State.Position(a_loc_hash, b) for b in fly_by_options] + \
+                                        [State.Position(n.hash(), b) for n in a_loc.neighbours for b in fly_by_options]
+        actions = [a for a in one_val_per_key_combinations(agent_actions)]
+        return actions
 
     def map_is_connected(self):
         connected = [self.map[0]]
@@ -118,9 +136,6 @@ class Instance:
             if self.agents_map[a_hash] not in self.agents:
                 return False
         return True
-
-    def actions(self, state):
-        pass
 
     def make_action(self, action, state):  # Abstract method
         pass

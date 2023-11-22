@@ -63,6 +63,9 @@ def new_matrix(mtrx, prob, theta):
     m_sum = round(np.sum(mtrx), 5)
     if m_sum != 1:
         raise Exception("Input matrix is invalid, sum is: "+str(m_sum))
+    if sum(list(prob.values())) != 1:
+        raise Exception("Distribution of a vertex is invalid")
+
     if 0 not in prob:
         prob[0] = 0
 
