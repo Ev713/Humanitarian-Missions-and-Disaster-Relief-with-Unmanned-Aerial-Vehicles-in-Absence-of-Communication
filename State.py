@@ -48,7 +48,7 @@ class DetState(State):
         first_none = 0
         while self.path[a_hash][first_none] is not None:
             first_none += 1
-            return self.path[a_hash][first_none-1]
+        return self.path[a_hash][first_none-1]
 
     def copy(self):
         copy_state = DetState()

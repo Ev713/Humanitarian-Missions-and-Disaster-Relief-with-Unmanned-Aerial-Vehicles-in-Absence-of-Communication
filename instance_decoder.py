@@ -55,8 +55,6 @@ class Decoder:
                     continue
                 if len(specifics) > 0 and decoded_instance.name not in specifics:
                     continue
-                if type is not None and decoded_instance.type != type:
-                    continue
                 self.instances.append(decoded_instance)
         return self.instances
 

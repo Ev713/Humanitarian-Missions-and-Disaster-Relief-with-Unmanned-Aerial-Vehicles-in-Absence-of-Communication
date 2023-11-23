@@ -369,8 +369,8 @@ class Solver:
             # backpropagation
             while True:
                 #if self.type == 'U1D':
-                if (not node.all_children_visited() or node.state.is_terminal()):
-                    avg_of_node = (node.value*node.times_visited+discounted_reward)/(node.times_visited+1)
+                if (not node.all_children_visited()) or node.state.is_terminal():
+                    avg_of_node = (node.value*(node.times_visited-1)+discounted_reward)/(node.times_visited)
                     node.value = avg_of_node
                     discounted_reward = avg_of_node
                 else:
