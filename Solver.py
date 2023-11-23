@@ -28,11 +28,12 @@ class Solution:
     def set_rewards(self, solver, inst):
         instance = solver.make_instance(inst)
         for p in self.paths:
-            emp_reward = round(solver.evaluate_path(instance, p, emp=True, NUM_OF_SIMS=50000), 5)
+            #emp_reward = round(solver.evaluate_path(instance, p, emp=True, NUM_OF_SIMS=50000), 5)
             mat_reward = round(solver.evaluate_path(instance, p), 5)
-            print('empirically evaluated reward: ', emp_reward)
-            print('reward evaluated with matrices : ', mat_reward)
-            print('----------')
+            #print(str(p))
+            #print('empirically evaluated reward: ', emp_reward)
+            #print('reward evaluated with matrices : ', mat_reward)
+            #print('----------')
             self.rewards.append(mat_reward)
 
 
@@ -235,7 +236,7 @@ class Solver:
 
                     if upper_bound is not None:
                         up = upper_bound(child.state, instance)
-                        low = 0 if lower_bound is None else lower_bound(self.best_node.state, instance)
+                        low = 0 if lower_bound is None else lower_bound(child.state, instance)
                         if v + up < self.best_value + low:
                             continue
 
@@ -403,23 +404,15 @@ class Solver:
             return 0
         if emp:
             self.type = "U1D"
-            instance = self.make_instance(def_inst)
-            state = instance.initial_state.copy()
-            for a in path:
-                for t in range(len(path[a])):
-                    state.path[a][t+1] = path[a][t]
-                    state.time_left -= 1
-            state.path = path
-            return instance.reward(state, NUM_OF_SIMS)
         else:
             self.type = 'U1S'
-            instance = self.make_instance(def_inst)
-            state = instance.initial_state.copy()
-            for t in range(0, len(list(path.values())[0])):
-                action = {a: path[a][t] for a in path}
-                state = instance.make_action(action, state)
-            reward = instance.reward(state)
-            return reward
+        instance = self.make_instance(def_inst)
+        state = instance.initial_state.copy()
+        for t in range(0, len(list(path.values())[0])):
+            action = {a: path[a][t] for a in path}
+            state = instance.make_action(action, state)
+        reward = instance.reward(state, NUM_OF_SIMS=NUM_OF_SIMS)
+        return reward
 
     def make_instance(self, def_inst):
         if self.type == "U1D":

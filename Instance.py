@@ -55,8 +55,10 @@ class Instance:
             if 0 not in v.distribution:
                 v.distribution[0] = 0
             if round(sum(v.distribution.values()), 7) != 1:
-                warnings.warn("Sum of probabilities in vertex "+str(v)+" is not 1!\nThe Distribution will be fixed",
+                warnings.warn("Sum of probabilities in instance " + self.name + " vertex "+str(v) +
+                              " is not 1!\nThe Distribution will be fixed.",
                               UserWarning)
+
                 return False
         return True
 

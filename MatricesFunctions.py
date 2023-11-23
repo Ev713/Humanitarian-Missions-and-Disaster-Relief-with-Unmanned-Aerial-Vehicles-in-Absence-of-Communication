@@ -63,7 +63,8 @@ def new_matrix(mtrx, prob, theta):
     m_sum = round(np.sum(mtrx), 5)
     if m_sum != 1:
         raise Exception("Input matrix is invalid, sum is: "+str(m_sum))
-    if sum(list(prob.values())) != 1:
+    p_sum = sum(list(prob.values()))
+    if round(p_sum, 5) != 1:
         raise Exception("Distribution of a vertex is invalid")
 
     if 0 not in prob:
@@ -117,7 +118,6 @@ def new_matrix(mtrx, prob, theta):
             r_matrix = add_diff_height_mtrxs(u_left_zero, u_spent1_r_collected)
 
             if round(np.sum(r_matrix), 5) != 1:
-                breakpoint()
                 raise Exception("bug in computing r-matrix")
 
             # So, the r-matrix that we get from collecting reward r by using 1 utility unit is the sum
@@ -125,7 +125,8 @@ def new_matrix(mtrx, prob, theta):
             # represents the possibility that we have actually used utility and collected reward.
 
         updated_matrix = add_diff_height_mtrxs(updated_matrix, p * theta * r_matrix)
-    if round(np.sum(updated_matrix), 5) != 1:
+    new_m_sum = np.sum(updated_matrix)
+    if round(new_m_sum, 5) != 1:
         raise Exception("Bug in updating matrix")
     return updated_matrix
 

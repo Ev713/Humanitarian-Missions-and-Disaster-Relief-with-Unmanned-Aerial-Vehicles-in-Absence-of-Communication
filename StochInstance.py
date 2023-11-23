@@ -62,7 +62,7 @@ class U1StochInstance(GenStochInstance):
             new_state.thetas[vertex_hash] = new_theta
         return new_state
 
-    def reward(self, state):
+    def reward(self, state, NUM_OF_SIMS='variable only to make the method abstractable'):
         if state.reward is not None:
             return state.reward
         state.reward = MatricesFunctions.get_matrices_reward(state.matrices)

@@ -323,7 +323,7 @@ def main():
                 for r in run.results:
                     if (relative_to_states and r[1] == t) \
                             or (not relative_to_states and r[2] == t):
-                        run_complete_data[t] = r[1] # 2 for result 1 for states
+                        run_complete_data[t] = r[0] # 0 for result 1 for states
                 if t not in run_complete_data:
                     prev = round(t - 1 / pow(10, acc), acc)
                     run_complete_data[t] = run_complete_data[prev]
@@ -344,7 +344,6 @@ def main():
              graphs['MCTS_E'][0], graphs['MCTS_E'][1],
              graphs['GBFS'][0], graphs['GBFS'][1],
              )
-    # graphs['MCTS_S'][0], graphs['MCTS_S'][1],graphs['MCTS_D'][0], graphs['MCTS_D'][1] )
     plt.legend(algos)
     if not relative_to_states:
         plt.xlabel("Time (relative to "+default+" time)")

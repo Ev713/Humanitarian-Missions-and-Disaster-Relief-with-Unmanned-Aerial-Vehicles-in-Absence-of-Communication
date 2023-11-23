@@ -34,10 +34,14 @@ class Decoder:
             for instance in self.instances:
                 InstanceManager.to_string(instance, "Reduced_maps")
 
-    def decode_reduced(self, size_lower_bound=None, size_higher_bound = None, horizon_higher_bound = None,
+    def decode_reduced(self,
+                       size_lower_bound=None,
+                       size_higher_bound=None,
+                       horizon_higher_bound=None,
                        types_allowed=('FR', 'MT', 'SC', 'AG001', 'AG05', 'AG01',),
-                       specifics=()
-                                      ):
+                       specifics=(),
+                       type=None
+                        ):
         for filename in os.scandir("Reduced_maps"):
             if filename.is_file():
                 decoded_instance = InstanceManager.to_inst(filename)
@@ -50,6 +54,8 @@ class Decoder:
                 if horizon_higher_bound is not None and horizon_higher_bound > decoded_instance.horizon:
                     continue
                 if len(specifics) > 0 and decoded_instance.name not in specifics:
+                    continue
+                if type is not None and decoded_instance.type != type:
                     continue
                 self.instances.append(decoded_instance)
         return self.instances
