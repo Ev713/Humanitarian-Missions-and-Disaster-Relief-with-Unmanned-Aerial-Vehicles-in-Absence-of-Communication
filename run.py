@@ -64,7 +64,6 @@ def main():
     #Inst_visualizer.vis3(inst, name)
     algo = str(args[1])
     #preprocessing = int(args[2])
-
     preprocessing = 0
     print("\n" + inst.name + " with " + algo + " starts")
 
