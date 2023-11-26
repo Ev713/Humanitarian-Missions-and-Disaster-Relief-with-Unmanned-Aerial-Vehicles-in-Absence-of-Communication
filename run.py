@@ -56,7 +56,7 @@ def run_solver(inst, algo, default='-'):
 def main():
     args = sys.argv[1:]
     #args = [0, 'MCTS_E']
-    name = 'nov_26_2023_30mins_all_fixed'
+    name = 'nov_26_2023_30mins_all'
     #name = 'scratch'
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
