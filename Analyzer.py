@@ -84,7 +84,7 @@ class Instance_data:
 
 class Analyzer:
     def __init__(self):
-        self.file_path = "data/nov_23_2023_30mins_all.csv"
+        self.file_path = "data/nov_23_2023_30mins_all_fixed.csv"
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
@@ -234,7 +234,13 @@ class Analyzer:
 
 def main():
     acc = 2
-    algos = ['BFS', 'BNB', 'BNBL','MCTS_V', 'MCTS_E', 'GBFS']
+    algos = ['BFS',
+             #'BNB',
+             #'BNBL',
+             'MCTS_V',
+             'MCTS_E',
+             #'GBFS'
+             ]
     analyzer = Analyzer()
     analyzer.create_runs()
     instances = {}
@@ -338,11 +344,11 @@ def main():
             graphs[algo][1].append(avg_result)
     plt.plot(
              graphs['BFS'][0], graphs['BFS'][1],
-             graphs['BNB'][0], graphs['BNB'][1],
-             graphs['BNBL'][0], graphs['BNBL'][1],
+             #graphs['BNB'][0], graphs['BNB'][1],
+             #graphs['BNBL'][0], graphs['BNBL'][1],
              graphs['MCTS_V'][0], graphs['MCTS_V'][1],
              graphs['MCTS_E'][0], graphs['MCTS_E'][1],
-             graphs['GBFS'][0], graphs['GBFS'][1],
+             #graphs['GBFS'][0], graphs['GBFS'][1],
              )
     plt.legend(algos)
     if not relative_to_states:
