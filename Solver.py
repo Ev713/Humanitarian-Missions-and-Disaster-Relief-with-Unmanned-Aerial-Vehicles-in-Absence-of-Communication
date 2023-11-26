@@ -5,16 +5,54 @@ import time
 import numpy
 import numpy as np
 
-import DetInstance
+import EmpInstance
 import Node
 import State
-import StochInstance
+import VectorInstance
 from numpy import array as matrix
 
 # import check_for_sasha as map
 import InstanceManager
 import instance_decoder
 from DataStructures import MaxPriorityQueue
+
+
+class Timer:
+    def __init__(self):
+        self.starts = {}
+        self.tots = {}
+        self.last_end = 0
+
+    def end_all(self):
+        for thing in self.starts:
+            self.end(thing)
+
+    def start(self, thing):
+        if thing not in self.starts:
+            self.starts[thing] = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
+        else:
+            raise Exception(thing + " already started!")
+
+    def end(self, thing):
+        now = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
+        self.last_end = now
+        run_time = now - self.starts[thing]
+        if thing not in self.tots:
+            self.tots[thing] = run_time
+        else:
+            self.tots[thing] += run_time
+        del self.starts[thing]
+
+    def end_from_last_end(self, thing):
+        self.starts[thing] = self.last_end
+        self.end(thing)
+
+    def __str__(self):
+        string = ''
+        for thing in self.tots:
+            string += thing + ' ' + str(self.tots[thing]) + '\n'
+        return string
+
 
 class Solution:
     def __init__(self, paths, timestamps, states_collector, interrupted, opened_nodes):
@@ -26,14 +64,13 @@ class Solution:
         self.states = opened_nodes
 
     def set_rewards(self, solver, inst):
-        instance = solver.make_instance(inst)
         for p in self.paths:
-            #emp_reward = round(solver.evaluate_path(instance, p, emp=True, NUM_OF_SIMS=50000), 5)
-            mat_reward = round(solver.evaluate_path(instance, p), 5)
-            #print(str(p))
-            #print('empirically evaluated reward: ', emp_reward)
-            #print('reward evaluated with matrices : ', mat_reward)
-            #print('----------')
+            # emp_reward = round(solver.evaluate_path(inst, p, emp=True, NUM_OF_SIMS=50000), 5)
+            mat_reward = round(solver.evaluate_path(inst, p), 5)
+            # print(str(p))
+            # print('empirically evaluated reward: ', emp_reward)
+            # print('reward evaluated with matrices : ', mat_reward)
+            # print('----------')
             self.rewards.append(mat_reward)
 
 
@@ -42,7 +79,6 @@ class Solver:
         self.dist_calculated = False
         self.all_pair_distances = {}
         self.num_of_states = None
-        self.type = None
         self.dup_det = False
         self.prev_time_check = 0
 
@@ -63,6 +99,8 @@ class Solver:
         self.best_value = 0
         self.states = 0
         self.map_reduced = False
+
+        self.timer = Timer()
 
     def restart(self):
         self.start = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
@@ -188,11 +226,12 @@ class Solver:
         return self.branch_and_bound(def_inst)
 
     def branch_and_bound(self, def_inst, upper_bound=None, lower_bound=None):
+        self.timer.start('init')
         self.restart()
-        self.type = 'U1S'
         self.root = Node.Node(None)
         self.best_node = self.root
         instance = self.make_instance(def_inst)
+
         if upper_bound is not None or lower_bound is not None:
             self.calculate_all_pairs_distances_with_Seidel(instance)
             if not self.dist_calculated:
@@ -201,13 +240,17 @@ class Solver:
 
         self.root.state = instance.initial_state.copy()
         que = [self.root]
-        visited_states = set()
+        visited_states = {}
         self.num_of_states = 0
         self.best_value = instance.reward(self.root.state)
         self.prev_time_check = self.start
 
+        self.timer.end('init')
+
         while que:
             if self.is_timeout():
+                self.timer.end_all()
+                print(str(self.timer))
                 return self.get_solution(True)
             if self.time_for_log():
                 self.paths.append(self.best_node.get_path())
@@ -215,19 +258,30 @@ class Solver:
             node = que.pop()
             if not node.state.is_terminal():
                 node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state)])
+
+                self.timer.end_from_last_end('expand')
+
                 for child in node.children:
+
+                    self.num_of_states += 1
+
                     if self.is_timeout():
+                        self.timer.end_all()
+                        print(str(self.timer))
                         return self.get_solution(True)
                     if self.time_for_log():
                         self.paths.append(self.best_node.get_path())
                         self.states_collector.append(self.num_of_states)
-
                     hash = child.state.hash()
                     if self.dup_det:
                         if hash in visited_states:
-                            continue
-                        visited_states.add(hash)
-                    self.num_of_states += 1
+                            if visited_states[hash] < child.state.time_left:
+                                continue
+                        else:
+                            visited_states[hash] = child.state.time_left
+
+                    self.timer.end_from_last_end('dup_det')
+
                     v = instance.reward(child.state)
 
                     if v > self.best_value:
@@ -239,16 +293,17 @@ class Solver:
                         low = 0 if lower_bound is None else lower_bound(child.state, instance)
                         if v + up < self.best_value + low:
                             continue
-
                     que = [child] + que
+
+                    self.timer.end_from_last_end('queueing')
+
         return self.get_solution(False)
 
     def value_plus_upper_bound(self, state, inst):
-        return inst.reward(state)+self.upper_bound_base_plus_utility(state, inst)
+        return inst.reward(state) + self.upper_bound_base_plus_utility(state, inst)
 
     def greedy_best_first_search(self, def_inst, heuristic=value_plus_upper_bound):
         self.restart()
-        self.type = 'U1S'
         self.root = Node.Node(None)
         self.best_node = self.root
         instance = self.make_instance(def_inst)
@@ -290,18 +345,18 @@ class Solver:
                     nodes.push(child)
         return self.get_solution(False)
 
+    def emp_mcts(self, inst):
+        return self.mcts(inst, True)
 
-    def det_mcts(self, inst):
-        self.type = 'U1D'
+    def vector_mcts(self, inst):
         return self.mcts(inst)
 
-    def stoch_mcts(self, inst):
-        self.type = 'U1S'
-        return self.mcts(inst)
+    def semi_emp_mcts(self):
+        raise NotImplementedError
 
-    def mcts(self, def_inst):
+    def mcts(self, def_inst, emp=False):
+        instance = self.make_instance(def_inst, emp)
         self.restart()
-        instance = self.make_instance(def_inst)
         self.root.state = instance.initial_state.copy()
         best_value = 0
         best_path = None
@@ -318,14 +373,7 @@ class Solver:
                 if not node.state.is_terminal():
                     node = node.highest_uct_child(t)
                     for a in path:
-                        if self.type == 'U1S':
-                            action = node.state.a_pos[a]
-                        else:
-                            first_none = 0
-                            while node.state.path[a][first_none] is not None:
-                                first_none += 1
-                            action = {a: node.state.path[a][first_none-1] for a in path}
-                        path[a].append(action)
+                        path[a].append(node.state.get_a_pos(a))
                 else:
                     break
 
@@ -337,13 +385,7 @@ class Solver:
                 node.times_visited += 1
                 node = node.pick_unvisited_child()
                 for a in path:
-                    if self.type == 'U1S':
-                        action = node.state.a_pos[a]
-                    else:
-                        first_none = 0
-                        while node.state.path[a][first_none] is not None:
-                            first_none += 1
-                        action = node.state.path[a][first_none - 1]
+                    action = node.state.get_a_pos(a)
                     path[a].append(action)
                 self.num_of_states += 1
 
@@ -360,7 +402,7 @@ class Solver:
             rollout_reward = instance.reward(rollout_state)
 
             # Deterministic approach allows us to memorize the best path
-            if self.type == 'U1S' and rollout_reward > best_value:
+            if emp and rollout_reward > best_value:
                 best_value = rollout_reward
                 best_path = path
 
@@ -368,9 +410,8 @@ class Solver:
 
             # backpropagation
             while True:
-                #if self.type == 'U1D':
                 if (not node.all_children_visited()) or node.state.is_terminal():
-                    avg_of_node = (node.value*(node.times_visited-1)+discounted_reward)/(node.times_visited)
+                    avg_of_node = (node.value * (node.times_visited - 1) + discounted_reward) / (node.times_visited)
                     node.value = avg_of_node
                     discounted_reward = avg_of_node
                 else:
@@ -386,8 +427,8 @@ class Solver:
             # gathering data
             if self.time_for_log():
                 self.states_collector.append(self.num_of_states)
-                # Deterministic approach allows us to takeout the best path without checking
-                if self.type == 'U1S':
+                # Deterministic approach allows us to log the best path without checking
+                if not emp:
                     self.paths.append(best_path)
                 else:
                     node = self.root
@@ -402,25 +443,19 @@ class Solver:
     def evaluate_path(self, def_inst, path, NUM_OF_SIMS=100000, emp=False):
         if path is None:
             return 0
-        if emp:
-            self.type = "U1D"
-        else:
-            self.type = 'U1S'
-        instance = self.make_instance(def_inst)
+        instance = self.make_instance(def_inst, emp)
         state = instance.initial_state.copy()
         for t in range(0, len(list(path.values())[0])):
             action = {a: path[a][t] for a in path}
             state = instance.make_action(action, state)
-        reward = instance.reward(state, NUM_OF_SIMS=NUM_OF_SIMS)
+        reward = instance.reward(state)
         return reward
 
-    def make_instance(self, def_inst):
-        if self.type == "U1D":
-            instance = DetInstance.DetU1Instance(def_inst)
-        elif self.type == "U1S":
-            instance = StochInstance.U1StochInstance(def_inst)
+    def make_instance(self, def_inst, emp=False):
+        if emp:
+            instance = EmpInstance.EmpInstance(def_inst)
         else:
-            raise Exception("No recognised type!")
+            instance = VectorInstance.VectorInstance(def_inst)
         return instance
 
 

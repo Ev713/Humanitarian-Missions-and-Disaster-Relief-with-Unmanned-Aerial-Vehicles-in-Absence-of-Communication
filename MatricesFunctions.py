@@ -58,43 +58,35 @@ def add_diff_height_mtrxs(mtrx1, mtrx2):
     return np.add(add_zeros_to_bottom(mtrx1, height_diff), mtrx2)
 
 
-def new_matrix(mtrx, prob, theta):
+def new_matrix(old_matrix, distr):
 
-    m_sum = round(np.sum(mtrx), 5)
+    m_sum = round(np.sum(old_matrix), 5)
     if m_sum != 1:
         raise Exception("Input matrix is invalid, sum is: "+str(m_sum))
-    p_sum = sum(list(prob.values()))
+    p_sum = sum(list(distr.values()))
     if round(p_sum, 5) != 1:
         raise Exception("Distribution of a vertex is invalid")
 
-    if 0 not in prob:
-        prob[0] = 0
+    if 0 not in distr:
+        distr[0] = 0
 
-    # Theta represents the probability that the vertex has not been visited by an agent with non-zero utility
-    # in which case the vertex is definitely empty; at the start it is always 1.
-    # Therefore, at this point the new matrix represents the probability
-    # that the agent did not spend any of its utility because another drone has already done it in that vertex.
-    # If that matrix is zero, no agent has visited this vertex (or the original matrix was zero).
-
-    updated_matrix = (1 - theta) * mtrx.copy()
+    updated_matrix = np.zeros(old_matrix.shape)
 
     # R-matrix represents the case in which there is reward r in the vertex.
-    # The assumptions that we are making is that:
-    #   a. The reward in the vertex is indeed r, which happens with probability p.
-    #   b. The vertex has not been visited by another agent which happens with probability theta.
-    # Under those assumptions, the effect on the matrix would be a shift to right by one that represents that
+    # The assumption that we are making is: the reward in the vertex is indeed r, which happens with probability p.
+    # Under that assumption, the effect on the matrix would be a shift to right by one that represents that
     # the utility spent by the agent has risen by one (if r is not zero) and a shift down by r which means
     # that reward collected by the agent has risen by r (note that the right-most column doesn't move since if
     # there is no utility left in agent it doesn't collect the reward). Note that if r is zero than r-matrix is just
     # the copy of the original. Also note the sum of values in the r-matrix is the same as in the original matrix
     # and is 1.
 
-    u_left_zero = np.concatenate((np.zeros((mtrx.shape[0], mtrx.shape[1] - 1)),
-                                  np.reshape(mtrx[:, - 1], (mtrx.shape[0], 1))), axis=1)
+    u_left_zero = np.concatenate((np.zeros((old_matrix.shape[0], old_matrix.shape[1] - 1)),
+                                  np.reshape(old_matrix[:, - 1], (old_matrix.shape[0], 1))), axis=1)
     # Probabilities that the utility left is zero are just the last column.
     # All the other values are filled with zeroes.
 
-    u_spent1 = shift_right(mtrx)
+    u_spent1 = shift_right(old_matrix)
 
     # The effect of spending one utility unit on the matrix would be a shift to the right which is the same
     # as removing the last column (which is not relevant because in that case we cannot spend utility, and so
@@ -103,12 +95,12 @@ def new_matrix(mtrx, prob, theta):
 
     # The u_left_zero and u_spent1 are used in every iteration therefore we compute now, them outside the loop.
 
-    for r in prob:
-        p = prob[r]
+    for r in distr:
+        p = distr[r]
         if p == 0:
             continue
         if r == 0:
-            r_matrix = mtrx.copy()
+            r_matrix = old_matrix.copy()
         else:
             u_spent1_r_collected = shift_down(u_spent1, r)
 
@@ -117,22 +109,21 @@ def new_matrix(mtrx, prob, theta):
 
             r_matrix = add_diff_height_mtrxs(u_left_zero, u_spent1_r_collected)
 
-            if round(np.sum(r_matrix), 5) != 1:
-                raise Exception("bug in computing r-matrix")
-
             # So, the r-matrix that we get from collecting reward r by using 1 utility unit is the sum
             # of the matrix that represents the possibility that the agent had no utility left and the matrix that
             # represents the possibility that we have actually used utility and collected reward.
 
-        updated_matrix = add_diff_height_mtrxs(updated_matrix, p * theta * r_matrix)
+        updated_matrix = add_diff_height_mtrxs(updated_matrix, p * r_matrix)
     new_m_sum = np.sum(updated_matrix)
     if round(new_m_sum, 5) != 1:
         raise Exception("Bug in updating matrix")
     return updated_matrix
 
 
-def update_theta(matrix, theta):
-    return theta * sum(matrix[:, matrix.shape[1] - 1])
+def update_distr(matrix, old_distr):
+    new_distr = {r: old_distr[r] * sum(matrix[:, matrix.shape[1] - 1]) for r in old_distr if r != 0}
+    new_distr[0] = 1 - sum(new_distr.values())
+    return new_distr
 
 
 def get_matrices_reward(matrices):

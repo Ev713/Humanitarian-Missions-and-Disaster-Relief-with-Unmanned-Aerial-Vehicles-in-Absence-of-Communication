@@ -99,7 +99,7 @@ class Instance:
         det_map = []
         det_map_map = {}
         for v in self.map:
-            det_v = Vertex.DetVertex(v.hash())
+            det_v = Vertex.EmpVertex(v.hash())
             det_map.append(det_v)
             det_map_map[v.hash()] = det_v
         for v in self.map:

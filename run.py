@@ -17,24 +17,26 @@ where n is the last index of old_instances i instance collector.
 '''
 
 
-def run_solver(inst, algo, default='-'):
+def run_solver(inst, algo, default='-', dup_det=True):
     # print("start " + inst.name)
     solver = Solver.Solver()
+    solver.dup_det=dup_det
     solver.NUMBER_OF_SIMULATIONS = 9999999
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 20)
-    solver.timeout = 1800
+    solver.timeout = 30
     solution = None
     if algo == 'MCTS_D' or algo == 'MCTS_E':
-        solution = solver.det_mcts(inst)
+        solution = solver.emp_mcts(inst)
     if algo == 'MCTS_S' or algo == 'MCTS_V':
-        solution = solver.stoch_mcts(inst)
+        solution = solver.vector_mcts(inst)
     if algo == 'BFS':
         solver.type = 'U1S'
         solution = solver.bfs(inst)
     if algo == 'BNBL':
         solver.type = 'U1S'
         solution = solver.branch_and_bound(inst, solver.upper_bound_base_plus_utility,
-                                           solver.lower_bound_base_plus_utility)
+                                           solver.lower_bound_base_plus_utility
+                                           )
     if algo == 'BNB':
         solver.type = 'U1S'
         solution = solver.branch_and_bound(inst, solver.upper_bound_base_plus_utility)
@@ -55,11 +57,11 @@ def run_solver(inst, algo, default='-'):
 
 def main():
     args = sys.argv[1:]
-    #args = [0, 'MCTS_E']
+    args = [0, 'MCTS_E']
     name = 'nov_26_2023_30mins_all'
-    #name = 'scratch'
+    name = 'scratch'
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced()
+    decoder.decode_reduced(size_lower_bound=40, size_higher_bound=60)
     inst = decoder.instances[int(args[0])]
     #Inst_visualizer.vis3(inst, name)
     algo = str(args[1])

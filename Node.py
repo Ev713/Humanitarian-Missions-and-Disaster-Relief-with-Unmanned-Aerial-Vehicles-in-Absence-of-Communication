@@ -32,9 +32,9 @@ class Node:
             c.deep_expand(instance)
 
     def get_path(self):
-        if isinstance(self.state, State.DetState):
+        if isinstance(self.state, State.EmpState):
             return self.get_det_path()
-        elif isinstance(self.state, State.StochState):
+        elif isinstance(self.state, State.VectorState):
             return self.get_stoch_path()
 
     def get_det_path(self):

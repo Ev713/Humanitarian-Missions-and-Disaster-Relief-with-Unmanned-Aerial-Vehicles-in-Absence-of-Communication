@@ -11,39 +11,21 @@ import copy
 import MatricesFunctions
 
 
-class GenStochInstance(Instance.Instance):
+class VectorInstance(Instance.Instance):
     def __init__(self, instance):
         super().__init__(instance.name, instance.map, instance.agents, instance.horizon)
         self.map, self.map_map = instance.make_special_map_and_map_map(Vertex.Stoch_Vertex)
         self.agents, self.agents_map = instance.make_agents_and_agents_map(self.map_map, Agent.StochAgent)
         self.horizon = instance.horizon
-        default_state = self.get_default_state(instance)
-        self.initial_state = self.make_action(self.action_zero(default_state), default_state)
+        self.initial_state = self.make_action(self.action_zero(State.VectorState(instance)), State.VectorState(instance))
         self.initial_state.time_left = self.horizon
         self.flybys = instance.flybys
-
-    def get_default_state(self, instance):
-        raise Exception("This method is abstract")
 
     def action_zero(self, zero_state):
         action_zero = {}
         for a_hash in zero_state.a_pos:
             action_zero[a_hash] = State.Position(zero_state.a_pos[a_hash].loc, False)
         return action_zero
-
-    def make_action(self, action, state):
-        raise NotImplementedError
-
-    def reward(self, state):
-        raise NotImplementedError
-
-
-class U1StochInstance(GenStochInstance):
-    def __init__(self, instance):
-        super().__init__(instance)
-
-    def get_default_state(self, instance):
-        return State.StochU1State(instance)
 
     def make_action(self, action, state):
         new_state = state.copy()
@@ -55,14 +37,16 @@ class U1StochInstance(GenStochInstance):
                     self.agents_map[a_hash].movement_budget < self.horizon - new_state.time_left:
                 continue
             vertex_hash = action[a_hash].loc
-            new_matrix = MatricesFunctions.new_matrix(state.matrices[a_hash], self.map_map[vertex_hash].distribution,
-                                                      new_state.thetas[vertex_hash])
-            new_theta = MatricesFunctions.update_theta(state.matrices[a_hash], new_state.thetas[vertex_hash])
+            try:
+                new_matrix = MatricesFunctions.new_matrix(state.matrices[a_hash], state.dynamic_distrs[vertex_hash])
+            except:
+                breakpoint()
+            new_distr = MatricesFunctions.update_distr(state.matrices[a_hash], state.dynamic_distrs[vertex_hash])
             new_state.matrices[a_hash] = new_matrix
-            new_state.thetas[vertex_hash] = new_theta
+            new_state.dynamic_distrs[vertex_hash] = new_distr
         return new_state
 
-    def reward(self, state, NUM_OF_SIMS='variable only to make the method abstractable'):
+    def reward(self, state):
         if state.reward is not None:
             return state.reward
         state.reward = MatricesFunctions.get_matrices_reward(state.matrices)

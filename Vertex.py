@@ -28,7 +28,7 @@ class Vertex:
         return 0 if self.q() == 0 else sum([r * self.distribution[r] for r in self.distribution]) / self.q()
 
 
-class DetVertex(Vertex):
+class EmpVertex(Vertex):
     def __init__(self, number):
         super().__init__(number)
         self.is_empty = False
@@ -47,6 +47,11 @@ class DetVertex(Vertex):
                     self.is_empty = False
                 return
 
+    def generate_semi_emp_reward(self):
+        if random.random() > self.p():
+            return self.bernoulli()
+        return 0
+
     def __str__(self):
         return "det_v" + str(self.number) + " " + str(self.reward) + " " + str(self.is_empty)
 
@@ -54,4 +59,3 @@ class DetVertex(Vertex):
 class Stoch_Vertex(Vertex):
     def __init__(self, name):
         super().__init__(name)
-        self.theta = 1

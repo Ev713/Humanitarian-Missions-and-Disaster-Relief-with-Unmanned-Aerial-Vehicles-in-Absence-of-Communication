@@ -31,7 +31,8 @@ class State:
     def get_a_pos(self, a_hash):
         pass
 
-class DetState(State):
+
+class EmpState(State):
     def __init__(self, instance=None):
         super().__init__()
         self.path = {}  # a.hash(): [pos, pos, -1, ... , -1] -
@@ -48,10 +49,10 @@ class DetState(State):
         first_none = 0
         while self.path[a_hash][first_none] is not None:
             first_none += 1
-        return self.path[a_hash][first_none-1]
+        return self.path[a_hash][first_none - 1]
 
     def copy(self):
-        copy_state = DetState()
+        copy_state = EmpState()
         copy_state.path = copy.deepcopy(self.path)
         copy_state.time_left = self.time_left
         return copy_state
@@ -60,7 +61,7 @@ class DetState(State):
         return str((self.path, self.time_left))
 
 
-class StochState(State):
+class VectorState(State):
     def __init__(self, instance=None):
         super().__init__()
         self.a_pos = {}
@@ -69,15 +70,35 @@ class StochState(State):
             for a in instance.agents:
                 self.time_left = instance.horizon
                 self.a_pos[a.hash()] = Position(a.loc.hash(), False)  # a.hash(): v.hash()
+        self.dynamic_distrs = {}  # v_hash: { r : p }
+        self.matrices = {}  # a_hash: np.array((max_r, max_u))
+        if instance is not None:
+            for a in instance.agents:
+                self.matrices[a.hash()] = MatricesFunctions.get_starting_matrix(a, a.loc)
+            for v_hash in instance.map_map:
+                self.dynamic_distrs[v_hash] = instance.map_map[v_hash].distribution.copy()
+
+    def calculate_vertex_estimate(self, vrtx):
+        probs = self.dynamic_distrs[vrtx.hash()]
+        return sum([probs[i] * i for i in probs.keys()])
+
+    def copy(self):
+        copy_state = VectorState()
+        copy_state.a_pos = copy.deepcopy(self.a_pos)
+        copy_state.matrices = copy.deepcopy(self.matrices)
+        copy_state.dynamic_distrs = copy.deepcopy(self.dynamic_distrs)
+        copy_state.time_left = self.time_left
+        return copy_state
+
+    def hash(self):
+        return (pos.hash() for pos in self.a_pos), ((a, str(self.matrices[a])) for a in self.matrices), \
+               tuple((v, str(self.dynamic_distrs[v])) for v in self.dynamic_distrs)
 
     def get_a_pos(self, a_hash):
         return self.a_pos[a_hash]
 
     def __str__(self):
-        return str((self.a_pos, self.time_left))
-
-    def hash(self):
-        pass
+        return str(self.a_pos)
 
 
 def dict_to_np_arr(dict):
@@ -90,32 +111,3 @@ def dict_to_np_arr(dict):
         if dict[k] != 0:
             arr[k] = dict[k]
     return arr
-
-
-class StochU1State(StochState):
-    def __init__(self, instance=None):
-        super().__init__(instance)
-        self.thetas = {}  # v_hash: [0, 1]
-        self.matrices = {}  # a_hash: np.array((max_r, max_u))
-        if instance is not None:
-            for a in instance.agents:
-                self.matrices[a.hash()] = MatricesFunctions.get_starting_matrix(a, a.loc)
-            for v_hash in instance.map_map:
-                self.thetas[v_hash] = 1
-
-    def calculate_vertex_estimate(self, vrtx, instance=None):
-        theta = self.thetas[vrtx.hash()]
-        probs = instance.map_map[vrtx.hash()].distribution
-        return sum([theta * probs[i] * i for i in probs.keys()])
-
-    def copy(self):
-        copy_state = StochU1State()
-        copy_state.a_pos = copy.deepcopy(self.a_pos)
-        copy_state.matrices = copy.deepcopy(self.matrices)
-        copy_state.thetas = copy.deepcopy(self.thetas)
-        copy_state.time_left = self.time_left
-        return copy_state
-
-    def hash(self):
-        return str(self), tuple([(a, str(self.matrices[a])) for a in self.matrices]), \
-               tuple([(v, str(self.thetas[v])) for v in self.thetas])

@@ -83,8 +83,8 @@ class Instance_data:
 
 
 class Analyzer:
-    def __init__(self):
-        self.file_path = "data/nov_23_2023_30mins_all_fixed.csv"
+    def __init__(self, filepath):
+        self.file_path = filepath
         self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
         self.runs = []
         self.instances = {}
@@ -211,6 +211,7 @@ class Analyzer:
         plt.legend(algos)
         plt.xlabel('Runtime limit (s)')
         plt.ylabel('Success rate')
+
         if save:
             plt.savefig('success_rate_per_time.png')
         plt.show()
@@ -235,18 +236,29 @@ class Analyzer:
 def main():
     acc = 2
     algos = ['BFS',
-             #'BNB',
-             #'BNBL',
-             'MCTS_V',
-             'MCTS_E',
+             'BNB',
+             'BNBL',
+             #'MCTS_V',
+             #'MCTS_E',
              #'GBFS'
              ]
-    analyzer = Analyzer()
+
+    allowed_types = (
+        'FR',
+        'MT',
+        'SC',
+        'AG01',
+        'AG001',
+        'AG05'
+    )
+    filepath = "data/nov_26_2023_30mins_all.csv"
+    analyzer = Analyzer(filepath)
     analyzer.create_runs()
     instances = {}
     data_for_graphs = {}
     data_for_tables = {}
     counter = 0
+
 
     for run in analyzer.runs:
 
@@ -272,8 +284,6 @@ def main():
 
         instance_runs = instances[inst_name]
 
-
-
         #all_algos = True
         #for algo in algos:
         #    if algo not in instance_runs:
@@ -284,8 +294,8 @@ def main():
 
         if default not in instance_runs or instance_runs[default].results[-1][0] == 0:
             continue
-        if instance_runs[default].type == 'FR':
-            continue
+        #if instance_runs[default].type not in allowed_types:
+        #    continue
 
         #if instance_runs['BFS'].source == 'X' or instance_runs['BFS'].type != 'MT':
         #    continue
@@ -293,6 +303,10 @@ def main():
         bfs_result = instance_runs[default].results[-1][0]
         bfs_time = 1800# instance_runs[default].results[-1][2]
         bfs_states = instance_runs[default].states
+
+        num_of_types = {type : 0 for type in allowed_types}
+        for instance in instances:
+            num_of_types[instances[instance]['BFS'].type] += 1
 
         for algo in algos:
             if algo not in instance_runs:
@@ -315,6 +329,9 @@ def main():
             if algo not in data_for_tables:
                 data_for_tables[algo] = []
             data_for_tables[algo].append(run.states / bfs_states)
+
+    for t in num_of_types:
+        print(t, num_of_types[t])
 
     relative_to_states = False
 
@@ -342,14 +359,10 @@ def main():
             avg_result = statistics.mean(results)
             graphs[algo][0].append(t)
             graphs[algo][1].append(avg_result)
-    plt.plot(
-             graphs['BFS'][0], graphs['BFS'][1],
-             #graphs['BNB'][0], graphs['BNB'][1],
-             #graphs['BNBL'][0], graphs['BNBL'][1],
-             graphs['MCTS_V'][0], graphs['MCTS_V'][1],
-             graphs['MCTS_E'][0], graphs['MCTS_E'][1],
-             #graphs['GBFS'][0], graphs['GBFS'][1],
-             )
+
+    for algo in algos:
+        plt.plot(graphs[algo][0], graphs[algo][1], label=algo)
+
     plt.legend(algos)
     if not relative_to_states:
         plt.xlabel("Time (relative to "+default+" time)")
@@ -357,6 +370,7 @@ def main():
         plt.xlabel("States (relative to "+default+" states)")
     plt.ylabel("Result (relative to "+default+" result)")
     plt.title("All maps, new heuristics")
+    plt.ylim(bottom=0)
 
     print("States (relative to BFS states):")
     for algo in data_for_tables:
