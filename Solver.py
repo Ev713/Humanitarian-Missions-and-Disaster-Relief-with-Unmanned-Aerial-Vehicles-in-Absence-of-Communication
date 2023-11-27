@@ -230,7 +230,7 @@ class Solver:
         self.restart()
         self.root = Node.Node(None)
         self.best_node = self.root
-        instance = self.make_instance(def_inst)
+        instance = self.make_instance(def_inst, 'VEC')
 
         if upper_bound is not None or lower_bound is not None:
             self.calculate_all_pairs_distances_with_Seidel(instance)
@@ -306,7 +306,7 @@ class Solver:
         self.restart()
         self.root = Node.Node(None)
         self.best_node = self.root
-        instance = self.make_instance(def_inst)
+        instance = self.make_instance(def_inst, 'VEC')
         self.root.state = instance.initial_state.copy()
         self.root.value = instance.reward(self.best_node.state)
         self.best_node = self.root
