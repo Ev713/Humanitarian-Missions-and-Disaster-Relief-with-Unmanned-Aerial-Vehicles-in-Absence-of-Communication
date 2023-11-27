@@ -62,7 +62,7 @@ def main():
     name = 'nov_27_2023_30mins_all'
     #name = 'scratch'
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(size_lower_bound=40, size_higher_bound=60)
+    decoder.decode_reduced()
     inst = decoder.instances[int(args[0])]
     #Inst_visualizer.vis3(inst, name)
     algo = str(args[1])
