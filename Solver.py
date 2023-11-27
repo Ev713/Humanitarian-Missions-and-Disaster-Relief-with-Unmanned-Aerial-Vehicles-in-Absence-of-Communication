@@ -440,10 +440,10 @@ class Solver:
         # returning
         return self.get_solution(False)
 
-    def evaluate_path(self, def_inst, path, emp=False):
+    def evaluate_path(self, def_inst, path, method='VEC'):
         if path is None:
             return 0
-        instance = self.make_instance(def_inst, emp)
+        instance = self.make_instance(def_inst, method)
         state = instance.initial_state.copy()
         for t in range(0, len(list(path.values())[0])):
             action = {a: path[a][t] for a in path}
