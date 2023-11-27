@@ -98,6 +98,5 @@ def main():
     df.to_csv('data/'+name+('_with_preprocessing_' if preprocessing == 1 else'')+'.csv', mode='a', index=False, header=False)
 
 
-
 if __name__ == "__main__":
     main()
