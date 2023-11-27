@@ -85,7 +85,7 @@ class Solver:
         self.NUMBER_OF_SIMULATIONS = 5000
         self.JUMP = self.NUMBER_OF_SIMULATIONS / min(self.NUMBER_OF_SIMULATIONS, 100)
         self.DISCOUNT = 1
-        self.timeout = 1800
+        self.timeout = 0
         self.start = 0
 
         self.root = None
