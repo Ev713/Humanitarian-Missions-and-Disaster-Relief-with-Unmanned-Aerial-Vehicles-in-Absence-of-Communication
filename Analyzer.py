@@ -235,13 +235,7 @@ class Analyzer:
 
 def main():
     acc = 2
-    algos = ['BFS',
-             'BNB',
-             'BNBL',
-             #'MCTS_V',
-             #'MCTS_E',
-             #'GBFS'
-             ]
+    algos = set()
 
     allowed_types = (
         'FR',
@@ -251,7 +245,7 @@ def main():
         'AG001',
         'AG05'
     )
-    filepath = "data/nov_26_2023_30mins_all.csv"
+    filepath = "data/scratch.csv"
     analyzer = Analyzer(filepath)
     analyzer.create_runs()
     instances = {}
@@ -261,12 +255,11 @@ def main():
 
 
     for run in analyzer.runs:
-
-
-        max = 0
+        algos.add(run.algo)
+        max_result = 0
         for r in run.results:
-            if r[0] >= max:
-                max = r[0]
+            if r[0] >= max_result:
+                max_result = r[0]
             else:
                 counter += 1
                 break
@@ -279,7 +272,8 @@ def main():
     fin_ress = {algo: [] for algo in algos}
     sizes = {algo: [] for algo in algos}
     states = {algo: [] for algo in algos}
-    default = 'BFS'
+    default = 'MCTS_S'
+    num_of_types = {type: 0 for type in allowed_types}
     for inst_name in instances:
 
         instance_runs = instances[inst_name]
@@ -300,13 +294,15 @@ def main():
         #if instance_runs['BFS'].source == 'X' or instance_runs['BFS'].type != 'MT':
         #    continue
 
-        bfs_result = instance_runs[default].results[-1][0]
-        bfs_time = 1800# instance_runs[default].results[-1][2]
-        bfs_states = instance_runs[default].states
+        def_result = instance_runs[default].results[-1][0]
+        def_time = max([run.results[-1][2] for run in analyzer.runs])  # instance_runs[default].results[-1][2]
+        def_states = instance_runs[default].states
 
-        num_of_types = {type : 0 for type in allowed_types}
         for instance in instances:
-            num_of_types[instances[instance]['BFS'].type] += 1
+            for algo in algos:
+                if algo in instances[instance]:
+                    num_of_types[instances[instance][algo].type] += 1
+                    break
 
         for algo in algos:
             if algo not in instance_runs:
@@ -320,15 +316,15 @@ def main():
             states[algo].append(run.states)
 
             for pair in run.results:
-                pair[0] = round(pair[0] / bfs_result, acc)
-                pair[1] = round(pair[1] / bfs_states, acc)
-                pair[2] = round(pair[2] / bfs_time, acc)
+                pair[0] = round(pair[0] / def_result, acc)
+                pair[1] = round(pair[1] / def_states, acc)
+                pair[2] = round(pair[2] / def_time, acc)
             if algo not in data_for_graphs:
                 data_for_graphs[algo] = []
             data_for_graphs[algo].append(run)
             if algo not in data_for_tables:
                 data_for_tables[algo] = []
-            data_for_tables[algo].append(run.states / bfs_states)
+            data_for_tables[algo].append(run.states / def_states)
 
     for t in num_of_types:
         print(t, num_of_types[t])

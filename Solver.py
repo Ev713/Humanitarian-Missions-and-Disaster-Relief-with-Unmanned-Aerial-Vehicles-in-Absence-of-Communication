@@ -402,7 +402,7 @@ class Solver:
             rollout_reward = instance.reward(rollout_state)
 
             # Deterministic approach allows us to memorize the best path
-            if method != 'VEC' and rollout_reward > best_value:
+            if method == 'VEC' and rollout_reward > best_value:
                 best_value = rollout_reward
                 best_path = path
 

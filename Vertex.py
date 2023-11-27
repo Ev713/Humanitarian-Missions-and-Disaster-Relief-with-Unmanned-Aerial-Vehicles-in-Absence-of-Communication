@@ -49,8 +49,13 @@ class EmpVertex(Vertex):
 
     def generate_semi_emp_reward(self):
         if random.random() > self.p():
-            return self.bernoulli()
-        return 0
+            self.reward = self.bernoulli()
+            if self.reward == 0:
+                self.is_empty = True
+            else:
+                self.is_empty = False
+            return
+
 
     def __str__(self):
         return "det_v" + str(self.number) + " " + str(self.reward) + " " + str(self.is_empty)
