@@ -14,10 +14,13 @@ class EmpInstance(Instance.Instance):
         self.flybys = instance.flybys
 
     def regenerate_instance(self):
-        for v in self.map:
-            v.generate_reward()
+        self.generate_rewards()
         for a in self.agents:
             a.current_utility_budget = a.utility_budget
+
+    def generate_rewards(self):
+        for v in self.map:
+            v.generate_reward()
 
     def make_action(self, action, state):
         new_state = state.copy()
@@ -52,3 +55,12 @@ class EmpInstance(Instance.Instance):
                     a.current_utility_budget -= 1
             tot_reward += round_reward
         return tot_reward / num_of_sims
+
+
+class SemiEmpInstance(EmpInstance):
+    def __init__(self, instance=None):
+        super().__init__(instance)
+
+    def generate_rewards(self):
+        for v in self.map:
+            v.generate_semi_emp_reward()

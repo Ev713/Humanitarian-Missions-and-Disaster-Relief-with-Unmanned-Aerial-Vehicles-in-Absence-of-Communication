@@ -346,16 +346,16 @@ class Solver:
         return self.get_solution(False)
 
     def emp_mcts(self, inst):
-        return self.mcts(inst, True)
+        return self.mcts(inst, 'EMP')
 
     def vector_mcts(self, inst):
-        return self.mcts(inst)
+        return self.mcts(inst, 'VEC')
 
-    def semi_emp_mcts(self):
-        raise NotImplementedError
+    def semi_emp_mcts(self, inst):
+        return self.mcts(inst, 'SEM')
 
-    def mcts(self, def_inst, emp=False):
-        instance = self.make_instance(def_inst, emp)
+    def mcts(self, def_inst, method):
+        instance = self.make_instance(def_inst, method)
         self.restart()
         self.root.state = instance.initial_state.copy()
         best_value = 0
@@ -402,7 +402,7 @@ class Solver:
             rollout_reward = instance.reward(rollout_state)
 
             # Deterministic approach allows us to memorize the best path
-            if emp and rollout_reward > best_value:
+            if method != 'VEC' and rollout_reward > best_value:
                 best_value = rollout_reward
                 best_path = path
 
@@ -428,7 +428,7 @@ class Solver:
             if self.time_for_log():
                 self.states_collector.append(self.num_of_states)
                 # Deterministic approach allows us to log the best path without checking
-                if not emp:
+                if method == 'VEC':
                     self.paths.append(best_path)
                 else:
                     node = self.root
@@ -440,7 +440,7 @@ class Solver:
         # returning
         return self.get_solution(False)
 
-    def evaluate_path(self, def_inst, path, NUM_OF_SIMS=100000, emp=False):
+    def evaluate_path(self, def_inst, path, emp=False):
         if path is None:
             return 0
         instance = self.make_instance(def_inst, emp)
@@ -451,11 +451,15 @@ class Solver:
         reward = instance.reward(state)
         return reward
 
-    def make_instance(self, def_inst, emp=False):
-        if emp:
+    def make_instance(self, def_inst, method):
+        if method == 'EMP':
             instance = EmpInstance.EmpInstance(def_inst)
-        else:
+        elif method == 'VEC':
             instance = VectorInstance.VectorInstance(def_inst)
+        elif method == 'SEM':
+            instance = EmpInstance.SemiEmpInstance(def_inst)
+        else:
+            raise Exception('Unrecognized type')
         return instance
 
 

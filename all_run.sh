@@ -15,8 +15,15 @@ else
     fi
 fi
 
-algos=('BFS' 'BNB' 'BNBL')
-#'MCTS_V' 'MCTS_E' 'GBFS')
+algos=(
+ 'BFS'
+ 'BNB'
+ 'BNBL'
+ 'MCTS_V'
+ 'MCTS_E'
+ 'MCTS_S'
+ 'GBFS'
+ )
 
 
 # Loop through processes and strategies

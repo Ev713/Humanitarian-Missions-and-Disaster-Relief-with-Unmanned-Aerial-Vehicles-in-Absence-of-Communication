@@ -25,18 +25,19 @@ def run_solver(inst, algo, default='-', dup_det=True):
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 20)
     solver.timeout = 30
     solution = None
-    if algo == 'MCTS_D' or algo == 'MCTS_E':
+    if algo == 'MCTS_E':
         solution = solver.emp_mcts(inst)
-    if algo == 'MCTS_S' or algo == 'MCTS_V':
+    if algo == 'MCTS_V':
         solution = solver.vector_mcts(inst)
+    if algo == 'MCTS_S':
+        solution = solver.semi_emp_mcts(inst)
     if algo == 'BFS':
         solver.type = 'U1S'
         solution = solver.bfs(inst)
     if algo == 'BNBL':
         solver.type = 'U1S'
         solution = solver.branch_and_bound(inst, solver.upper_bound_base_plus_utility,
-                                           solver.lower_bound_base_plus_utility
-                                           )
+                                           solver.lower_bound_base_plus_utility)
     if algo == 'BNB':
         solver.type = 'U1S'
         solution = solver.branch_and_bound(inst, solver.upper_bound_base_plus_utility)
