@@ -26,3 +26,27 @@ class MaxPriorityQueue:
     def is_empty(self):
         return len(self._queue) == 0
 
+
+class DataNode:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+
+class Queue:
+    def __init__(self, data):
+        self.head = DataNode(data)
+        self.tail = self.head
+
+    def is_empty(self):
+        return self.head is None
+
+    def push(self, data):
+        self.head.next = DataNode(data)
+        self.head = self.head.next
+
+    def pop(self):
+        tail = self.tail
+        self.tail = tail.next
+        tail.next = None
+        return tail

@@ -57,7 +57,7 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
 
 
 def single_run():
-    args = [0, 'MCTS_V']
+    args = [0, 'MCTS_E']
     name = 'scratch'
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
@@ -66,7 +66,7 @@ def single_run():
     algo = str(args[1])
     print("\n" + inst.name + " with " + algo + " starts")
 
-    r = run_solver(inst, algo, 300)
+    r = run_solver(inst, algo, 60)
     write_data(r, name)
 
 
@@ -88,10 +88,10 @@ def multi_run():
     timeout = 300
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced()
+    decoder.decode_reduced(max_num=20)
     instances = decoder.instances
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=round(multiprocessing.cpu_count() * 0.6)) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=round(multiprocessing.cpu_count() * 0.2)) as executor:
         results = executor.map(solve, [(inst, algo, timeout) for inst in instances for algo in algos])
         for r in results:
             write_data(r, name)

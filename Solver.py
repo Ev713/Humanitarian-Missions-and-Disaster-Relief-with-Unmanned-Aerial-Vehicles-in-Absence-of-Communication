@@ -166,13 +166,11 @@ class Solver:
             if not node.state.is_terminal():
                 node.expand(
                     [self.instance.make_action(action, node.state) for action in self.instance.actions(node.state)])
+                self.num_of_states += len(node.children)
                 for child in node.children:
-
-                    self.num_of_states += 1
-
-                    if self.is_timeout():
-                        return self.get_results()
-                    self.log_if_needed()
+                    #if self.is_timeout():
+                    #    return self.get_results()
+                    #self.log_if_needed()
 
                     key = child.state.hash()
                     if self.dup_det:
@@ -189,11 +187,11 @@ class Solver:
                         self.best_node = child
 
                     if upper_bound is not None:
-                        up = upper_bound(self, child.state)
-                        low = 0 if lower_bound is None else lower_bound(self, child.state)
+                        up = upper_bound(child.state)
+                        low = 0 if lower_bound is None else lower_bound(child.state)
                         if v + up < self.best_value + low:
                             continue
-                    que = [child] + que
+                    que.append(child)
 
         return self.get_results()
 
@@ -205,10 +203,8 @@ class Solver:
         nodes = MaxPriorityQueue()
         nodes.push(self.root)
         visited_states = set()
+        self.calculate_all_pairs_distances_with_Seidel()
         while not nodes.is_empty():
-            if self.is_timeout():
-                return self.get_results()
-            self.log_if_needed()
 
             best_unexpanded_node = nodes.pop()
             best_unexpanded_node.expand([self.instance.make_action(action, best_unexpanded_node.state)
@@ -262,10 +258,11 @@ class Solver:
 
             # expansion
             if not node.state.is_terminal():
-                if not node.children:
-                    node.expand(
+                if len(node.children) > 0:
+                    breakpoint()
+                node.expand(
                         [self.instance.make_action(action, node.state) for action in self.instance.actions(node.state)])
-                    self.num_of_states += len(node.children)
+                self.num_of_states += len(node.children)
                 node.times_visited += 1
                 node = node.children[0]
 
