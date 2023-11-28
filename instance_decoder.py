@@ -40,7 +40,7 @@ class Decoder:
                        horizon_higher_bound=None,
                        types_allowed=('FR', 'MT', 'SC', 'AG001', 'AG05', 'AG01',),
                        specifics=(),
-                       type=None
+                       max_num=None
                         ):
         for filename in os.scandir("Reduced_maps"):
             if filename.is_file():
@@ -55,6 +55,9 @@ class Decoder:
                     continue
                 if len(specifics) > 0 and decoded_instance.name not in specifics:
                     continue
+                if max_num is not None and len(self.instances) > max_num:
+                    break
                 self.instances.append(decoded_instance)
+
         return self.instances
 

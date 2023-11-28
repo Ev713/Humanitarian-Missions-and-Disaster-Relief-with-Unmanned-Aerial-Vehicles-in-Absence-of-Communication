@@ -2,7 +2,7 @@ import pandas as pd
 import sys
 
 # import instance_collector
-#import Inst_visualizer
+# import Inst_visualizer
 import instance_decoder
 # import THIRD_instance_collector as collector
 import Solver
@@ -17,13 +17,28 @@ where n is the last index of old_instances i instance collector.
 '''
 
 
-def run_solver(inst, algo, default='-', dup_det=True):
-    # print("start " + inst.name)
+def write_data(r, name, ):
+    fin_res, t, res, states, inst, algo = r[0], r[1], r[2], r[3], r[4], r[5]
+    df = pd.DataFrame({'inst_name': [str(inst.name)], 'num_agents': [len(inst.agents)], 'map_size': [len(inst.map)],
+                       'source': [str(inst.source)], 'type': [str(inst.type)], 'horizon': [int(inst.horizon)],
+                       'algo': [str(algo)],
+                       'final_result': [float(fin_res)], 'time': [float(t)] if t != '-' else '-', 'states': int(states),
+                       'result': [str(res)]})
+    print({'inst_name': inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
+           'source': inst.source, 'type': inst.type, 'horizon': inst.horizon, 'algo': algo,
+           'final_result': fin_res, 'time': t, 'states': states, })
+
+    df.to_csv('data/' + name + '.csv', mode='a', index=False,
+              header=False)
+
+
+def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
+    print("start " + inst.name, algo)
     solver = Solver.Solver()
-    solver.dup_det=dup_det
+    solver.dup_det = dup_det
     solver.NUMBER_OF_SIMULATIONS = 9999999
     solver.JUMP = solver.NUMBER_OF_SIMULATIONS / min(solver.NUMBER_OF_SIMULATIONS, 20)
-    solver.timeout = 1800
+    solver.timeout = timeout
     solution = None
     if algo == 'MCTS_E':
         solution = solver.emp_mcts(inst)
@@ -41,11 +56,9 @@ def run_solver(inst, algo, default='-', dup_det=True):
     if algo == 'BNB':
         solver.type = 'U1S'
         solution = solver.branch_and_bound(inst, solver.upper_bound_base_plus_utility)
-
     if algo == 'GBFS':
         solver.type = 'U1S'
         solution = solver.greedy_best_first_search(inst)
-
     timestamps = solution.timestamps
     states = solution.states
     solver.type = 'U1S'
@@ -53,49 +66,25 @@ def run_solver(inst, algo, default='-', dup_det=True):
     res = tuple(zip(solution.rewards, solution.states_collector, timestamps, ))
     fin_res = solution.rewards[-1] if len(solution.rewards) > 0 else default
     time = timestamps[-1] if not solution.interrupted else default
-    return fin_res, time, res, states
+    return fin_res, time, res, states, inst, algo
 
 
 def main():
     args = sys.argv[1:]
-    #args = [0, 'MCTS_V']
+    # args = [0, 'MCTS_V']
     name = 'nov_27_2023_30mins_all'
-    #name = 'scratch'
+    # name = 'scratch'
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
     inst = decoder.instances[int(args[0])]
-    #Inst_visualizer.vis3(inst, name)
+    # Inst_visualizer.vis3(inst, name)
     algo = str(args[1])
-    #preprocessing = int(args[2])
+    # preprocessing = int(args[2])
     preprocessing = 0
     print("\n" + inst.name + " with " + algo + " starts")
 
-    if preprocessing == 1:
-        # Loop over old_instances and num_of_sim
-        import time
-        start = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
-        solver = Solver.Solver()
-        solver.map_reduce(inst)
-        finish = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
-
-        preprocess_time = finish - start
-
-        df2 = pd.DataFrame({"inst_name": [inst.name], "preprocess_time": [preprocess_time]})
-
-        df2.to_csv('data/'+name+'_preprocess_time', mode='a', index=False, header=False)
-        print(inst.name + " " + algo + '_preprocess_time: ', preprocess_time)
-
-    fin_res, t, res, states = run_solver(inst, algo)
-    df = pd.DataFrame({'inst_name': [str(inst.name)], 'num_agents': [len(inst.agents)], 'map_size': [len(inst.map)],
-                           'source': [str(inst.source)], 'type': [str(inst.type)], 'horizon': [int(inst.horizon)],
-                           'algo': [str(algo)],
-                           'final_result': [float(fin_res)], 'time': [float(t)] if t != '-' else '-', 'states': int(states),
-                           'result': [str(res)]})
-    print({'inst_name': inst.name, 'num_agents': len(inst.agents), 'map_size': len(inst.map),
-           'source': inst.source, 'type': inst.type, 'horizon': inst.horizon, 'algo': algo,
-           'final_result': fin_res, 'time': t, 'states': states, })
-
-    df.to_csv('data/'+name+('_with_preprocessing_' if preprocessing == 1 else'')+'.csv', mode='a', index=False, header=False)
+    r = run_solver(inst, algo)
+    write_data(r, name)
 
 
 if __name__ == "__main__":

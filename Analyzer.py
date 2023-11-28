@@ -245,7 +245,7 @@ def main():
         'AG001',
         'AG05'
     )
-    filepath = "data/scratch.csv"
+    filepath = "data/nov_27_2023_30mins_all.csv"
     analyzer = Analyzer(filepath)
     analyzer.create_runs()
     instances = {}
@@ -272,7 +272,7 @@ def main():
     fin_ress = {algo: [] for algo in algos}
     sizes = {algo: [] for algo in algos}
     states = {algo: [] for algo in algos}
-    default = 'MCTS_S'
+    default = 'BFS'
     num_of_types = {type: 0 for type in allowed_types}
     for inst_name in instances:
 

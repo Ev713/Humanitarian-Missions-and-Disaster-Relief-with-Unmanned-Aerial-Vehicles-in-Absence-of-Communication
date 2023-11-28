@@ -226,7 +226,7 @@ class Solver:
         return self.branch_and_bound(def_inst)
 
     def branch_and_bound(self, def_inst, upper_bound=None, lower_bound=None):
-        self.timer.start('init')
+        #self.timer.start('init')
         self.restart()
         self.root = Node.Node(None)
         self.best_node = self.root
@@ -245,12 +245,12 @@ class Solver:
         self.best_value = instance.reward(self.root.state)
         self.prev_time_check = self.start
 
-        self.timer.end('init')
+        #self.timer.end('init')
 
         while que:
             if self.is_timeout():
-                self.timer.end_all()
-                print(str(self.timer))
+                #self.timer.end_all()
+                #print(str(self.timer))
                 return self.get_solution(True)
             if self.time_for_log():
                 self.paths.append(self.best_node.get_path())
@@ -259,15 +259,15 @@ class Solver:
             if not node.state.is_terminal():
                 node.expand([instance.make_action(action, node.state) for action in instance.actions(node.state)])
 
-                self.timer.end_from_last_end('expand')
+                #self.timer.end_from_last_end('expand')
 
                 for child in node.children:
 
                     self.num_of_states += 1
 
                     if self.is_timeout():
-                        self.timer.end_all()
-                        print(str(self.timer))
+                        #self.timer.end_all()
+                        #print(str(self.timer))
                         return self.get_solution(True)
                     if self.time_for_log():
                         self.paths.append(self.best_node.get_path())
@@ -280,7 +280,7 @@ class Solver:
                         else:
                             visited_states[hash] = child.state.time_left
 
-                    self.timer.end_from_last_end('dup_det')
+                    #self.timer.end_from_last_end('dup_det')
 
                     v = instance.reward(child.state)
 
@@ -295,7 +295,7 @@ class Solver:
                             continue
                     que = [child] + que
 
-                    self.timer.end_from_last_end('queueing')
+                    #self.timer.end_from_last_end('queueing')
 
         return self.get_solution(False)
 
