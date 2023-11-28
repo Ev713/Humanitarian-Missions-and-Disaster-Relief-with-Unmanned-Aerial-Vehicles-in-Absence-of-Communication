@@ -75,9 +75,13 @@ class Node:
         raise Exception("All children are visited!")
 
     def highest_uct_child(self, time, exp_rate=math.sqrt(2)):
+        if self.children[0].times_visited == 0:
+            return self.children[0]
         max_uct = self.children[0].uct(time, exp_rate)
         max_uct_child = self.children[0]
         for c in self.children:
+            if c.times_visited == 0:
+                return c
             c_uct = c.uct(time, exp_rate)
             if c_uct > max_uct:
                 max_uct = c_uct

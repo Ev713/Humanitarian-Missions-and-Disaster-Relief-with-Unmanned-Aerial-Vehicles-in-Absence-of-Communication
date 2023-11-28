@@ -37,10 +37,7 @@ class VectorInstance(Instance.Instance):
                     self.agents_map[a_hash].movement_budget < self.horizon - new_state.time_left:
                 continue
             vertex_hash = action[a_hash].loc
-            try:
-                new_matrix = MatricesFunctions.new_matrix(state.matrices[a_hash], state.dynamic_distrs[vertex_hash])
-            except:
-                breakpoint()
+            new_matrix = MatricesFunctions.new_matrix(state.matrices[a_hash], state.dynamic_distrs[vertex_hash])
             new_distr = MatricesFunctions.update_distr(state.matrices[a_hash], state.dynamic_distrs[vertex_hash])
             new_state.matrices[a_hash] = new_matrix
             new_state.dynamic_distrs[vertex_hash] = new_distr

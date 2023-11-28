@@ -253,7 +253,6 @@ def main():
     data_for_tables = {}
     counter = 0
 
-
     for run in analyzer.runs:
         algos.add(run.algo)
         max_result = 0
