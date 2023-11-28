@@ -90,7 +90,6 @@ def multi_run():
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
     instances = decoder.instances
-    preprocessing = 0
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=round(multiprocessing.cpu_count() * 0.6)) as executor:
         results = executor.map(solve, [(inst, algo, timeout) for inst in instances for algo in algos])
