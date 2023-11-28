@@ -27,29 +27,29 @@ def write_data(r, name, ):
 
 def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
     print("start " + inst.name, algo)
-    solver = Solver.Solver()
+    solver = Solver.Solver(inst)
     solver.dup_det = dup_det
     solver.timeout = timeout
     results = None
     if algo == 'MCTS_E':
-        results = solver.emp_mcts(inst)
+        results = solver.emp_mcts()
     if algo == 'MCTS_V':
-        results = solver.vector_mcts(inst)
+        results = solver.vector_mcts()
     if algo == 'MCTS_S':
-        results = solver.semi_emp_mcts(inst)
+        results = solver.semi_emp_mcts()
     if algo == 'BFS':
         solver.type = 'U1S'
-        results = solver.bfs(inst)
+        results = solver.bfs()
     if algo == 'BNBL':
         solver.type = 'U1S'
-        results = solver.branch_and_bound(inst, solver.upper_bound_base_plus_utility,
-                                           solver.lower_bound_base_plus_utility)
+        results = solver.branch_and_bound(solver.upper_bound_base_plus_utility,
+                                          solver.lower_bound_base_plus_utility)
     if algo == 'BNB':
         solver.type = 'U1S'
-        results = solver.branch_and_bound(inst, solver.upper_bound_base_plus_utility)
+        results = solver.branch_and_bound(solver.upper_bound_base_plus_utility)
     if algo == 'GBFS':
         solver.type = 'U1S'
-        results = solver.greedy_best_first_search(inst)
+        results = solver.greedy_best_first_search()
     fin_res = results[-1][0] if len(results) > 0 else default
     fin_time = results[-1][-1] if len(results) > 0 and results[-1][-1] < timeout else default
     fin_states = results[-1][1] if len(results) > 0 else default
