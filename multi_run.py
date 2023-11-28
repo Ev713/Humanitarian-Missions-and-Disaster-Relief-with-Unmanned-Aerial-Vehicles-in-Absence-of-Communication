@@ -85,13 +85,13 @@ def multi_run():
         'GBFS'
     ]
     name = 'scratch'
-    timeout = 300
+    timeout = 1800
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(max_num=20)
+    decoder.decode_reduced()
     instances = decoder.instances
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=round(multiprocessing.cpu_count() * 0.2)) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=round(multiprocessing.cpu_count() * 0.8)) as executor:
         results = executor.map(solve, [(inst, algo, timeout) for inst in instances for algo in algos])
         for r in results:
             write_data(r, name)
