@@ -57,16 +57,17 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
 
 
 def single_run():
-    args = [0, 'MCTS_E']
+    args = [0, 'GBFS']
     name = 'scratch'
+    timeout = 99999
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced()
+    decoder.decode_reduced(size_higher_bound=30)
     inst = decoder.instances[int(args[0])]
     # Inst_visualizer.vis3(inst, name)
     algo = str(args[1])
     print("\n" + inst.name + " with " + algo + " starts")
 
-    r = run_solver(inst, algo, 60)
+    r = run_solver(inst, algo, timeout)
     write_data(r, name)
 
 
@@ -84,8 +85,8 @@ def multi_run():
         'BNB',
         'GBFS'
     ]
-    name = 'scratch'
-    timeout = 1800
+    name = 'nov_29'
+    timeout = 300
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
@@ -101,4 +102,4 @@ def multi_run():
 
 
 if __name__ == "__main__":
-    multi_run()
+    single_run()
