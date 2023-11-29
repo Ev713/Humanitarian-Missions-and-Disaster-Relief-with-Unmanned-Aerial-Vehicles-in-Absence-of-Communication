@@ -102,4 +102,4 @@ def multi_run():
 
 
 if __name__ == "__main__":
-    single_run()
+    multi_run()
