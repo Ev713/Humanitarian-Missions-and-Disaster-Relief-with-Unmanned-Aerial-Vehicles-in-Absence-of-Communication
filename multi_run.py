@@ -97,7 +97,7 @@ def multi_run():
     processes = []
     for inst in instances:
         for algo in algos:
-            p = multiprocessing.Process(target=solve, args=(inst, algo, timeout, name))
+            p = multiprocessing.Process(target=solve, args=((inst, algo, timeout, name)))
             p.start()
             processes.append(p)
 
