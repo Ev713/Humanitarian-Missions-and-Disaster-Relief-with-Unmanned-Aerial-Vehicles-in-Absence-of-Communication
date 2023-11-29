@@ -70,7 +70,7 @@ def single_run():
 
 
 def solve(args):
-    write_data(run_solver(args[0], args[1], args[2]))
+    write_data(run_solver(args[0], args[1], args[2]), args[3])
 
 def multi_run():
     algos = [
@@ -97,7 +97,7 @@ def multi_run():
     processes = []
     for inst in instances:
         for algo in algos:
-            p = multiprocessing.Process(target=solve, args=(inst, algo, timeout))
+            p = multiprocessing.Process(target=solve, args=(inst, algo, timeout, name))
             p.start()
             processes.append(p)
 
