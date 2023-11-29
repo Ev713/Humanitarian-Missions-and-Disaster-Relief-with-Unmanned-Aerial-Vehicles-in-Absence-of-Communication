@@ -85,7 +85,7 @@ def multi_run():
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
     name = f'nov_29_' + computer
-    timeout = 60
+    timeout = 300
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
@@ -98,7 +98,7 @@ def multi_run():
     #         write_data(r, name)
 
     processes = []
-    max_workers = 3  # round(multiprocessing.cpu_count() * 0.5)
+    max_workers = round(multiprocessing.cpu_count() * 0.5)
     counter = 0
     for inst in instances:
         for algo in algos:
