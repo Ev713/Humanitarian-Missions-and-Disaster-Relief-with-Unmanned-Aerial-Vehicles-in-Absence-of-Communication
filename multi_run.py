@@ -89,10 +89,10 @@ def multi_run():
     decoder.decode_reduced(max_num=10)
     instances = decoder.instances
 
-    '''with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:  # round(multiprocessing.cpu_count() * 0.8)) as executor:
-        results = executor.map(solve, [(inst, algo, timeout) for inst in instances for algo in algos])
-        for r in results:
-            write_data(r, name)'''
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:  # round(multiprocessing.cpu_count() * 0.8)) as executor:
+    #     results = executor.map(solve, [(inst, algo, timeout) for inst in instances for algo in algos])
+    #     for r in results:
+    #         write_data(r, name)
 
     processes = []
     max_workers = round(multiprocessing.cpu_count() * 0.8)
