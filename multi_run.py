@@ -66,14 +66,11 @@ def single_run():
     # Inst_visualizer.vis3(inst, name)
     algo = str(args[1])
     print("\n" + inst.name + " with " + algo + " starts")
-
-    r = run_solver(inst, algo, timeout)
-    write_data(r, name)
+    run_solver(inst, algo, timeout)
 
 
 def solve(args):
-    return run_solver(args[0], args[1], args[2])
-
+    write_data(run_solver(args[0], args[1], args[2]))
 
 def multi_run():
     algos = [
@@ -92,11 +89,20 @@ def multi_run():
     decoder.decode_reduced()
     instances = decoder.instances
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        #results = executor.map(solve, [(inst, algo, timeout) for inst in instances for algo in algos])
-        results = [executor.submit(solve, (inst, algo, timeout)) for inst in instances for algo in algos]
+    '''with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:  # round(multiprocessing.cpu_count() * 0.8)) as executor:
+        results = executor.map(solve, [(inst, algo, timeout) for inst in instances for algo in algos])
         for r in results:
-            write_data(r, name)
+            write_data(r, name)'''
+
+    processes = []
+    for inst in instances:
+        for algo in algos:
+            p = multiprocessing.Process(target=solve, args=(inst, algo, timeout))
+            p.start()
+            processes.append(p)
+
+    for p in processes:
+        p.join()
 
     finish = time.perf_counter()
     print(f'Finished in {round(finish - start, 2)} second(s)')
