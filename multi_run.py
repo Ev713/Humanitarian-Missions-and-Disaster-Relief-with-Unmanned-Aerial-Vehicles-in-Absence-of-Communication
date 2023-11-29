@@ -83,7 +83,7 @@ def multi_run():
         'BNB',
         'GBFS'
     ]
-    computer = "loc" if multiprocessing.cpu_count() > 10 else "ser"
+    computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
     name = f'nov_29_' + computer
     timeout = 60
     start = time.perf_counter()
