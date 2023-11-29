@@ -83,7 +83,7 @@ def multi_run():
         'GBFS'
     ]
     name = 'nov_29'
-    timeout = 20
+    timeout = 300
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(max_num=10)
