@@ -83,7 +83,7 @@ def multi_run():
         'GBFS'
     ]
     name = 'nov_29'
-    timeout = 300
+    timeout = 20
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
@@ -95,14 +95,17 @@ def multi_run():
             write_data(r, name)'''
 
     processes = []
+    max_workers = round(multiprocessing.cpu_count() * 0.8)
+    counter = 0
     for inst in instances:
         for algo in algos:
             p = multiprocessing.Process(target=solve, args=(inst, algo, timeout, name))
             p.start()
             processes.append(p)
-
-    for p in processes:
-        p.join()
+            counter += 1
+            while len(processes) >= max_workers:
+                processes[0].join()
+                processes.remove(processes[0])
 
     finish = time.perf_counter()
     print(f'Finished in {round(finish - start, 2)} second(s)')
