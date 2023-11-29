@@ -86,7 +86,7 @@ def multi_run():
     timeout = 300
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(max_num=10)
+    decoder.decode_reduced()
     instances = decoder.instances
 
     # with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:  # round(multiprocessing.cpu_count() * 0.8)) as executor:
