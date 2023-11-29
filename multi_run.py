@@ -72,6 +72,7 @@ def single_run():
 def solve(*args):
     write_data(run_solver(args[0], args[1], args[2]), args[3])
 
+
 def multi_run():
     algos = [
         'MCTS_E',
@@ -82,20 +83,22 @@ def multi_run():
         'BNB',
         'GBFS'
     ]
-    name = 'nov_29'
-    timeout = 300
+    computer = "loc" if multiprocessing.cpu_count() > 10 else "ser"
+    name = f'nov_29_' + computer
+    timeout = 60
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
     instances = decoder.instances
 
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:  # round(multiprocessing.cpu_count() * 0.8)) as executor:
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+    # round(multiprocessing.cpu_count() * 0.8)) as executor:
     #     results = executor.map(solve, [(inst, algo, timeout) for inst in instances for algo in algos])
     #     for r in results:
     #         write_data(r, name)
 
     processes = []
-    max_workers = round(multiprocessing.cpu_count() * 0.5)
+    max_workers = 3  # round(multiprocessing.cpu_count() * 0.5)
     counter = 0
     for inst in instances:
         for algo in algos:
