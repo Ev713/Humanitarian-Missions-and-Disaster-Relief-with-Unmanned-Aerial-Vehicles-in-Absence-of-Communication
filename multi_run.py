@@ -95,7 +95,7 @@ def multi_run():
     #         write_data(r, name)
 
     processes = []
-    max_workers = round(multiprocessing.cpu_count() * 0.8)
+    max_workers = round(multiprocessing.cpu_count() * 0.5)
     counter = 0
     for inst in instances:
         for algo in algos:
