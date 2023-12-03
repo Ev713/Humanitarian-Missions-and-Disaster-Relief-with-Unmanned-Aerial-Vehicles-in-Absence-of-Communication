@@ -95,6 +95,8 @@ class Generator:
         for l in range(self.rows * self.cols):
             if self.num_is_legal(l):
                 return l
+        if self.type == 'FL':
+            return self.xy_to_num(self.rows/2, self.cols/2)
         raise Exception("No legal squares")
 
     def generate_full_random_distr(self, vertex_hash):
@@ -194,6 +196,8 @@ class Generator:
                 distr = self.generate_anti_greed_distr(vertex_hash)
             case 'SC':
                 distr = self.generate_sanity_check_distr(vertex_hash)
+            case 'FL':
+                distr = self.generate_sanity_check_distr(vertex_hash)
 
         if self.distr_is_legal(distr):
             return distr
@@ -218,6 +222,13 @@ class Generator:
     def generate_sanity_check_distr(self, v):
         x, y = self.num_to_xy(v)
         if ((x == 0) ^ (y == 0)) or ((x == self.cols-1) ^ (y == self.rows-1)):
+            return {1: 1, 0: 0}
+        else:
+            return {0: 1}
+
+    def generate_flower_distr(self, v):
+        x, y = self.num_to_xy(v)
+        if x == 0 or y == 0 or x == self.cols - 1 or y == self.rows - 1:
             return {1: 1, 0: 0}
         else:
             return {0: 1}
@@ -348,7 +359,7 @@ class Generator:
             self.horizon) + ", source=" + "\"" + self.source + "\"" + ")\n")
 
 def generate():
-    for type in ['SC']:
+    for type in ['FL']:
         if type == 'AG':
             low = 5
             high = 55
@@ -373,7 +384,7 @@ def generate():
                 G = Generator(type, cols, rows, agents, hor)
                 G.ACC = 4
                 G.MAX_REWARD = mr
-                StringInstanceManager.to_string(G.gen_instance(), "Generated_encoded_instances/"+type)
+                InstanceManager.to_string(G.gen_instance(), "Generated_encoded_instances/"+type)
                 print(G.name + " added.")
 
             else:
@@ -381,10 +392,10 @@ def generate():
                     G = Generator(type, cols, cols, 1, cols, ag_p=p)
                     G.ACC = 4
                     G.MAX_REWARD = mr
-                    StringInstanceManager.to_string(G.gen_instance(), "Generated_encoded_instances/AG")
+                    InstanceManager.to_string(G.gen_instance(), "Generated_encoded_instances/AG")
                     print(G.name + " added.")
 
-#generate()
+generate()
 
 '''for type in ['FR', 'MT']:
     for size in range(3, 27, 6):

@@ -17,7 +17,7 @@ class Decoder:
                     if len(decoded_instance.map) < 30 or len(decoded_instance.map) > 100 and mid_only:
                         continue
                     self.instances.append(decoded_instance)
-        for type in ['MT']:
+        for type in ['FL']:
             for filename in os.scandir("Generated_encoded_instances/" + type):
                 if filename.is_file():
                     decoded_instance = InstanceManager.to_inst(filename)
