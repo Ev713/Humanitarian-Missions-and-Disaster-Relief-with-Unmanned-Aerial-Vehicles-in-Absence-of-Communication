@@ -1,7 +1,8 @@
 import math
 import random
-from Timer import Timer
 
+import instance_decoder
+from Timer import Timer
 
 import EmpInstance
 import Node
@@ -63,10 +64,14 @@ class Solver:
         results = []
         for t in log:
             reward = round(self.evaluate_path(log[t][0]), 3)
+            # reward_emp = round(self.evaluate_path(log[t][0], method='EMP'), 3)
+            # if reward_emp != reward:
+            #     breakpoint()
             results.append((reward, log[t][1], round(t, 3)))
-        return results
+        return tuple(results)
 
     def log_if_needed(self, path=None):
+
         now = self.timer.now()
         if self.timer.duration_gt('log', self.timeout / self.num_of_logs, alt_now=now):
             self.timer.restart('log', alt_now=now)
@@ -75,7 +80,8 @@ class Solver:
                 self.best_node = self.root
                 while not self.best_node.state.is_terminal() and len(self.best_node.children) != 0:
                     self.best_node = self.best_node.highest_value_child()
-            self.timer.log((self.best_node.get_path() if path is None else path, self.num_of_states),
+            # print(self.best_value)
+            self.timer.log((self.best_node.get_path_actions() if path is None else path, self.num_of_states),
                            thing='run', alt_now=now)
             if best_is_none:
                 self.best_node = None
@@ -168,9 +174,9 @@ class Solver:
                     [self.instance.make_action(action, node.state) for action in self.instance.actions(node.state)])
                 self.num_of_states += len(node.children)
                 for child in node.children:
-                    #if self.is_timeout():
+                    # if self.is_timeout():
                     #    return self.get_results()
-                    #self.log_if_needed()
+                    # self.log_if_needed()
 
                     key = child.state.hash()
                     if self.dup_det:
@@ -222,7 +228,7 @@ class Solver:
                     visited_states.add(key)
                 self.num_of_states += 1
                 child.value = heuristic(self, child.state)
-                if child.value > self.best_value:
+                if self.instance.reward(child.state) > self.best_value:
                     self.best_value = child.value
                     self.best_node = child
                 if not child.state.is_terminal():
@@ -261,7 +267,7 @@ class Solver:
                 if len(node.children) > 0:
                     breakpoint()
                 node.expand(
-                        [self.instance.make_action(action, node.state) for action in self.instance.actions(node.state)])
+                    [self.instance.make_action(action, node.state) for action in self.instance.actions(node.state)])
                 self.num_of_states += len(node.children)
                 node.times_visited += 1
                 node = node.children[0]
@@ -270,7 +276,8 @@ class Solver:
             node.times_visited += 1
             rollout_state = node.state.copy()
             if method == 'VEC':
-                path = node.get_path()
+                path = node.get_path_actions()
+
             while not rollout_state.is_terminal():
                 action = random.choice(self.instance.actions(rollout_state))
                 if method == 'VEC':
@@ -314,10 +321,11 @@ class Solver:
         if path is None:
             return 0
         state = self.instance.initial_state.copy()
-        for t in range(0, len(list(path.values())[0])):
+        for t in range(len(list(path.values())[0])):
             action = {a: path[a][t] for a in path}
             state = self.instance.make_action(action, state)
-        reward = self.instance.reward(state)
+        reward = self.instance.reward(state) if method == 'VEC' \
+            else self.instance.average_of_sims(state, 10000)
         return reward
 
 
@@ -336,9 +344,14 @@ class Solver:
                         if np.array_equal(states[i].matrices[m], rolloutstates[i].matrices[m]):
                             breakpoint()'''
 
-# do()
+if __name__ == "__main__":
+    dec = instance_decoder.Decoder()
+    dec.decode_reduced()
+    inst = dec.instances[0]
+    sol = Solver(inst)
+    sol.timeout = 60
+    res = sol.emp_mcts()
 
-#
 # solver.type = "URD"
 # det = solver.mcts(inst)
 

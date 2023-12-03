@@ -175,7 +175,7 @@ class Analyzer:
             run.time = row[8] if row[8] != '-' else -1
             run.states = row[9]
             run.results = [[float(number.strip(",)")) for number in pair.split(", ")] for pair in
-                           row[10].strip("()").split("), (")]
+                           row[10].strip("()").strip().split("), (")]
 
             self.runs.append(run)
 
@@ -245,7 +245,7 @@ def main():
         'AG001',
         'AG05'
     )
-    filepath = "data/nov_27_2023_30mins_all.csv"
+    filepath = "data/nov_30_loc.csv"
     analyzer = Analyzer(filepath)
     analyzer.create_runs()
     instances = {}
@@ -287,21 +287,22 @@ def main():
 
         if default not in instance_runs or instance_runs[default].results[-1][0] == 0:
             continue
-        #if instance_runs[default].type not in allowed_types:
-        #    continue
+
+        if instance_runs[list(instance_runs.keys())[0]].type not in allowed_types:
+            continue
 
         #if instance_runs['BFS'].source == 'X' or instance_runs['BFS'].type != 'MT':
         #    continue
 
         def_result = instance_runs[default].results[-1][0]
-        def_time = max([run.results[-1][2] for run in analyzer.runs])  # instance_runs[default].results[-1][2]
+        def_time = 60#max([run.results[-1][2] for run in analyzer.runs])  # instance_runs[default].results[-1][2]
         def_states = instance_runs[default].states
 
-        for instance in instances:
-            for algo in algos:
-                if algo in instances[instance]:
-                    num_of_types[instances[instance][algo].type] += 1
-                    break
+        #for instance in instances:
+        #    for algo in algos:
+        #        if algo in instances[instance]:
+        #            num_of_types[instances[instance][algo].type] += 1
+        #            break
 
         for algo in algos:
             if algo not in instance_runs:

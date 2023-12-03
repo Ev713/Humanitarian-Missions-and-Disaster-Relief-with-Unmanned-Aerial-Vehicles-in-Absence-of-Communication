@@ -33,9 +33,17 @@ class Node:
 
     def get_path(self):
         if isinstance(self.state, State.EmpState):
-            return self.get_det_path()
+            path = self.get_det_path()
+            path_copy = {a: path[a].copy() for a in path}
+            return path_copy
         elif isinstance(self.state, State.VectorState):
-            return self.get_stoch_path()
+            return self.get_stoch_path().copy()
+
+    def get_path_actions(self):
+        path = self.get_path()
+        for a in path:
+            path[a].pop(0)
+        return path
 
     def get_det_path(self):
         return self.state.path

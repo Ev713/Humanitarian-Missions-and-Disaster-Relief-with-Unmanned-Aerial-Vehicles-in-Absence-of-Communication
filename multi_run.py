@@ -57,11 +57,11 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
 
 
 def single_run():
-    args = [0, 'GBFS']
+    args = [0, 'BFS']
     name = 'scratch'
-    timeout = 99999
+    timeout = 20
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(size_higher_bound=30)
+    decoder.decode_reduced(size_higher_bound=30, types_allowed=('FR'))
     inst = decoder.instances[int(args[0])]
     # Inst_visualizer.vis3(inst, name)
     algo = str(args[1])
@@ -84,8 +84,8 @@ def multi_run():
         'GBFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = f'nov_29_' + computer
-    timeout = 300
+    name = 'nov_30_' + computer
+    timeout = 60
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
@@ -98,7 +98,7 @@ def multi_run():
     #         write_data(r, name)
 
     processes = []
-    max_workers = round(multiprocessing.cpu_count() * 0.5)
+    max_workers = 5  # round(multiprocessing.cpu_count() * 0.5)
     counter = 0
     for inst in instances:
         for algo in algos:
