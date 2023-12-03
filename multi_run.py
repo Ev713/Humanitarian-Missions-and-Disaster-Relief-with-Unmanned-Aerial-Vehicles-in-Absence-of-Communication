@@ -102,14 +102,19 @@ def multi_run():
     counter = 0
     for inst in instances:
         for algo in algos:
+            print(len(processes))
             p = multiprocessing.Process(target=solve, args=(inst, algo, timeout, name))
             p.start()
             processes.append(p)
             counter += 1
+            print(len(processes))
             while len(processes) >= max_workers:
+                print("too many workers:")
+                print(len(processes))
                 processes[0].join()
+                print("worker over")
                 processes.remove(processes[0])
-
+                print(len(processes))
     finish = time.perf_counter()
     print(f'Finished in {round(finish - start, 2)} second(s)')
 
