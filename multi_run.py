@@ -107,9 +107,11 @@ def multi_run():
             p = multiprocessing.Process(target=solve, args=(inst, algo, timeout, name))
             p.start()
             processes.append(p)
+            last_start = time.perf_counter()
             if len(processes) >= max_workers:
                 while all([p.is_alive() for p in processes]) or len(processes) >= max_workers :
-                    print("Waiting for a process to finish...")
+                    print(f"Waiting for a process to finish for "
+                          f"{time.perf_counter() - last_start} seconds.")
                     time.sleep(10)
 
                 for p in processes:
