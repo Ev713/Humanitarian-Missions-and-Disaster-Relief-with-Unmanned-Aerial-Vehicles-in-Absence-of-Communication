@@ -109,10 +109,10 @@ def multi_run():
             counter += 1
             print(len(processes))
             while len(processes) >= max_workers:
-                print("too many workers:")
+                print("Too many workers:")
                 print(len(processes))
                 processes[0].join()
-                print("worker over")
+                print("Worker over")
                 processes.remove(processes[0])
                 print(len(processes))
     finish = time.perf_counter()
