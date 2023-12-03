@@ -110,7 +110,7 @@ def multi_run():
             if len(processes) >= max_workers:
                 while all([p.is_alive() for p in processes]):
                     print("Waiting for a process to finish...")
-                    time.sleep(3)
+                    time.sleep(10)
 
                 for p in processes:
                     if not p.is_alive():
