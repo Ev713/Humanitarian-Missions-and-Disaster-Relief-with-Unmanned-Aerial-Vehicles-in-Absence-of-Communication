@@ -90,7 +90,7 @@ def multi_run():
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
     instances = decoder.instances
-    max_workers = round(multiprocessing.cpu_count() * 0.4)
+    max_workers = round(multiprocessing.cpu_count() * 0.2)
 
     # with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
     # round(multiprocessing.cpu_count() * 0.8)) as executor:
