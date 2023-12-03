@@ -84,13 +84,13 @@ def multi_run():
         'GBFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'nov_30_' + computer
-    timeout = 20
+    name = 'dec_3_' + computer
+    timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
     instances = decoder.instances
-    max_workers = 10  # round(multiprocessing.cpu_count() * 0.5)
+    max_workers = round(multiprocessing.cpu_count() * 0.4)
 
     # with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
     # round(multiprocessing.cpu_count() * 0.8)) as executor:
