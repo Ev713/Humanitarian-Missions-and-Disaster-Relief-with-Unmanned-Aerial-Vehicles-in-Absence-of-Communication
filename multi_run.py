@@ -91,6 +91,7 @@ def multi_run():
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(sort_by_size=True)
     instances = decoder.instances
+    instances_left = len(instances)
     max_workers = 1  # round(multiprocessing.cpu_count() * 0.2)
 
     # with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
@@ -125,7 +126,8 @@ def multi_run():
                 for p in processes:
                     if not p.is_alive():
                         processes.remove(processes[0])
-                        print("Process removed. New process may start.")
+                        instances_left -= 1
+                        print(f"Process removed. New process may start. {instances_left} left")
                 print(f"number of processes: {len(processes)}")
     finish = time.perf_counter()
     print(f'Finished in {round(finish - start, 2)} second(s)')
