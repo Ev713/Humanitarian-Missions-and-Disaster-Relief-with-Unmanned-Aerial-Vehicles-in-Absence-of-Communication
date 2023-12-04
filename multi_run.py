@@ -79,10 +79,10 @@ def multi_run():
         #'MCTS_E',
         #'MCTS_V',
         #'MCTS_S',
-        #'BFS',
+        'BFS',
         'BNBL',
-        #'BNB',
-        #'GBFS'
+        'BNB',
+        'GBFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
     name = 'dec_4_opt_' + computer
