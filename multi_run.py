@@ -89,7 +89,7 @@ def multi_run():
     timeout = 1800
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(sort_by_size=True)
+    decoder.decode_reduced(sort_by_size=True, small_ones=True)
     instances = decoder.instances
     instances_left = len(instances)
     max_workers = 1  # round(multiprocessing.cpu_count() * 0.2)
@@ -99,8 +99,8 @@ def multi_run():
     #     results = executor.map(solve, [(inst, algo, timeout) for inst in instances for algo in algos])
     #     for r in results:
     #         write_data(r, name)
-    print(f"Starting multi-run. \nTimeout: {timeout}\n "
-          f"Algorithms: {algos}\n Max workers: {max_workers}\n"
+    print(f"Starting multi-run. \nTimeout: {timeout}\n"
+          f"Algorithms: {algos}\nMax workers: {max_workers}\n"
           f"Instances: {len(instances)}")
 
     processes = []
@@ -120,7 +120,7 @@ def multi_run():
                     if time_passed != 0:
                         print(f"Waiting for a process to finish for {time_passed} seconds."
                               f" Expected time: {timeout-time_passed}.\n"
-                              f"Memory used: {ram}")
+                              f"Memory used: {ram}%")
                     time.sleep(10)
 
                 for p in processes:

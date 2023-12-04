@@ -41,9 +41,14 @@ class Decoder:
                        types_allowed=('FR', 'MT', 'SC', 'AG001', 'AG05', 'AG01',),
                        specifics=(),
                        max_num=None,
-                       sort_by_size=False
+                       sort_by_size=False,
+                       small_ones=False
                         ):
-        for filename in os.scandir("Reduced_maps"):
+        if not small_ones:
+            filepath = "Reduced_maps"
+        else:
+            filepath = 'small_map'
+        for filename in os.scandir(filepath):
             if filename.is_file():
                 decoded_instance = InstanceManager.to_inst(filename)
                 if size_lower_bound is not None and len(decoded_instance.map) < size_lower_bound:
@@ -64,4 +69,5 @@ class Decoder:
             self.instances = sorted(self.instances, key=lambda inst: len(inst.map))
 
         return self.instances
+
 

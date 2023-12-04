@@ -359,19 +359,20 @@ class Generator:
             self.horizon) + ", source=" + "\"" + self.source + "\"" + ")\n")
 
 def generate():
-    for type in ['FL']:
+    for type in ['FL', 'SC', 'MT', 'FR']:
         if type == 'AG':
-            low = 5
-            high = 55
-            jump = 10
-        else:
-            low = 3
+            low = 4
             high = 20
             jump = 1
-        for size in range(low, high, jump):
+        else:
+            low = 3
+            high = 40
+            jump = 1
+        for side in range(low, high, jump):
+            size = round(math.sqrt(side))
             if (type == 'AG' and size % 10 != 5) or (type == 'SC' and size % 3 == 4):
                 continue
-            if type != 'AG' and type != 'SC':
+            if type != 'AG' and type != 'SC' and type != 'FL':
                 cols = max(random.randint(int(size * 0.75), int(size * 1.25)), 2)
                 rows = max(random.randint(round(size * 0.75), round(size * 1.25)), 2)
             else:
@@ -384,7 +385,7 @@ def generate():
                 G = Generator(type, cols, rows, agents, hor)
                 G.ACC = 4
                 G.MAX_REWARD = mr
-                InstanceManager.to_string(G.gen_instance(), "Generated_encoded_instances/"+type)
+                InstanceManager.to_string(G.gen_instance(), "small_map")
                 print(G.name + " added.")
 
             else:
