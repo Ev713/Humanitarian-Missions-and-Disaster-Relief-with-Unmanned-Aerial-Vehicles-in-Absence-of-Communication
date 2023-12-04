@@ -267,7 +267,7 @@ class Solver:
                 if len(node.children) > 0:
                     breakpoint()
                 node.expand(
-                    [self.instance.make_action(action, node.state) for action in self.instance.actions(node.state)])
+                    random.shuffle([self.instance.make_action(action, node.state) for action in self.instance.actions(node.state)]))
                 self.num_of_states += len(node.children)
                 node.times_visited += 1
                 node = node.children[0]

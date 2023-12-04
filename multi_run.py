@@ -75,22 +75,22 @@ def solve(*args):
 
 def multi_run():
     algos = [
-        'MCTS_E',
-        'MCTS_V',
-        'MCTS_S',
-        'BFS',
+        #'MCTS_E',
+        #'MCTS_V',
+        #'MCTS_S',
+        #'BFS',
         'BNBL',
-        'BNB',
-        'GBFS'
+        #'BNB',
+        #'GBFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_3_' + computer
-    timeout = 600
+    name = 'dec_4_optrv1_' + computer
+    timeout = 1800
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced()
+    decoder.decode_reduced(sort_by_size=True)
     instances = decoder.instances
-    max_workers = round(multiprocessing.cpu_count() * 0.2)
+    max_workers = 1  # round(multiprocessing.cpu_count() * 0.2)
 
     # with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
     # round(multiprocessing.cpu_count() * 0.8)) as executor:
@@ -107,11 +107,13 @@ def multi_run():
             p = multiprocessing.Process(target=solve, args=(inst, algo, timeout, name))
             p.start()
             processes.append(p)
+            print(f"number of processes: {len(processes)}")
             last_start = time.perf_counter()
             if len(processes) >= max_workers:
                 while all([p.is_alive() for p in processes]) and len(processes) >= max_workers:
+                    time_passed = round(time.perf_counter() - last_start)
                     print(f"Waiting for a process to finish for "
-                          f"{round(time.perf_counter() - last_start)} seconds.")
+                          f"{time_passed} seconds. Expected time: {timeout-time_passed}.")
                     time.sleep(10)
 
                 for p in processes:

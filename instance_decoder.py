@@ -40,7 +40,8 @@ class Decoder:
                        horizon_higher_bound=None,
                        types_allowed=('FR', 'MT', 'SC', 'AG001', 'AG05', 'AG01',),
                        specifics=(),
-                       max_num=None
+                       max_num=None,
+                       sort_by_size=False
                         ):
         for filename in os.scandir("Reduced_maps"):
             if filename.is_file():
@@ -58,6 +59,9 @@ class Decoder:
                 if max_num is not None and len(self.instances) > max_num:
                     break
                 self.instances.append(decoded_instance)
+
+        if sort_by_size:
+            self.instances = sorted(self.instances, key=lambda inst: len(inst.map))
 
         return self.instances
 

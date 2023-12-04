@@ -241,11 +241,9 @@ def main():
         'FR',
         'MT',
         'SC',
-        'AG01',
-        'AG001',
-        'AG05'
+        'AG01', 'AG001', 'AG05'
     )
-    filepath = "data/nov_30_loc.csv"
+    filepath = "data/dec_3_ser.csv"
     analyzer = Analyzer(filepath)
     analyzer.create_runs()
     instances = {}
@@ -277,12 +275,12 @@ def main():
 
         instance_runs = instances[inst_name]
 
-        #all_algos = True
-        #for algo in algos:
+        # all_algos = True
+        # for algo in algos:
         #    if algo not in instance_runs:
         #        all_algos = False
 
-        #if not all_algos:
+        # if not all_algos:
         #    continue
 
         if default not in instance_runs or instance_runs[default].results[-1][0] == 0:
@@ -291,14 +289,14 @@ def main():
         if instance_runs[list(instance_runs.keys())[0]].type not in allowed_types:
             continue
 
-        #if instance_runs['BFS'].source == 'X' or instance_runs['BFS'].type != 'MT':
+        # if instance_runs['BFS'].source == 'X' or instance_runs['BFS'].type != 'MT':
         #    continue
 
-        def_result = instance_runs[default].results[-1][0]
-        def_time = 60#max([run.results[-1][2] for run in analyzer.runs])  # instance_runs[default].results[-1][2]
+        def_result = max([instance_runs[algo].results[-1][0] for algo in algos if algo in instance_runs])
+        def_time = 600  # max([run.results[-1][2] for run in analyzer.runs])  # instance_runs[default].results[-1][2]
         def_states = instance_runs[default].states
 
-        #for instance in instances:
+        # for instance in instances:
         #    for algo in algos:
         #        if algo in instances[instance]:
         #            num_of_types[instances[instance][algo].type] += 1
@@ -317,8 +315,8 @@ def main():
 
             for pair in run.results:
                 pair[0] = round(pair[0] / def_result, acc)
-                pair[1] = round(pair[1] / def_states, acc)
-                pair[2] = round(pair[2] / def_time, acc)
+                pair[1] = pair[1]
+                pair[2] = round(pair[2])
             if algo not in data_for_graphs:
                 data_for_graphs[algo] = []
             data_for_graphs[algo].append(run)
@@ -337,18 +335,14 @@ def main():
         runs_complete_results = []
         for run in runs:
             run_complete_data = {0: 0}
-            for t100 in range(1, pow(10, acc) + 1, 1):
-                t = t100 / pow(10, acc)
+            for t in range(def_time):
                 for r in run.results:
-                    if (relative_to_states and r[1] == t) \
-                            or (not relative_to_states and r[2] == t):
-                        run_complete_data[t] = r[0] # 0 for result 1 for states
+                    if r[2] == t:
+                        run_complete_data[t] = r[0]  # 0 for result 1 for states
                 if t not in run_complete_data:
-                    prev = round(t - 1 / pow(10, acc), acc)
-                    run_complete_data[t] = run_complete_data[prev]
+                    run_complete_data[t] = run_complete_data[t-1]
             runs_complete_results.append(run_complete_data)
-        for t100 in range(1, pow(10, acc), 1):
-            t = t100 / pow(10, acc)
+        for t in range(def_time):
             results = []
             for run in runs_complete_results:
                 results.append(run[t])
@@ -356,19 +350,20 @@ def main():
             graphs[algo][0].append(t)
             graphs[algo][1].append(avg_result)
 
+    algos = sorted(list(algos))
     for algo in algos:
         plt.plot(graphs[algo][0], graphs[algo][1], label=algo)
 
     plt.legend(algos)
     if not relative_to_states:
-        plt.xlabel("Time (relative to "+default+" time)")
+        plt.xlabel("Time")
     else:
-        plt.xlabel("States (relative to "+default+" states)")
-    plt.ylabel("Result (relative to "+default+" result)")
-    plt.title("All maps, new heuristics")
+        plt.xlabel("States")
+    plt.ylabel("Result (relative to best result)")
+    plt.title("All maps")
     plt.ylim(bottom=0)
 
-    print("States (relative to BFS states):")
+    print("States (relative to best states):")
     for algo in data_for_tables:
         print(algo + ": " + str(round(statistics.mean(data_for_tables[algo]), 3)))
 
