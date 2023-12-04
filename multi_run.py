@@ -85,7 +85,7 @@ def multi_run():
         #'GBFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_4_optrv1_' + computer
+    name = 'dec_4_opt_' + computer
     timeout = 1800
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
@@ -116,9 +116,10 @@ def multi_run():
                     if ram > 90:
                         processes[0].kill()
                     time_passed = round(time.perf_counter() - last_start)
-                    print(f"Waiting for a process to finish for {time_passed} seconds."
-                          f" Expected time: {timeout-time_passed}.\n"
-                          f"Memory used: {ram}")
+                    if time_passed != 0:
+                        print(f"Waiting for a process to finish for {time_passed} seconds."
+                              f" Expected time: {timeout-time_passed}.\n"
+                              f"Memory used: {ram}")
                     time.sleep(10)
 
                 for p in processes:
