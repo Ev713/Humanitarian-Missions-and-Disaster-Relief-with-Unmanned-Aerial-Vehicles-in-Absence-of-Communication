@@ -60,6 +60,7 @@ class Solver:
         self.num_of_states = 0
 
     def get_results(self):
+        self.log_if_needed(needed=True)
         log = self.timer.logs['run']
         results = []
         for t in log:
@@ -70,10 +71,9 @@ class Solver:
             results.append((reward, log[t][1], round(t, 3)))
         return tuple(results)
 
-    def log_if_needed(self, path=None):
-
+    def log_if_needed(self, path=None, needed=False):
         now = self.timer.now()
-        if self.timer.duration_gt('log', self.timeout / self.num_of_logs, alt_now=now):
+        if needed or self.timer.duration_gt('log', self.timeout / self.num_of_logs, alt_now=now):
             self.timer.restart('log', alt_now=now)
             best_is_none = self.best_node is None
             if best_is_none and path is None:
