@@ -93,7 +93,7 @@ def vis_2(inst):
     plt.show()
 
 
-def vis3(inst, path = ''):
+def vis3(inst, path=None):
     cols = determine_cols(inst)
     rows = math.ceil(inst.map[-1].number / cols)
     color_map = [['#000000' for _ in range(cols)] for _ in range(rows)]
@@ -127,8 +127,9 @@ def vis3(inst, path = ''):
 
     # Show the grid
     # print(color_map)
-    plt.savefig("maps_images/"+path+"/" + inst.name + ".png")
-    plt.show()
+    if path != None:
+        plt.savefig("maps_images/" + path + "/" + inst.name + ".png")
+        plt.show()
 
 
 decoder = instance_decoder.Decoder()
