@@ -2,10 +2,11 @@ import concurrent.futures
 import multiprocessing
 import sys
 import time
+import tracemalloc
 from multiprocessing import Process
 
 import pandas as pd
-
+import psutil
 import Solver
 import instance_decoder
 
@@ -111,9 +112,13 @@ def multi_run():
             last_start = time.perf_counter()
             if len(processes) >= max_workers:
                 while all([p.is_alive() for p in processes]) and len(processes) >= max_workers:
+                    ram = psutil.virtual_memory()[2]
+                    if ram > 90:
+                        processes[0].kill()
                     time_passed = round(time.perf_counter() - last_start)
-                    print(f"Waiting for a process to finish for "
-                          f"{time_passed} seconds. Expected time: {timeout-time_passed}.")
+                    print(f"Waiting for a process to finish for {time_passed} seconds."
+                          f" Expected time: {timeout-time_passed}.\n"
+                          f"Memory used: {ram}")
                     time.sleep(10)
 
                 for p in processes:
