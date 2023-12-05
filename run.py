@@ -91,7 +91,7 @@ def multi_run():
     decoder.decode_reduced()
     instances = decoder.instances
     instances_left = len(instances)
-    max_workers = round(multiprocessing.cpu_count() * 0.4)
+    max_workers = round(multiprocessing.cpu_count() * 0.2)
 
     print(f"Starting multi-run. \nTimeout: {timeout}\n"
           f"Algorithms: {algos}\nMax workers: {max_workers}\n"
