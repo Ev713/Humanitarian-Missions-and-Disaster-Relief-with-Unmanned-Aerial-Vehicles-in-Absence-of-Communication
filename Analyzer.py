@@ -201,7 +201,7 @@ class Analyzer:
                 graphs[algo][0].append(t)
                 graphs[algo][1].append(avg_result)
 
-        algos = sorted(list(self.algos))
+
         for algo in algos:
             plt.plot(graphs[algo][0], graphs[algo][1], label=algo)
 
@@ -248,7 +248,7 @@ class Analyzer:
         plt.xlabel("Time")
         plt.ylabel("number of successes")
         plt.xlim(0, 300)
-        plt.title("All maps")
+        plt.title("Optimal - all maps")
         plt.ylim(bottom=0)
         plt.show()
 
@@ -281,6 +281,7 @@ def main():
             else:
                 counter += 1
                 break
+    algos = sorted(list(self.algos))
 
     for run in analyzer.runs:
         if run.inst_name not in analyzer.instances:
