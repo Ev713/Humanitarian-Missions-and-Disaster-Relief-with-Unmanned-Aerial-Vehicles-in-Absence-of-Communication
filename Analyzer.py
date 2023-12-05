@@ -201,11 +201,10 @@ class Analyzer:
                 graphs[algo][0].append(t)
                 graphs[algo][1].append(avg_result)
 
-
-        for algo in algos:
+        for algo in self.algos:
             plt.plot(graphs[algo][0], graphs[algo][1], label=algo)
 
-        plt.legend(algos)
+        plt.legend(self.algos)
         if not relative_to_states:
             plt.xlabel("Time")
         else:
