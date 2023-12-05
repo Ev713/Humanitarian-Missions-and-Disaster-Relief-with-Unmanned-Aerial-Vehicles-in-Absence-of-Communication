@@ -50,7 +50,7 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
         results = solver.branch_and_bound(solver.upper_bound_base_plus_utility)
     if algo == 'GBFS':
         solver.type = 'U1S'
-        results = solver.greedy_best_first_search()
+        results = solver.greedy_branch_and_bound()
     fin_res = results[-1][0] if len(results) > 0 else default
     fin_time = results[-1][-1] if len(results) > 0 and results[-1][-1] < timeout else default
     fin_states = results[-1][1] if len(results) > 0 else default
@@ -85,8 +85,8 @@ def multi_run():
         'GBFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_4_opt_' + computer
-    timeout = 3600
+    name = 'dec_5_opt_' + computer
+    timeout = 1800
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(sort_by_size=True, small_ones=True)

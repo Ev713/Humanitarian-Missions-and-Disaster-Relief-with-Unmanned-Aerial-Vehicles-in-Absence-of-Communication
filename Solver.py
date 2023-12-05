@@ -9,7 +9,7 @@ import Node
 import VectorInstance
 
 import InstanceManager
-from DataStructures import MaxPriorityQueue
+from PriorityQueue import PriorityQueue
 
 
 def make_instance(def_inst, method='VEC'):
@@ -30,6 +30,7 @@ def is_sorted_ascending(lst):
 
 class Solver:
     def __init__(self, def_inst):
+        self.visited_states = {}
         self.def_inst = def_inst
         self.dist_calculated = False
         self.all_pair_distances = {}
@@ -152,17 +153,12 @@ class Solver:
     def bfs(self):
         return self.branch_and_bound()
 
-    def branch_and_bound(self, upper_bound=None, lower_bound=None):
-        # self.timer.start('init')
+    def branch_and_bound(self, upper_bound=None, lower_bound=None, is_greedy=False):
+
         if upper_bound is not None or lower_bound is not None:
             self.calculate_all_pairs_distances_with_Seidel()
-            if not self.dist_calculated:
-                print("Calculating distances failed")
-                return self.get_results()
-
         self.restart()
-        que = [self.root]
-        visited_states = {}
+        que = PriorityQueue(is_greedy, self.root)
 
         while que:
             if self.is_timeout():
@@ -173,67 +169,37 @@ class Solver:
                 node.expand(
                     [self.instance.make_action(action, node.state) for action in self.instance.actions(node.state)])
                 self.num_of_states += len(node.children)
+
                 for child in node.children:
-                    # if self.is_timeout():
-                    #    return self.get_results()
-                    # self.log_if_needed()
 
-                    key = child.state.hash()
                     if self.dup_det:
-                        if key in visited_states:
-                            if visited_states[key] < child.state.time_left:
-                                continue
-                        else:
-                            visited_states[key] = child.state.time_left
+                        if self.is_duplicate(child.state):
+                            continue
+                    child.value = self.instance.reward(child.state)
 
-                    v = self.instance.reward(child.state)
-
-                    if v > self.best_value:
-                        self.best_value = v
+                    if child.value > self.best_value:
                         self.best_node = child
 
                     if upper_bound is not None:
-                        up = upper_bound(child.state)
-                        low = 0 if lower_bound is None else lower_bound(child.state)
-                        if v + up < self.best_value + low:
+                        child.high = upper_bound(child.state)
+                        child.low = 0 if lower_bound is None else lower_bound(child.state)
+                        if child.high + child.value < self.best_node.value + self.best_node.low:
                             continue
-                    que.append(child)
-
+                    que.push(child)
         return self.get_results()
 
     def value_plus_upper_bound(self, state):
         return self.instance.reward(state) + self.upper_bound_base_plus_utility(state)
 
-    def greedy_best_first_search(self, heuristic=value_plus_upper_bound):
-        self.restart()
-        nodes = MaxPriorityQueue()
-        nodes.push(self.root)
-        visited_states = set()
-        self.calculate_all_pairs_distances_with_Seidel()
-        while not nodes.is_empty():
+    def is_duplicate(self, state):
+        if state.hash() not in self.visited_states or self.visited_states[state.hash()] > state.time_left:
+            self.visited_states[state.hash] = state.time_left
+            return False
+        return True
 
-            best_unexpanded_node = nodes.pop()
-            best_unexpanded_node.expand([self.instance.make_action(action, best_unexpanded_node.state)
-                                         for action in self.instance.actions(best_unexpanded_node.state)])
-            for child in best_unexpanded_node.children:
-
-                if self.is_timeout():
-                    return self.get_results()
-                self.log_if_needed()
-
-                key = child.state.hash()
-                if self.dup_det:
-                    if key in visited_states:
-                        continue
-                    visited_states.add(key)
-                self.num_of_states += 1
-                child.value = heuristic(self, child.state)
-                if self.instance.reward(child.state) > self.best_value:
-                    self.best_value = child.value
-                    self.best_node = child
-                if not child.state.is_terminal():
-                    nodes.push(child)
-        return self.get_results()
+    def greedy_branch_and_bound(self):
+        return self.branch_and_bound(self.upper_bound_base_plus_utility,
+                                     self.lower_bound_base_plus_utility, is_greedy=True)
 
     def emp_mcts(self):
         self.instance = make_instance(self.def_inst, method='EMP')
@@ -267,7 +233,8 @@ class Solver:
                 if len(node.children) > 0:
                     breakpoint()
                 node.expand(
-                    random.shuffle([self.instance.make_action(action, node.state) for action in self.instance.actions(node.state)]))
+                    random.shuffle([self.instance.make_action(action, node.state) for action in
+                                    self.instance.actions(node.state)]))
                 self.num_of_states += len(node.children)
                 node.times_visited += 1
                 node = node.children[0]
@@ -350,7 +317,7 @@ if __name__ == "__main__":
     inst = dec.instances[0]
     sol = Solver(inst)
     sol.timeout = 60
-    res = sol.emp_mcts()
+    res = sol.greedy_branch_and_bound()
 
 # solver.type = "URD"
 # det = solver.mcts(inst)

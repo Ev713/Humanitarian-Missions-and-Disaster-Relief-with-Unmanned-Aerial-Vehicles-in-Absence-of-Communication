@@ -280,7 +280,7 @@ def main():
             else:
                 counter += 1
                 break
-    algos = sorted(list(self.algos))
+    analyzer.algos = sorted(list(analyzer.algos))
 
     for run in analyzer.runs:
         if run.inst_name not in analyzer.instances:
