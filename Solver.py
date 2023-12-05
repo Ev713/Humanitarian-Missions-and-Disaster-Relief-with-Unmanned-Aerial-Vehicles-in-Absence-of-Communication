@@ -1,5 +1,6 @@
 import math
 import random
+import time
 
 import instance_decoder
 from Timer import Timer
@@ -9,7 +10,7 @@ import Node
 import VectorInstance
 
 import InstanceManager
-from PriorityQueue import PriorityQueue
+from GenQueue import PriorityQueue, RegularQueue
 
 
 def make_instance(def_inst, method='VEC'):
@@ -154,30 +155,40 @@ class Solver:
         return self.branch_and_bound()
 
     def branch_and_bound(self, upper_bound=None, lower_bound=None, is_greedy=False):
-
         if upper_bound is not None or lower_bound is not None:
             self.calculate_all_pairs_distances_with_Seidel()
         self.restart()
-        que = PriorityQueue(is_greedy, self.root)
-        best_lower_bound = self.root
+        self.dup_det = False
+        #self.timer.start("init")
+        if is_greedy:
+            que = PriorityQueue(self.root)
+        else:
+            que = RegularQueue(self.root)
         if lower_bound is not None:
+            best_lower_bound = self.root
             best_lower_bound.low = lower_bound(best_lower_bound.state)
-
-        while que:
+        #self.timer.end('init')
+        while not que.is_empty():
             if self.is_timeout():
+                #print(str(self.timer))
                 return self.get_results()
             self.log_if_needed()
             node = que.pop()
+            #self.timer.end_from_last_end('pop')
             if not node.state.is_terminal():
                 node.expand(
                     [self.instance.make_action(action, node.state) for action in self.instance.actions(node.state)])
                 self.num_of_states += len(node.children)
 
+                #self.timer.end_from_last_end('expand')
                 for child in node.children:
 
                     if self.dup_det:
                         if self.is_duplicate(child.state):
                             continue
+
+                    #self.timer.end_from_last_end("dup det")
+
                     child.value = self.instance.reward(child.state) if child.value is None else child.value
 
                     if child.value > self.best_value:
@@ -190,11 +201,11 @@ class Solver:
 
                     if lower_bound is not None:
                         child.low = lower_bound(child.state)
-                        if child.value+child.low > best_lower_bound.value+best_lower_bound.low:
+                        if child.value + child.low > best_lower_bound.value + best_lower_bound.low:
                             best_lower_bound = child
-
+                    #self.timer.end_from_last_end('value games')
                     que.push(child)
-
+                    #self.timer.end_from_last_end('push')
         return self.get_results()
 
     def value_plus_upper_bound(self, state):
@@ -221,7 +232,6 @@ class Solver:
         self.restart()
         best_path = None
         self.best_node = None
-
         for t in range(self.NUMBER_OF_SIMULATIONS):
             if self.is_timeout():
                 return self.get_results()
@@ -237,9 +247,10 @@ class Solver:
             if not node.state.is_terminal():
                 if len(node.children) > 0:
                     breakpoint()
-                node.expand(
-                    random.shuffle([self.instance.make_action(action, node.state) for action in
-                                    self.instance.actions(node.state)]))
+                children = [self.instance.make_action(action, node.state) for action in
+                            self.instance.actions(node.state)]
+                random.shuffle(children)
+                node.expand(children)
                 self.num_of_states += len(node.children)
                 node.times_visited += 1
                 node = node.children[0]

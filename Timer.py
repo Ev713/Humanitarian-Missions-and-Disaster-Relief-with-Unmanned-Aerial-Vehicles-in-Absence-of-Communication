@@ -43,6 +43,8 @@ class Timer:
     def end(self, thing, alt_now=None):
         now = self.now(alt_now)
         self.last_end = now
+        if thing not in self.starts:
+            raise Exception(f"{thing} not in starts")
         run_time = now - self.starts[thing]
         if thing not in self.tots:
             self.tots[thing] = run_time

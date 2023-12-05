@@ -65,7 +65,7 @@ def single_run():
     inst = decoder.instances[0]
     name = 'scratch'
     # Inst_visualizer.vis3(inst, name)
-    algo = 'GBFS'
+    algo = 'BFS'
     solve(inst, algo, timeout, name)
 
 
@@ -88,7 +88,7 @@ def multi_run():
     timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(sort_by_size=True, small_ones=True)
+    decoder.decode_reduced()
     instances = decoder.instances
     instances_left = len(instances)
     max_workers = round(multiprocessing.cpu_count() * 0.4)
@@ -98,6 +98,7 @@ def multi_run():
           f"Instances: {len(instances)}")
 
     processes = []
+    killed = 0
     for inst in instances:
         for algo in algos:
             p = multiprocessing.Process(target=solve, args=(inst, algo, timeout, name))
@@ -110,6 +111,7 @@ def multi_run():
                     ram = psutil.virtual_memory()[2]
                     if ram > 95:
                         processes[0].kill()
+                        killed += 1
                     time_passed = round(time.perf_counter() - last_start)
                     if time_passed != 0:
                         print(f"Waiting for a process to finish for {time_passed} seconds."
@@ -125,6 +127,7 @@ def multi_run():
                 print(f"number of processes: {len(processes)}")
     finish = time.perf_counter()
     print(f'Finished in {round(finish - start, 2)} second(s)')
+    print(f"Processes killed: {killed}")
 
 
 if __name__ == "__main__":
