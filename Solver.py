@@ -197,10 +197,6 @@ class Solver:
             return False
         return True
 
-    def greedy_branch_and_bound(self):
-        return self.branch_and_bound(self.upper_bound_base_plus_utility,
-                                     self.lower_bound_base_plus_utility, is_greedy=True)
-
     def emp_mcts(self):
         self.instance = make_instance(self.def_inst, method='EMP')
         return self.mcts('EMP')
