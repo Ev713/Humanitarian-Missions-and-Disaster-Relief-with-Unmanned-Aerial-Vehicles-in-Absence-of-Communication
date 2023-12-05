@@ -158,7 +158,6 @@ class Solver:
         if upper_bound is not None or lower_bound is not None:
             self.calculate_all_pairs_distances_with_Seidel()
         self.restart()
-        self.dup_det = False
         #self.timer.start("init")
         if is_greedy:
             que = PriorityQueue(self.root)
