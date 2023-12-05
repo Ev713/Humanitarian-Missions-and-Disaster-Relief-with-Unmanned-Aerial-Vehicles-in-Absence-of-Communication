@@ -91,8 +91,8 @@ class VectorState(State):
         return copy_state
 
     def hash(self):
-        return (pos.hash() for pos in self.a_pos), ((a, str(self.matrices[a])) for a in self.matrices), \
-               (v, str(self.dynamic_distrs[v]) for v in self.dynamic_distrs)
+        return (pos.hash() for pos in self.a_pos), str(self.matrices), \
+               str(self.dynamic_distrs)
 
     def get_a_pos(self, a_hash):
         return self.a_pos[a_hash]

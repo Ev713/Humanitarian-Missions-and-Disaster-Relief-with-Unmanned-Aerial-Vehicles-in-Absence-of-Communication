@@ -59,16 +59,14 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
 
 
 def single_run():
-    args = [0, 'BFS']
-    name = 'scratch'
-    timeout = 20
+    timeout = 60
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(size_higher_bound=30, types_allowed=('FR'))
-    inst = decoder.instances[int(args[0])]
+    decoder.decode_reduced()
+    inst = decoder.instances[0]
+    name = 'scratch'
     # Inst_visualizer.vis3(inst, name)
-    algo = str(args[1])
-    print("\n" + inst.name + " with " + algo + " starts")
-    run_solver(inst, algo, timeout)
+    algo = 'GBFS'
+    solve(inst, algo, timeout, name)
 
 
 def solve(*args):
@@ -77,29 +75,24 @@ def solve(*args):
 
 def multi_run():
     algos = [
-        #'MCTS_E',
-        #'MCTS_V',
-        #'MCTS_S',
+        'MCTS_E',
+        'MCTS_V',
+        'MCTS_S',
         'BFS',
         'BNBL',
         'BNB',
         'GBFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_5_opt_' + computer
-    timeout = 1800
+    name = 'dec_5_sat_' + computer
+    timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(sort_by_size=True, small_ones=True)
     instances = decoder.instances
     instances_left = len(instances)
-    max_workers = 3  # round(multiprocessing.cpu_count() * 0.2)
+    max_workers = round(multiprocessing.cpu_count() * 0.4)
 
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-    # round(multiprocessing.cpu_count() * 0.8)) as executor:
-    #     results = executor.map(solve, [(inst, algo, timeout) for inst in instances for algo in algos])
-    #     for r in results:
-    #         write_data(r, name)
     print(f"Starting multi-run. \nTimeout: {timeout}\n"
           f"Algorithms: {algos}\nMax workers: {max_workers}\n"
           f"Instances: {len(instances)}")
@@ -115,7 +108,7 @@ def multi_run():
             if len(processes) >= max_workers:
                 while all([p.is_alive() for p in processes]) and len(processes) >= max_workers:
                     ram = psutil.virtual_memory()[2]
-                    if ram > 90:
+                    if ram > 95:
                         processes[0].kill()
                     time_passed = round(time.perf_counter() - last_start)
                     if time_passed != 0:
@@ -135,4 +128,4 @@ def multi_run():
 
 
 if __name__ == "__main__":
-    multi_run()
+    single_run()

@@ -159,6 +159,9 @@ class Solver:
             self.calculate_all_pairs_distances_with_Seidel()
         self.restart()
         que = PriorityQueue(is_greedy, self.root)
+        best_lower_bound = self.root
+        if lower_bound is not None:
+            best_lower_bound.low = lower_bound(best_lower_bound.state)
 
         while que:
             if self.is_timeout():
@@ -175,17 +178,23 @@ class Solver:
                     if self.dup_det:
                         if self.is_duplicate(child.state):
                             continue
-                    child.value = self.instance.reward(child.state)
+                    child.value = self.instance.reward(child.state) if child.value is None else child.value
 
                     if child.value > self.best_value:
                         self.best_node = child
 
                     if upper_bound is not None:
                         child.high = upper_bound(child.state)
-                        child.low = 0 if lower_bound is None else lower_bound(child.state)
                         if child.high + child.value < self.best_node.value + self.best_node.low:
                             continue
+
+                    if lower_bound is not None:
+                        child.low = lower_bound(child.state)
+                        if child.value+child.low > best_lower_bound.value+best_lower_bound.low:
+                            best_lower_bound = child
+
                     que.push(child)
+
         return self.get_results()
 
     def value_plus_upper_bound(self, state):
@@ -292,21 +301,6 @@ class Solver:
         return reward
 
 
-''' def find_bug(self, inst, path, rollout_reward, rolloutstates):
-            r = self.evaluate_path(inst, path)
-            if r != rollout_reward:
-                instance = self.make_instance(inst)
-                states = [None]
-                states[0] = instance.initial_state.copy()
-                for t in range(0, len(list(path.values())[0])):
-                    action = {a: path[a][t] for a in path}
-                    states.append(instance.make_action(action, states[-1]))
-                reward = instance.reward(states[-1])
-                for i in range(min(len(states), len(rolloutstates))):
-                    for m in range(len(states[i].matrices)):
-                        if np.array_equal(states[i].matrices[m], rolloutstates[i].matrices[m]):
-                            breakpoint()'''
-
 if __name__ == "__main__":
     dec = instance_decoder.Decoder()
     dec.decode_reduced()
@@ -314,70 +308,3 @@ if __name__ == "__main__":
     sol = Solver(inst)
     sol.timeout = 60
     res = sol.greedy_branch_and_bound()
-
-# solver.type = "URD"
-# det = solver.mcts(inst)
-
-# path = {0: [State.Position( 1, False ), State.Position( 2, False ), State.Position( 3, False )],#, State.Position(
-# 4, False ), State.Position( 5, False ), State.Position( 6, False )], 1: [State.Position( 1, False ),
-# State.Position( 2, False ), State.Position( 3, False )]}#, State.Position( 4, False ), State.Position( 5, False ),
-# State.Position( 6, False )]} print("Value of the best path found with det  is: ", solver.evaluate_path(inst, path))
-
-# solver.type = "URS"
-
-# print("Value of the best path found with bfs is: ", solver.evaluate_path(inst, path))
-
-
-'''solver.type = "U1D"
-
-sam = solver.mcts(inst)
-print("Best path found with det mcts is: ", sam[-1])
-print("Value of the best path found with det mcts is: ", solver.evaluate_path(inst, sam[-1]))
-
-solver.type = "U1D"
-det_u1 = solver.mcts(inst)
-solver.type = "U1S"
-stoch_u1 = solver.mcts(inst)
-solver.type = "URS"
-stoch_ur = solver.mcts(inst)
-solver.type = "URD"
-det_ur = solver.mcts(inst)
-
-solver.type = "URS"
-print("-------URS-------")
-print(stoch_ur[-1])
-print(solver.evaluate_path(inst, stoch_ur[-1]))
-print("-------URD-------")
-print(det_ur[-1])
-
-print(solver.evaluate_path(inst, det_ur[-1]))
-solver.type = "U1S"
-print("-------U1S-------")
-print(stoch_u1[-1])
-print(solver.evaluate_path(inst, stoch_u1[-1]))
-print("-------U1D-------")
-print(det_u1[-1])
-print(solver.evaluate_path(inst, det_u1[-1]))
-'''
-'''
-# print("Deterministically calculated value of det:", solver.evaluate_path_by_simulations(i, det[-1], 10000))
-# print("Stochastically calculated value of det:", solver.evaluate_path_with_matrices(i, det[-1]))
-# print("Deterministically calculated value of stoch:", solver.evaluate_path_by_simulations(i, stoch[-1], 10000))
-# print("Stochastically calculated value of stoch:", solver.evaluate_path_with_matrices(i, stoch[-1]))
-
-# print("Best path found with matrices: ", stoch[-1])
-# print("Best path found with simulations: ", det[-1])
-# y1 = [solver.evaluate_path(i, path) for path in stoch]
-# y2 = [solver.evaluate_path(i, path) for path in det]
-# y3 = [solver.evaluate_path(i, path, 1000) for path in det]
-# y4 = [solver.evaluate_path(i, path, 1000) for path in det]
-
-# x1 = x2 = x3 = x4 = [JUMP * (j + 1) for j in range(len(y1))]
-
-# plt.scatter(x1, y1)
-# plt.scatter(x2, y2)
-# plt.scatter(x3, y3)
-# plt.scatter(x4, y4)
-# only Stoch:
-# plt.legend(["StochStoch", 'DetStoch'])  # , 'StochDet', 'DetDet'])
-# plt.show()'''
