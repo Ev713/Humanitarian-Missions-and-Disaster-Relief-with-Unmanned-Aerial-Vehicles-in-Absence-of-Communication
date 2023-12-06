@@ -88,7 +88,7 @@ def multi_run():
         'GBNB'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_5_sat_' + computer
+    name = 'dec_6_sat_' + computer
     timeout = 300
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
