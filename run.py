@@ -136,5 +136,5 @@ def multi_run():
 
 
 if __name__ == "__main__":
-    multi_run()
+    single_run()
 

@@ -260,10 +260,10 @@ class Analyzer:
 
 
 def main():
-    filepath = "data/dec_5_sat_ser.csv"
+    filepath = "data/dec_6_sat_ser.csv"
     analyzer = Analyzer(filepath)
     analyzer.acc = 2
-    analyzer.timeout = 600
+    analyzer.timeout = 300
     analyzer.allowed_types = (
         'FR',
         'MT',

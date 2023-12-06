@@ -199,6 +199,7 @@ class Solver:
 
                     if child.value > self.best_value:
                         self.best_node = child
+                        self.best_value = child.value
 
                     if upper_bound is not None:
                         child.high = upper_bound(child.state)
