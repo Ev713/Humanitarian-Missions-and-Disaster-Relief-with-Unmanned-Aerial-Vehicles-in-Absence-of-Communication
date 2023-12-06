@@ -220,39 +220,6 @@ class Solver:
         self.log_if_needed(needed=True)
         return self.get_results()
 
-    def greedy_best_first_search(self):
-        heuristic = self.value_plus_upper_bound
-        self.restart()
-        nodes = PriorityQueue()
-        nodes.push(self.root)
-        visited_states = set()
-        self.calculate_all_pairs_distances_with_Seidel()
-        while not nodes.is_empty():
-
-            best_unexpanded_node = nodes.pop()
-            best_unexpanded_node.expand([self.instance.make_action(action, best_unexpanded_node.state)
-                                         for action in self.instance.actions(best_unexpanded_node.state)])
-            for child in best_unexpanded_node.children:
-
-                if self.is_timeout():
-                    self.log_if_needed(needed=True)
-                    return self.get_results()
-                self.log_if_needed()
-
-                key = child.state.hash()
-                if self.dup_det:
-                    if key in visited_states:
-                        continue
-                    visited_states.add(key)
-                self.num_of_states += 1
-                child.value = heuristic(child.state)
-                if self.instance.reward(child.state) > self.best_value:
-                    self.best_value = child.value
-                    self.best_node = child
-                if not child.state.is_terminal():
-                    nodes.push(child)
-        return self.get_results()
-
     def value_plus_upper_bound(self, state):
         return self.instance.reward(state) + self.upper_bound_base_plus_utility(state)
 

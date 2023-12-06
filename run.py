@@ -52,9 +52,9 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
         solver.type = 'U1S'
         results = solver.branch_and_bound(solver.upper_bound_base_plus_utility,
                                           solver.lower_bound_base_plus_utility, is_greedy=True)
-    if algo == 'GBFS':
+    if algo == 'DFS':
         solver.type = 'U1S'
-        results = solver.greedy_best_first_search()
+        results = solver.branch_and_bound(depth_first=True)
 
     fin_res = results[-1][0] if len(results) > 0 else default
     fin_time = results[-1][-1] if len(results) > 0 and results[-1][-1] < timeout else default
@@ -85,7 +85,8 @@ def multi_run():
         'BFS',
         'BNBL',
         'BNB',
-        'GBNB'
+        'GBNB',
+        'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
     name = 'dec_6_sat_' + computer
