@@ -110,8 +110,9 @@ def multi_run():
             processes.append(p)
             print(f"number of processes: {len(processes)}")
             last_start = time.perf_counter()
-            if len(processes) >= max_workers:
-                while all([p.is_alive() for p in processes]) and len(processes) >= max_workers:
+            ram = psutil.virtual_memory()[2]
+            if len(processes) >= max_workers or ram > 95:
+                while all([p.is_alive() for p in processes]) and len(processes) >= max_workers or ram > 95:
                     ram = psutil.virtual_memory()[2]
                     if ram > 95:
                         processes[0].kill()
@@ -135,5 +136,5 @@ def multi_run():
 
 
 if __name__ == "__main__":
-    single_run()
+    multi_run()
 
