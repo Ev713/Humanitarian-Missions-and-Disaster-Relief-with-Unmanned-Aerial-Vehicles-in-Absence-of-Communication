@@ -48,10 +48,14 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
     if algo == 'BNB':
         solver.type = 'U1S'
         results = solver.branch_and_bound(solver.upper_bound_base_plus_utility)
-    if algo == 'GBFS':
+    if algo == 'GBNB':
         solver.type = 'U1S'
         results = solver.branch_and_bound(solver.upper_bound_base_plus_utility,
                                           solver.lower_bound_base_plus_utility, is_greedy=True)
+    if algo == 'GBFS':
+        solver.type = 'U1S'
+        results = solver.greedy_best_first_search()
+
     fin_res = results[-1][0] if len(results) > 0 else default
     fin_time = results[-1][-1] if len(results) > 0 and results[-1][-1] < timeout else default
     fin_states = results[-1][1] if len(results) > 0 else default
@@ -65,7 +69,7 @@ def single_run():
     inst = decoder.instances[0]
     name = 'scratch'
     # Inst_visualizer.vis3(inst, name)
-    algo = 'BFS'
+    algo = 'GBNB'
     solve(inst, algo, timeout, name)
 
 
@@ -81,11 +85,11 @@ def multi_run():
         'BFS',
         'BNBL',
         'BNB',
-        'GBFS'
+        'GBNB'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
     name = 'dec_5_sat_' + computer
-    timeout = 600
+    timeout = 300
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
@@ -131,5 +135,5 @@ def multi_run():
 
 
 if __name__ == "__main__":
-    multi_run()
+    single_run()
 

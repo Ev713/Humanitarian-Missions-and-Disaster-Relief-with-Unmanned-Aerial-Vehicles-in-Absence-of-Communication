@@ -62,7 +62,6 @@ class Solver:
         self.num_of_states = 0
 
     def get_results(self):
-        self.log_if_needed(needed=True)
         log = self.timer.logs['run']
         results = []
         for t in log:
@@ -124,7 +123,7 @@ class Solver:
                     reachable_vertexes.append(v)
         return reachable_vertexes
 
-    def get_possible_rewards_and_est_utilty(self, state):
+    def get_possible_rewards_and_est_utility(self, state):
         reachable_vertices = self.get_reachable_vertices(state)
         estimated_utility_left = 0
         for agent in self.instance.agents:
@@ -138,12 +137,12 @@ class Solver:
         return possible_rewards, estimated_utility_left
 
     def upper_bound_base_plus_utility(self, state):
-        possible_rewards, est_utility = self.get_possible_rewards_and_est_utilty(state)
+        possible_rewards, est_utility = self.get_possible_rewards_and_est_utility(state)
         possible_rewards = sorted(possible_rewards, reverse=True)
         return sum(possible_rewards[:min(len(possible_rewards), math.ceil(est_utility))])
 
     def lower_bound_base_plus_utility(self, state):
-        possible_rewards, est_utility = self.get_possible_rewards_and_est_utilty(state)
+        possible_rewards, est_utility = self.get_possible_rewards_and_est_utility(state)
         possible_rewards = sorted(possible_rewards)
         return sum(possible_rewards[:min(len(possible_rewards), math.ceil(est_utility))])
 
@@ -155,10 +154,12 @@ class Solver:
         return self.branch_and_bound()
 
     def branch_and_bound(self, upper_bound=None, lower_bound=None, is_greedy=False):
+        want_print = True
         if upper_bound is not None or lower_bound is not None:
             self.calculate_all_pairs_distances_with_Seidel()
         self.restart()
-        #self.timer.start("init")
+        if want_print:
+            self.timer.start("init")
         if is_greedy:
             que = PriorityQueue(self.root)
         else:
@@ -166,29 +167,35 @@ class Solver:
         if lower_bound is not None:
             best_lower_bound = self.root
             best_lower_bound.low = lower_bound(best_lower_bound.state)
-        #self.timer.end('init')
+        if want_print:
+            self.timer.end('init')
         while not que.is_empty():
             if self.is_timeout():
-                #print(str(self.timer))
+                if want_print:
+                    print(str(self.timer))
+                self.log_if_needed(needed=True)
                 return self.get_results()
             self.log_if_needed()
             node = que.pop()
-            #self.timer.end_from_last_end('pop')
+            if want_print:
+                self.timer.end_from_last_end('pop')
             if not node.state.is_terminal():
                 node.expand(
                     [self.instance.make_action(action, node.state) for action in self.instance.actions(node.state)])
                 self.num_of_states += len(node.children)
 
-                #self.timer.end_from_last_end('expand')
+                if want_print:
+                    self.timer.end_from_last_end('expand')
                 for child in node.children:
 
                     if self.dup_det:
                         if self.is_duplicate(child.state):
                             continue
 
-                    #self.timer.end_from_last_end("dup det")
+                    if want_print:
+                        self.timer.end_from_last_end("dup det")
 
-                    child.value = self.instance.reward(child.state) if child.value is None else child.value
+                    child.value = self.instance.reward(child.state)
 
                     if child.value > self.best_value:
                         self.best_node = child
@@ -202,9 +209,44 @@ class Solver:
                         child.low = lower_bound(child.state)
                         if child.value + child.low > best_lower_bound.value + best_lower_bound.low:
                             best_lower_bound = child
-                    #self.timer.end_from_last_end('value games')
+                    if want_print:
+                        self.timer.end_from_last_end('value games')
                     que.push(child)
-                    #self.timer.end_from_last_end('push')
+                    if want_print:
+                        self.timer.end_from_last_end('push')
+        self.log_if_needed(needed=True)
+        return self.get_results()
+
+    def greedy_best_first_search(self):
+        heuristic = self.value_plus_upper_bound
+        self.restart()
+        nodes = PriorityQueue()
+        nodes.push(self.root)
+        visited_states = set()
+        self.calculate_all_pairs_distances_with_Seidel()
+        while not nodes.is_empty():
+
+            best_unexpanded_node = nodes.pop()
+            best_unexpanded_node.expand([self.instance.make_action(action, best_unexpanded_node.state)
+                                         for action in self.instance.actions(best_unexpanded_node.state)])
+            for child in best_unexpanded_node.children:
+
+                if self.is_timeout():
+                    return self.get_results()
+                self.log_if_needed()
+
+                key = child.state.hash()
+                if self.dup_det:
+                    if key in visited_states:
+                        continue
+                    visited_states.add(key)
+                self.num_of_states += 1
+                child.value = heuristic(child.state)
+                if self.instance.reward(child.state) > self.best_value:
+                    self.best_value = child.value
+                    self.best_node = child
+                if not child.state.is_terminal():
+                    nodes.push(child)
         return self.get_results()
 
     def value_plus_upper_bound(self, state):
@@ -233,6 +275,7 @@ class Solver:
         self.best_node = None
         for t in range(self.NUMBER_OF_SIMULATIONS):
             if self.is_timeout():
+                self.log_if_needed(best_path, needed=True)
                 return self.get_results()
 
             node = self.root
@@ -296,6 +339,7 @@ class Solver:
 
         # root.get_tree()
         # returning
+        self.log_if_needed(best_path, needed=True)
         return self.get_results()
 
     def evaluate_path(self, path, method='VEC'):

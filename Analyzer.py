@@ -135,17 +135,17 @@ class Analyzer:
             # if not all_algos:
             #    continue
 
-            if default not in instance_runs or instance_runs[default].results[-1][0] == 0:
-                continue
-
             if instance_runs[list(instance_runs.keys())[0]].type not in self.allowed_types:
                 continue
 
             # if instance_runs['BFS'].source == 'X' or instance_runs['BFS'].type != 'MT':
             #    continue
 
-            def_result = max([instance_runs[algo].results[-1][0] for algo in self.algos if algo in instance_runs])
-            def_states = instance_runs[default].states
+            try:
+                max_result = max([instance_runs[algo].results[-2][0] for algo in self.algos if algo in instance_runs])
+            except:
+                continue
+            def_states = max([instance_runs[algo].results[-1][1] for algo in self.algos if algo in instance_runs])
 
             # for instance in instances:
             #    for algo in algos:
@@ -165,7 +165,11 @@ class Analyzer:
                 states[algo].append(run.states)
 
                 for pair in run.results:
-                    pair[0] = round(pair[0] / def_result, self.acc)
+                    pair[0] = 0 if max_result == 0 else \
+                        round(pair[0] / max_result, self.acc)
+
+                    if pair[0] > 1:
+                        breakpoint()
                     pair[1] = pair[1]
                     pair[2] = round(pair[2])
                 if algo not in self.data_for_graphs:
@@ -219,6 +223,9 @@ class Analyzer:
         plt.show()
 
     def get_opt_graph(self):
+        self.algos.remove('MCTS_S')
+        self.algos.remove('MCTS_E')
+        self.algos.remove('MCTS_V')
         opt_results = {}
         for inst_name in self.instances:
             inst = self.instances[inst_name]
@@ -253,10 +260,10 @@ class Analyzer:
 
 
 def main():
-    filepath = "data/dec_4_opt_ser.csv"
+    filepath = "data/dec_5_sat_ser.csv"
     analyzer = Analyzer(filepath)
     analyzer.acc = 2
-    analyzer.timeout = 3600
+    analyzer.timeout = 600
     analyzer.allowed_types = (
         'FR',
         'MT',
@@ -286,7 +293,7 @@ def main():
         if run.inst_name not in analyzer.instances:
             analyzer.instances[run.inst_name] = {}
         analyzer.instances[run.inst_name][run.algo] = run
-    analyzer.get_opt_graph()
+    analyzer.get_sat_graph()
 
     # algo = 'BNBL'
     # plt.scatter(sizes[algo], fin_ress[algo])
