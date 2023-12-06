@@ -89,7 +89,7 @@ def multi_run():
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
     name = 'dec_6_sat_' + computer
-    timeout = 300
+    timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced()
