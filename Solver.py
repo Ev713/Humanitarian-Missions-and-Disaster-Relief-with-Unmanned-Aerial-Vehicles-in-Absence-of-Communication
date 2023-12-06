@@ -10,7 +10,7 @@ import Node
 import VectorInstance
 
 import InstanceManager
-from GenQueue import PriorityQueue, RegularQueue
+from GenQueue import PriorityQueue, RegularQueue, Stack
 
 
 def make_instance(def_inst, method='VEC'):
@@ -153,8 +153,8 @@ class Solver:
     def bfs(self):
         return self.branch_and_bound()
 
-    def branch_and_bound(self, upper_bound=None, lower_bound=None, is_greedy=False):
-        want_print = True
+    def branch_and_bound(self, upper_bound=None, lower_bound=None, is_greedy=False, depth_first=False):
+        want_print = False
         if upper_bound is not None or lower_bound is not None:
             self.calculate_all_pairs_distances_with_Seidel()
         self.restart()
@@ -164,6 +164,8 @@ class Solver:
             que = PriorityQueue(self.root)
         else:
             que = RegularQueue(self.root)
+        if depth_first:
+            que = Stack(self.root)
         if lower_bound is not None:
             best_lower_bound = self.root
             best_lower_bound.low = lower_bound(best_lower_bound.state)
@@ -233,6 +235,7 @@ class Solver:
             for child in best_unexpanded_node.children:
 
                 if self.is_timeout():
+                    self.log_if_needed(needed=True)
                     return self.get_results()
                 self.log_if_needed()
 
@@ -278,7 +281,7 @@ class Solver:
             if self.is_timeout():
                 self.log_if_needed(best_path, needed=True)
                 return self.get_results()
-
+            self.log_if_needed(best_path)
             node = self.root
             # selection
 
@@ -336,7 +339,7 @@ class Solver:
                 discounted_reward /= self.DISCOUNT
 
             # gathering data
-            self.log_if_needed(best_path)
+
 
         # root.get_tree()
         # returning

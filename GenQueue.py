@@ -31,11 +31,11 @@ class RegularQueueNode:
 
 
 class PriorityQueue(GenQueue):
-    def __init__(self, node=None):
+    def __init__(self, data=None):
         super().__init__()
         self._queue = []
-        if node is not None:
-            self.push(node)
+        if data is not None:
+            self.push(data)
 
     def push(self, data):
         heapq.heappush(self._queue, PrioritizedData(data, - data.value - data.high))
@@ -78,3 +78,20 @@ class RegularQueue(GenQueue):
             if self.front is None:
                 self.rear = None
             return data
+
+
+class Stack(GenQueue):
+    def __init__(self, data=None):
+        super().__init__()
+        self.stack = []
+        if data is not None:
+            self.push(data)
+
+    def pop(self):
+        return self.stack.pop()
+
+    def push(self, data):
+        self.stack.append(data)
+
+    def is_empty(self):
+        return len(self.stack) == 0
