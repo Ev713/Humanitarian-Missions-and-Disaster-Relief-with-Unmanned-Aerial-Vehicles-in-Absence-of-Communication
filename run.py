@@ -89,14 +89,14 @@ def multi_run():
         'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_6_sat_' + computer
-    timeout = 3600
+    name = 'dec_6_opt_' + computer
+    timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(sort_by_size=True, small_ones=True)
     instances = decoder.instances
     instances_left = len(instances)
-    max_workers = 1  # round(multiprocessing.cpu_count() * 0.2)
+    max_workers = round(multiprocessing.cpu_count() * 0.2)
 
     print(f"Starting multi-run. \nTimeout: {timeout}\n"
           f"Algorithms: {algos}\nMax workers: {max_workers}\n"
