@@ -96,7 +96,7 @@ class Generator:
             if self.num_is_legal(l):
                 return l
         if self.type == 'FL':
-            return self.xy_to_num(self.rows/2, self.cols/2)
+            return self.xy_to_num(self.rows / 2, self.cols / 2)
         raise Exception("No legal squares")
 
     def generate_full_random_distr(self, vertex_hash):
@@ -221,7 +221,7 @@ class Generator:
 
     def generate_sanity_check_distr(self, v):
         x, y = self.num_to_xy(v)
-        if ((x == 0) ^ (y == 0)) or ((x == self.cols-1) ^ (y == self.rows-1)):
+        if ((x == 0) ^ (y == 0)) or ((x == self.cols - 1) ^ (y == self.rows - 1)):
             return {1: 1, 0: 0}
         else:
             return {0: 1}
@@ -358,26 +358,27 @@ class Generator:
         f.write("instance1 = Instance.Instance(\"" + self.name + "\", map1, agents, " + str(
             self.horizon) + ", source=" + "\"" + self.source + "\"" + ")\n")
 
+
 def generate():
-    for type in ['FL', 'SC', 'MT', 'FR']:
+    for type in ['AG']:
         if type == 'AG':
-            low = 4
-            high = 20
-            jump = 1
+            low = 5
+            high = 45
+            jump = 5
         else:
             low = 3
             high = 40
             jump = 1
         for side in range(low, high, jump):
             size = round(math.sqrt(side))
-            if (type == 'AG' and size % 10 != 5) or (type == 'SC' and size % 3 == 4):
-                continue
+            #if (type == 'AG' and size % 10 != 5) or (type == 'SC' and size % 3 == 4):
+            #    continue
             if type != 'AG' and type != 'SC' and type != 'FL':
                 cols = max(random.randint(int(size * 0.75), int(size * 1.25)), 2)
                 rows = max(random.randint(round(size * 0.75), round(size * 1.25)), 2)
             else:
-                cols = size
-                rows = size
+                cols = size*size
+                rows = size*size
             agents = max((cols + rows) // 5, 1)
             hor = max(random.randint(int(size * 0.9), int(size) * 2), 2)
             mr = max(size // 2, 2)
@@ -393,10 +394,11 @@ def generate():
                     G = Generator(type, cols, cols, 1, cols, ag_p=p)
                     G.ACC = 4
                     G.MAX_REWARD = mr
-                    InstanceManager.to_string(G.gen_instance(), "Generated_encoded_instances/AG")
+                    InstanceManager.to_string(G.gen_instance(), "small_map")
                     print(G.name + " added.")
 
-generate()
+if __name__=='__main__':
+    generate()
 
 '''for type in ['FR', 'MT']:
     for size in range(3, 27, 6):

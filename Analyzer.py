@@ -221,9 +221,12 @@ class Analyzer:
         plt.show()
 
     def get_opt_graph(self):
-        self.algos.remove('MCTS_S')
-        self.algos.remove('MCTS_E')
-        self.algos.remove('MCTS_V')
+        if 'MCTS_S' in self.algos:
+            self.algos.remove('MCTS_S')
+        if 'MCTS_S' in self.algos:
+            self.algos.remove('MCTS_E')
+        if 'MCTS_S' in self.algos:
+            self.algos.remove('MCTS_V')
         opt_results = {}
         for inst_name in self.instances:
             inst = self.instances[inst_name]
@@ -241,7 +244,8 @@ class Analyzer:
                     if run.inst_name not in opt_results:
                         continue
                     if run.algo == algo and run.time <= t and run.fin_res == opt_results[run.inst_name]:
-                        num_of_succ += 1
+                        if run.type in self.allowed_types:
+                            num_of_succ += 1
                 self.data_for_graphs[algo][0].append(t)
                 self.data_for_graphs[algo][1].append(num_of_succ)
 
@@ -258,7 +262,7 @@ class Analyzer:
 
 
 def main():
-    filepath = "data/dec_6_sat_ser.csv"
+    filepath = "data/dec_7_opt_ser.csv"
     analyzer = Analyzer(filepath)
     analyzer.acc = 2
     analyzer.timeout = 300
@@ -291,7 +295,7 @@ def main():
         if run.inst_name not in analyzer.instances:
             analyzer.instances[run.inst_name] = {}
         analyzer.instances[run.inst_name][run.algo] = run
-    analyzer.get_sat_graph()
+    analyzer.get_opt_graph()
 
     # algo = 'BNBL'
     # plt.scatter(sizes[algo], fin_ress[algo])
