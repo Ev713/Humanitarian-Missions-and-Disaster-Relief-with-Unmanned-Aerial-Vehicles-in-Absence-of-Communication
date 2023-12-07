@@ -141,10 +141,7 @@ class Analyzer:
             # if instance_runs['BFS'].source == 'X' or instance_runs['BFS'].type != 'MT':
             #    continue
 
-            try:
-                max_result = max([instance_runs[algo].results[-2][0] for algo in self.algos if algo in instance_runs])
-            except:
-                continue
+            max_result = max([instance_runs[algo].results[-1][0] for algo in self.algos if algo in instance_runs])
             def_states = max([instance_runs[algo].results[-1][1] for algo in self.algos if algo in instance_runs])
 
             # for instance in instances:
@@ -216,6 +213,7 @@ class Analyzer:
         plt.ylabel("Result (relative to best result)")
         plt.title("All maps")
         plt.ylim(bottom=0)
+        plt.xlim(30, 300)
 
         print("States (relative to best states):")
         for algo in self.data_for_tables:
