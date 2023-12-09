@@ -49,6 +49,13 @@ class PriorityQueue(GenQueue):
     def is_empty(self):
         return len(self._queue) == 0
 
+class AstarQueue(PriorityQueue):
+    def __init__(self, data=None):
+        super().__init__(data)
+
+    def push(self, data):
+        heapq.heappush(self._queue, PrioritizedData(data, - data.value - data.low))
+
 
 class RegularQueue(GenQueue):
     def __init__(self, data=None):
