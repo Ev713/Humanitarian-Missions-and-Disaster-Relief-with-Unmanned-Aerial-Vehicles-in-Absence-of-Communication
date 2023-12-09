@@ -93,7 +93,7 @@ def multi_run():
     timeout = 300
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced, small_ones=True)
+    decoder.decode_reduced( small_ones=True)
     instances = decoder.instances
     instances_left = len(instances)
     max_workers = round(multiprocessing.cpu_count() * 0.3)
