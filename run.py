@@ -84,13 +84,14 @@ def solve(*args):
 
 def multi_run():
     algos = [
-        #'MCTS_E',
+        'MCTS_E',
         'MCTS_V',
         #'MCTS_S',
         'BFS',
         'BNBL',
-        'BNB',
+        #'BNB',
         'GBNB',
+        'ASTAR'
         #'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
