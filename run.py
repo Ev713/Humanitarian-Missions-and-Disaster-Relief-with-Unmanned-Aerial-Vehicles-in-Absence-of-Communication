@@ -80,23 +80,23 @@ def solve(*args):
 def multi_run():
     algos = [
         #'MCTS_E',
-        #'MCTS_V',
+        'MCTS_V',
         #'MCTS_S',
         'BFS',
         'BNBL',
         'BNB',
         'GBNB',
-        'DFS'
+        #'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_6_opt_' + computer
-    timeout = 600
+    name = 'check_dec_9_sat_' + computer
+    timeout = 300
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(sort_by_size=True, small_ones=True, types_allowed=('AG01', 'AG05', 'AG001'))
+    decoder.decode_reduced, small_ones=True)
     instances = decoder.instances
     instances_left = len(instances)
-    max_workers = round(multiprocessing.cpu_count() * 0.2)
+    max_workers = round(multiprocessing.cpu_count() * 0.3)
 
     print(f"Starting multi-run. \nTimeout: {timeout}\n"
           f"Algorithms: {algos}\nMax workers: {max_workers}\n"
