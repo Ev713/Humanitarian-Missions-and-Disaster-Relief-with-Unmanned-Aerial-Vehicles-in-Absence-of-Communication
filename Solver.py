@@ -249,7 +249,7 @@ class Solver:
                         if child.high + child.value < lowest_bound.value + lowest_bound.low:
                             continue
 
-                    child.low = lower_bound(child.state) if lower_bound is not None else 0
+                    	child.low = lower_bound(child.state) if lower_bound is not None else 0
                         if child.value + child.low > lowest_bound.value + lowest_bound.low:
                             lowest_bound = child
                     if want_print:
