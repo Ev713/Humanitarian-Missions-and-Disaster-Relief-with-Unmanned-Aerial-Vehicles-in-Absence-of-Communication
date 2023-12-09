@@ -196,7 +196,6 @@ class Solver:
             self.timer.start("init")
         if is_greedy:
             que = PriorityQueue(self.root)
-            lowest_bound
         else:
             que = RegularQueue(self.root)
             
@@ -208,9 +207,9 @@ class Solver:
             que = Stack(self.root)
         else:
             que = RegularQueue(self.root)
-        if lower_bound is not None:
+        if upper_bound is not None:
             lowest_bound = self.root
-            lowest_bound.low = lower_bound(lowest_bound.state)
+            lowest_bound.low = lower_bound(lowest_bound.state) if lower_bound is not None else 0
         if want_print:
             self.timer.end('init')
         while not que.is_empty():
@@ -250,8 +249,7 @@ class Solver:
                         if child.high + child.value < lowest_bound.value + lowest_bound.low:
                             continue
 
-                    if lower_bound is not None:
-                        child.low = lower_bound(child.state)
+                    child.low = lower_bound(child.state) if lower_bound is not None else 0
                         if child.value + child.low > lowest_bound.value + lowest_bound.low:
                             lowest_bound = child
                     if want_print:
