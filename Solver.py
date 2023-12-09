@@ -111,9 +111,13 @@ class Solver:
         self.all_pair_distances = InstanceManager.calculate_all_pairs_distances_with_Seidel(self.instance)
         self.dist_calculated = True
 
-    def get_reachable_vertices(self, state):
+    def get_reachable_vertices(self, state, agent=None):
+        if agent is None:
+            agents = self.instance.agents
+        else:
+            agents = [agent]
         vertexes_with_agents = []
-        for agent in self.instance.agents:
+        for agent in agents:
             vertexes_with_agents.append(state.a_pos[agent.hash()].loc)
         reachable_vertexes = []
         for v in self.instance.map:
@@ -123,28 +127,58 @@ class Solver:
                     reachable_vertexes.append(v)
         return reachable_vertexes
 
-    def get_possible_rewards_and_est_utility(self, state):
-        reachable_vertices = self.get_reachable_vertices(state)
+    def get_sum_est_utility(self, state):
         estimated_utility_left = 0
         for agent in self.instance.agents:
             matrix = state.matrices[agent.hash()]
-            for i in range(matrix.shape[0]):
-                for j in range(matrix.shape[1]):
-                    estimated_utility_left += (matrix.shape[0] - i) * matrix[i][j]
-        possible_rewards = []
+            estimated_utility_left += self.get_est_utility(state, agent)
+        return estimated_utility_left
+
+    def get_est_utility(self, state, agent):
+        estimated_utility_left = 0
+        matrix = state.matrices[agent.hash()]
+        for i in range(matrix.shape[0]):
+            for j in range(matrix.shape[1]):
+                estimated_utility_left += (matrix.shape[0] - i) * matrix[i][j]
+        return estimated_utility_left
+
+    def get_reachable_exp_rewards(self, state):
+        reachable_vertices = self.get_reachable_vertices(state)
+        reachable_exps = []
         for v in reachable_vertices:
-            possible_rewards.append(v.expectation())
-        return possible_rewards, estimated_utility_left
+            reachable_exps.append(v.expectation())
+        return reachable_exps
+
+    def get_reachable_bers(self, state):
+        reachable_vertices = self.get_reachable_vertices(state)
+        reachable_bers = []
+        for v in reachable_vertices:
+            reachable_bers.append(v.bernoulli())
+        return reachable_bers
 
     def upper_bound_base_plus_utility(self, state):
-        possible_rewards, est_utility = self.get_possible_rewards_and_est_utility(state)
-        possible_rewards = sorted(possible_rewards, reverse=True)
-        return sum(possible_rewards[:min(len(possible_rewards), math.ceil(est_utility))])
+        reachable_bers = self.get_reachable_bers(state)
+        est_utility = self.get_sum_est_utility(state)
+        reachable_bers = sorted(reachable_bers, reverse=True)
+        return sum(reachable_bers[:min(len(reachable_bers), math.ceil(est_utility))])
+
+    def get_prob_utility_gt0(self, state, agent):
+        return 1-sum(state.matrices[agent.hash()][:, - 1])
 
     def lower_bound_base_plus_utility(self, state):
-        possible_rewards, est_utility = self.get_possible_rewards_and_est_utility(state)
-        possible_rewards = sorted(possible_rewards)
-        return sum(possible_rewards[:min(len(possible_rewards), math.ceil(est_utility))])
+        probs_u_not_0 = {agent: self.get_prob_utility_gt0(state, agent) for agent in self.instance.agents}
+        reachables = {agent: self.get_reachable_vertices(state, agent) for agent in self.instance.agents}
+        already_visited = set()
+        lowerbound = 0
+        agents = sorted(self.instance.agents, key=lambda a: probs_u_not_0[a], reverse=True)
+        for agent in agents:
+            bernoullis = {v.hash(): v.bernoulli for v in reachables[agent] if v not in already_visited}
+            if len(bernoullis) == 0:
+                continue
+            v = max([v for v in bernoullis], key=lambda v: bernoullis[v])
+            already_visited.add(v)
+            lowerbound += bernoullis[v]*probs_u_not_0[agent]
+        return lowerbound
 
     def map_reduce(self):
         InstanceManager.map_reduce(self.instance)
@@ -306,7 +340,6 @@ class Solver:
                 discounted_reward /= self.DISCOUNT
 
             # gathering data
-
 
         # root.get_tree()
         # returning
