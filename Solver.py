@@ -187,7 +187,7 @@ class Solver:
     def bfs(self):
         return self.branch_and_bound()
 
-    def branch_and_bound(self, upper_bound=None, lower_bound=None, is_greedy=False, depth_first=False):
+    def branch_and_bound(self, upper_bound=None, lower_bound=None, is_greedy=False, depth_first=False, astar=False):
         want_print = False
         if upper_bound is not None or lower_bound is not None:
             self.calculate_all_pairs_distances_with_Seidel()
