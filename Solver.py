@@ -198,11 +198,16 @@ class Solver:
             que = PriorityQueue(self.root)
         else:
             que = RegularQueue(self.root)
-        if depth_first:
+            
+        if is_greedy:
+            que = PriorityQueue(self.root)
+        elif astar:
+            que = AstarQueue(self.root)
+        elif depth_first:
             que = Stack(self.root)
-        if lower_bound is not None:
-            best_lower_bound = self.root
-            best_lower_bound.low = lower_bound(best_lower_bound.state)
+        else:
+            que = RegularQueue(self.root)
+
         if want_print:
             self.timer.end('init')
         while not que.is_empty():
