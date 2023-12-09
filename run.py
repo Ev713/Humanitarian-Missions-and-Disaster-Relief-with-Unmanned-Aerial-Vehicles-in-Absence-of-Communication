@@ -52,6 +52,11 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
         solver.type = 'U1S'
         results = solver.branch_and_bound(solver.upper_bound_base_plus_utility,
                                           solver.lower_bound_base_plus_utility, is_greedy=True)
+
+    if algo =='ASTAR':
+        solver.type = 'U1S'
+        results = solver.branch_and_bound(solver.upper_bound_base_plus_utility,
+                                              solver.lower_bound_base_plus_utility, astar=True)
     if algo == 'DFS':
         solver.type = 'U1S'
         results = solver.branch_and_bound(depth_first=True)
