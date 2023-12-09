@@ -90,13 +90,13 @@ def multi_run():
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
     name = 'check_dec_9_sat_' + computer
-    timeout = 300
+    timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced( small_ones=True, size_lower_bound = 30)
+    decoder.decode_reduced()
     instances = decoder.instances
     instances_left = len(instances)
-    max_workers = round(multiprocessing.cpu_count() * 0.3)
+    max_workers = round(multiprocessing.cpu_count() * 0.2)
 
     print(f"Starting multi-run. \nTimeout: {timeout}\n"
           f"Algorithms: {algos}\nMax workers: {max_workers}\n"
