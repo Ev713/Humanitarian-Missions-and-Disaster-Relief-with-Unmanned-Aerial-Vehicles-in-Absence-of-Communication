@@ -10,7 +10,7 @@ import Node
 import VectorInstance
 
 import InstanceManager
-from GenQueue import PriorityQueue, RegularQueue, Stack
+from GenQueue import PriorityQueue, RegularQueue, Stack, AstarQueue
 
 
 def make_instance(def_inst, method='VEC'):
@@ -196,6 +196,7 @@ class Solver:
             self.timer.start("init")
         if is_greedy:
             que = PriorityQueue(self.root)
+            lowest_bound
         else:
             que = RegularQueue(self.root)
             
@@ -207,7 +208,9 @@ class Solver:
             que = Stack(self.root)
         else:
             que = RegularQueue(self.root)
-
+        if lower_bound is not None:
+            lowest_bound = self.root
+            lowest_bound.low = lower_bound(lowest_bound.state)
         if want_print:
             self.timer.end('init')
         while not que.is_empty():
@@ -244,13 +247,13 @@ class Solver:
 
                     if upper_bound is not None:
                         child.high = upper_bound(child.state)
-                        if child.high + child.value < self.best_node.value + self.best_node.low:
+                        if child.high + child.value < lowest_bound.value + lowest_bound.low:
                             continue
 
                     if lower_bound is not None:
                         child.low = lower_bound(child.state)
-                        if child.value + child.low > best_lower_bound.value + best_lower_bound.low:
-                            best_lower_bound = child
+                        if child.value + child.low > lowest_bound.value + lowest_bound.low:
+                            lowest_bound = child
                     if want_print:
                         self.timer.end_from_last_end('value games')
                     que.push(child)
