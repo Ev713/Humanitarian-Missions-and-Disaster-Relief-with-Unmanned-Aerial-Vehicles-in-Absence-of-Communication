@@ -172,7 +172,7 @@ class Solver:
         lowerbound = 0
         agents = sorted(self.instance.agents, key=lambda a: probs_u_not_0[a], reverse=True)
         for agent in agents:
-            bernoullis = {v.hash(): v.bernoulli for v in reachables[agent] if v not in already_visited}
+            bernoullis = {v.hash(): v.bernoulli() for v in reachables[agent] if v not in already_visited}
             if len(bernoullis) == 0:
                 continue
             v = max([v for v in bernoullis], key=lambda v: bernoullis[v])
