@@ -88,19 +88,19 @@ def multi_run():
         # 'MCTS_S',
         'BFS',
         'BNBL',
-        # 'BNB',
+        'BNB',
         'GBNB',
         'ASTAR'
         # 'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_10_opt_' + computer
+    name = 'dec_10_sat_' + computer
     timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(small_ones=True, sort_by_size=True)
+    decoder.decode_reduced()
     instances = decoder.instances
-    instances_left = len(instances)
+    runs_left = len(instances)*len(algos)
     max_workers = 3  # round(multiprocessing.cpu_count() * 0.2)
 
     print(f"Starting multi-run. \nTimeout: {timeout}\n"
@@ -133,8 +133,8 @@ def multi_run():
                 for p in processes:
                     if not p.is_alive():
                         processes.remove(processes[0])
-                        instances_left -= 1
-                        print(f"Process removed. New process may start. {instances_left} left")
+                        runs_left -= 1
+                        print(f"Process removed. New process may start. {runs_left} left")
                 print(f"number of processes: {len(processes)}")
     finish = time.perf_counter()
     print(f'Finished in {round(finish - start, 2)} second(s)')
