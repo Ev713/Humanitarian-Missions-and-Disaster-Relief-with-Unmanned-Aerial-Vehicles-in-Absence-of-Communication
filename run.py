@@ -84,15 +84,15 @@ def solve(*args):
 
 def multi_run():
     algos = [
-        'MCTS_E',
-        'MCTS_V',
+        #'MCTS_E',
+            #'MCTS_V',
         #'MCTS_S',
         'BFS',
         'BNBL',
-        #'BNB',
+            #'BNB',
         'GBNB',
         'ASTAR'
-        #'DFS'
+            #'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
     name = 'check_dec_9_opt_' + computer

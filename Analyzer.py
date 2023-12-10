@@ -223,15 +223,15 @@ class Analyzer:
     def get_opt_graph(self):
         if 'MCTS_S' in self.algos:
             self.algos.remove('MCTS_S')
-        if 'MCTS_S' in self.algos:
+        if 'MCTS_E' in self.algos:
             self.algos.remove('MCTS_E')
-        if 'MCTS_S' in self.algos:
+        if 'MCTS_V' in self.algos:
             self.algos.remove('MCTS_V')
         opt_results = {}
         for inst_name in self.instances:
             inst = self.instances[inst_name]
             for algo in inst:
-                if inst[algo].time < self.timeout * 0.9:
+                if -1 < inst[algo].time < self.timeout * 0.9:
                     opt_results[inst_name] = inst[algo].fin_res
                     break
 
