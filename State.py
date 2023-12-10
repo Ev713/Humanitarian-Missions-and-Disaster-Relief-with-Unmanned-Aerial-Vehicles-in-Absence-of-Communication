@@ -67,6 +67,7 @@ class VectorState(State):
         self.a_pos = {}
         self.reward = None
         if instance is not None:
+            self._horizon = instance.horizon
             for a in instance.agents:
                 self.time_left = instance.horizon
                 self.a_pos[a.hash()] = Position(a.loc.hash(), False)  # a.hash(): v.hash()
@@ -78,15 +79,26 @@ class VectorState(State):
             for v_hash in instance.map_map:
                 self.dynamic_distrs[v_hash] = instance.map_map[v_hash].distribution.copy()
 
+    def get_time(self):
+        return self._horizon - self.time_left
+
+    def movement_left(self, agent):
+        return agent.movement_budget - self.get_time()
+
     def calculate_vertex_estimate(self, vrtx):
         probs = self.dynamic_distrs[vrtx.hash()]
         return sum([probs[i] * i for i in probs.keys()])
+
+    def bernoulli(self, vertex):
+        distr = self.dynamic_distrs[vertex.hash()]
+        return 0 if distr[0] == 1 else sum([r * distr[r] for r in distr]) / (1 - distr[0])
 
     def copy(self):
         copy_state = VectorState()
         copy_state.a_pos = copy.deepcopy(self.a_pos)
         copy_state.matrices = copy.deepcopy(self.matrices)
         copy_state.dynamic_distrs = copy.deepcopy(self.dynamic_distrs)
+        copy_state._horizon = self._horizon
         copy_state.time_left = self.time_left
         return copy_state
 

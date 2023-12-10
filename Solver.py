@@ -111,21 +111,19 @@ class Solver:
         self.all_pair_distances = InstanceManager.calculate_all_pairs_distances_with_Seidel(self.instance)
         self.dist_calculated = True
 
-    def get_reachable_vertices(self, state, agent=None):
+    def get_reachable_by_agents(self, state, agent=None):
         if agent is None:
             agents = self.instance.agents
         else:
             agents = [agent]
-        vertexes_with_agents = []
+        reachable = []
         for agent in agents:
-            vertexes_with_agents.append(state.a_pos[agent.hash()].loc)
-        reachable_vertexes = []
-        for v in self.instance.map:
-            for cur in vertexes_with_agents:
-                if (self.all_pair_distances[v.hash(), cur] <= (
-                        self.instance.horizon - state.time_left) and v not in reachable_vertexes):
-                    reachable_vertexes.append(v)
-        return reachable_vertexes
+            reachable += [v for v in self.get_reachable_from(self.instance.map_map[state.a_pos[agent.hash()].loc],
+                                                 state.movement_left(agent)) if v not in reachable]
+        return reachable
+
+    def get_reachable_from(self, ver, steps):
+        return [v for v in self.instance.map if self.all_pair_distances[(v.hash(), ver.hash())] <= steps]
 
     def get_sum_est_utility(self, state):
         estimated_utility_left = 0
@@ -143,31 +141,55 @@ class Solver:
         return estimated_utility_left
 
     def get_reachable_exp_rewards(self, state):
-        reachable_vertices = self.get_reachable_vertices(state)
+        reachable_vertices = self.get_reachable_by_agents(state)
         reachable_exps = []
         for v in reachable_vertices:
             reachable_exps.append(v.expectation())
         return reachable_exps
 
     def get_reachable_bers(self, state):
-        reachable_vertices = self.get_reachable_vertices(state)
+        reachable_vertices = self.get_reachable_by_agents(state)
         reachable_bers = []
         for v in reachable_vertices:
-            reachable_bers.append(v.bernoulli())
+            reachable_bers.append(state.bernoulli(v))
         return reachable_bers
 
     def upper_bound_base_plus_utility(self, state):
-        reachable_bers = self.get_reachable_bers(state)
+        reachable_bers = sorted(self.get_reachable_bers(state), reverse=True)
         est_utility = self.get_sum_est_utility(state)
-        reachable_bers = sorted(reachable_bers, reverse=True)
         return sum(reachable_bers[:min(len(reachable_bers), math.ceil(est_utility))])
 
     def get_prob_utility_gt0(self, state, agent):
-        return 1-sum(state.matrices[agent.hash()][:, - 1])
+        return 1 - sum(state.matrices[agent.hash()][:, - 1])
+
+    def get_greedy_path(self, start, steps, state, visited):
+        steps_left = steps
+        ver = start
+        path = []
+        while steps_left > 0:
+            reachable = [v for v in self.get_reachable_from(ver, steps) if v.hash() not in visited]
+            best = max(reachable, key=lambda v: state.bernoulli(v))
+            steps_left -= self.all_pair_distances[ver.hash(), best.hash()]
+            path.append(best)
+            visited.add(best.hash())
+        return path
+
+    def greedy_lower_bound(self, state):
+        agents = sorted(self.instance.agents, key=lambda a: state.movement_left(a))
+        visited_vertices = set()
+        reward = 0
+        for agent in agents:
+            steps = state.movement_left(agent)
+            path = self.get_greedy_path(self.instance.map_map[state.a_pos[agent.hash()].loc],
+                                                        steps, state, visited_vertices)
+            for u in range(1, min(agent.utility_budget + 1, len(path))):
+                reward += sum(state.matrices[agent.hash()][:, u]) \
+                          * sum(state.bernoulli(v) for v in path[0: u])
+        return reward
 
     def lower_bound_base_plus_utility(self, state):
         probs_u_not_0 = {agent: self.get_prob_utility_gt0(state, agent) for agent in self.instance.agents}
-        reachables = {agent: self.get_reachable_vertices(state, agent) for agent in self.instance.agents}
+        reachables = {agent: self.get_reachable_by_agents(state, agent) for agent in self.instance.agents}
         already_visited = set()
         lowerbound = 0
         agents = sorted(self.instance.agents, key=lambda a: probs_u_not_0[a], reverse=True)
@@ -177,7 +199,7 @@ class Solver:
                 continue
             v = max([v for v in bernoullis], key=lambda v: bernoullis[v])
             already_visited.add(v)
-            lowerbound += bernoullis[v]*probs_u_not_0[agent]
+            lowerbound += bernoullis[v] * probs_u_not_0[agent]
         return lowerbound
 
     def map_reduce(self):
@@ -198,7 +220,7 @@ class Solver:
             que = PriorityQueue(self.root)
         else:
             que = RegularQueue(self.root)
-            
+
         if is_greedy:
             que = PriorityQueue(self.root)
         elif astar:
@@ -249,7 +271,7 @@ class Solver:
                         if child.high + child.value < lowest_bound.value + lowest_bound.low:
                             continue
 
-                    	child.low = lower_bound(child.state) if lower_bound is not None else 0
+                        child.low = lower_bound(child.state) if lower_bound is not None else 0
                         if child.value + child.low > lowest_bound.value + lowest_bound.low:
                             lowest_bound = child
                     if want_print:

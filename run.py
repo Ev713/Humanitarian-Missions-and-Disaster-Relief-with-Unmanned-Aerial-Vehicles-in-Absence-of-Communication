@@ -44,19 +44,18 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
     if algo == 'BNBL':
         solver.type = 'U1S'
         results = solver.branch_and_bound(solver.upper_bound_base_plus_utility,
-                                          solver.lower_bound_base_plus_utility)
+                                          solver.greedy_lower_bound)
     if algo == 'BNB':
         solver.type = 'U1S'
         results = solver.branch_and_bound(solver.upper_bound_base_plus_utility)
     if algo == 'GBNB':
         solver.type = 'U1S'
         results = solver.branch_and_bound(solver.upper_bound_base_plus_utility,
-                                          solver.lower_bound_base_plus_utility, is_greedy=True)
-
-    if algo =='ASTAR':
+                                          solver.greedy_lower_bound, is_greedy=True)
+    if algo == 'ASTAR':
         solver.type = 'U1S'
         results = solver.branch_and_bound(solver.upper_bound_base_plus_utility,
-                                              solver.lower_bound_base_plus_utility, astar=True)
+                                          solver.greedy_lower_bound, astar=True)
     if algo == 'DFS':
         solver.type = 'U1S'
         results = solver.branch_and_bound(depth_first=True)
@@ -70,11 +69,11 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
 def single_run():
     timeout = 60
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced()
+    decoder.decode_reduced(types_allowed=('FR'), small_ones=True, sort_by_size=True, size_lower_bound=10)
     inst = decoder.instances[0]
     name = 'scratch'
     # Inst_visualizer.vis3(inst, name)
-    algo = 'GBNB'
+    algo = 'BFS'
     solve(inst, algo, timeout, name)
 
 
@@ -84,18 +83,18 @@ def solve(*args):
 
 def multi_run():
     algos = [
-        #'MCTS_E',
-            #'MCTS_V',
-        #'MCTS_S',
+        # 'MCTS_E',
+        # 'MCTS_V',
+        # 'MCTS_S',
         'BFS',
         'BNBL',
-            #'BNB',
+        # 'BNB',
         'GBNB',
         'ASTAR'
-            #'DFS'
+        # 'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'check_dec_9_opt_' + computer
+    name = 'dec_10_opt_' + computer
     timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
@@ -127,7 +126,7 @@ def multi_run():
                     time_passed = round(time.perf_counter() - last_start)
                     if time_passed != 0:
                         print(f"Waiting for a process to finish for {time_passed} seconds."
-                              f" Expected time: {timeout-time_passed}.\n"
+                              f" Expected time: {timeout - time_passed}.\n"
                               f"Memory used: {ram}%")
                     time.sleep(10)
 
@@ -144,4 +143,3 @@ def multi_run():
 
 if __name__ == "__main__":
     multi_run()
-
