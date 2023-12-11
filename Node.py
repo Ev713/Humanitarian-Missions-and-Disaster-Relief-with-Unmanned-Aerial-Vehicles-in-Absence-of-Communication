@@ -4,6 +4,7 @@ import State
 
 class Node:
     def __init__(self, state, parent=None):
+        self.action = None
         self.children = []
         self.parent = parent
         if self.parent is None:
@@ -18,30 +19,17 @@ class Node:
         self.high = 0
         self.low = 0
 
-    def get_path(self):
-        if isinstance(self.state, State.EmpState):
-            path = self.get_det_path()
-            path_copy = {a: path[a].copy() for a in path}
-            return path_copy
-        elif isinstance(self.state, State.VectorState):
-            return self.get_stoch_path().copy()
-
-    def get_path_actions(self):
-        path = self.get_path()
-        for a in path:
-            path[a].pop(0)
-        return path
-
-    def get_det_path(self):
-        return self.state.path
-
-    def get_stoch_path(self):
+    def get_path(self, agents):
         node = self
-        path = {a: [] for a in self.state.a_pos}
+
+        path = {a.hash(): [] for a in agents}
         while True:
-            for a in self.state.a_pos:
-                path[a].insert(0, node.state.a_pos[a])
-            if node.parent is None:
+            action = node.action
+            if action is None:
+                return path
+            for a in action:
+                path[a].insert(0, node.action[a])
+            if node.parent.parent is None or node.parent is None or node is None:
                 break
             node = node.parent
         return path
@@ -101,9 +89,12 @@ class Node:
                 max_visits_child = c
         return max_visits_child
 
-    def expand(self, child_states):
-        for child_state in child_states:
-            child = Node(child_state, self)
+    def expand(self, instance):
+        actions = instance.actions(self.state)
+        self.children = []
+        for action in actions:
+            child = Node(instance.make_action(action, self.state), self)
+            child.action = action
             self.children.append(child)
 
     def backpropagate(self, value):

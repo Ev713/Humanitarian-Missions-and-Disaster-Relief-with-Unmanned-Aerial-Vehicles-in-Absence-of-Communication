@@ -2,12 +2,13 @@ import math
 import random
 import time
 
+import VectorInstance
 import instance_decoder
 from Timer import Timer
 
 import EmpInstance
 import Node
-import VectorInstance
+import MatrixInstance
 
 import InstanceManager
 from GenQueue import PriorityQueue, RegularQueue, Stack, AstarQueue
@@ -18,6 +19,8 @@ def make_instance(def_inst, method='VEC'):
         instance = EmpInstance.EmpInstance(def_inst)
     elif method == 'VEC':
         instance = VectorInstance.VectorInstance(def_inst)
+    elif method == 'MAT':
+        instance = MatrixInstance.MatrixInstance(def_inst)
     elif method == 'SEM':
         instance = EmpInstance.SemiEmpInstance(def_inst)
     else:
@@ -82,8 +85,9 @@ class Solver:
                 while not self.best_node.state.is_terminal() and len(self.best_node.children) != 0:
                     self.best_node = self.best_node.highest_value_child()
             # print(self.best_value)
-            self.timer.log((self.best_node.get_path_actions() if path is None else path, self.num_of_states),
-                           thing='run', alt_now=now)
+            self.timer.log(
+                (self.best_node.get_path(self.instance.agents) if path is None else path, self.num_of_states),
+                thing='run', alt_now=now)
             if best_is_none:
                 self.best_node = None
             return True
@@ -95,7 +99,7 @@ class Solver:
     def base_upper_bound(self, state):
         possible_destinations_expectations = {}
         for agent in self.instance.agents:
-            current_vertex = state.a_pos[agent.hash()].loc
+            current_vertex = state.action[agent.hash()].loc
             for v in self.instance.map:
                 if v.hash() == current_vertex or self.all_pair_distances[(v.hash(), current_vertex)] > (
                         agent.movement_budget - (self.instance.horizon - state.time_left)):
@@ -118,27 +122,27 @@ class Solver:
             agents = [agent]
         reachable = []
         for agent in agents:
-            reachable += [v for v in self.get_reachable_from(self.instance.map_map[state.a_pos[agent.hash()].loc],
-                                                 state.movement_left(agent)) if v not in reachable]
+            reachable += [v for v in self.get_reachable_from(self.instance.map_map[state.loc[agent.hash()]],
+                                                             self.instance.movement_left(state, agent)) if
+                          v not in reachable]
         return reachable
 
     def get_reachable_from(self, ver, steps):
-        return [v for v in self.instance.map if self.all_pair_distances[(v.hash(), ver.hash())] <= steps]
+        reach = []
+        for v in self.instance.map:
+            d = self.all_pair_distances[(v.hash(), ver.hash())]
+            if d <= steps:
+                reach.append(v)
+        return reach
 
     def get_sum_est_utility(self, state):
         estimated_utility_left = 0
         for agent in self.instance.agents:
-            matrix = state.matrices[agent.hash()]
             estimated_utility_left += self.get_est_utility(state, agent)
         return estimated_utility_left
 
     def get_est_utility(self, state, agent):
-        estimated_utility_left = 0
-        matrix = state.matrices[agent.hash()]
-        for i in range(matrix.shape[0]):
-            for j in range(matrix.shape[1]):
-                estimated_utility_left += (matrix.shape[0] - i) * matrix[i][j]
-        return estimated_utility_left
+        return sum([state.utl[agent.hash()][u] * u for u in range(len(state.utl[agent.hash()]))])
 
     def get_reachable_exp_rewards(self, state):
         reachable_vertices = self.get_reachable_by_agents(state)
@@ -159,48 +163,30 @@ class Solver:
         est_utility = self.get_sum_est_utility(state)
         return sum(reachable_bers[:min(len(reachable_bers), math.ceil(est_utility))])
 
-    def get_prob_utility_gt0(self, state, agent):
-        return 1 - sum(state.matrices[agent.hash()][:, - 1])
-
     def get_greedy_path(self, start, steps, state, visited):
         steps_left = steps
         ver = start
         path = []
         while steps_left > 0:
-            reachable = [v for v in self.get_reachable_from(ver, steps) if v.hash() not in visited]
-            best = max(reachable, key=lambda v: state.bernoulli(v))
-            steps_left -= self.all_pair_distances[ver.hash(), best.hash()]
+            reachable = [v for v in self.get_reachable_from(ver, steps_left) if v.hash() not in visited]
+            best = max(reachable, key=lambda v: state.bers[v.hash()].e())
+            steps_left -= max(self.all_pair_distances[ver.hash(), best.hash()], 1)
             path.append(best)
             visited.add(best.hash())
+            ver = best
         return path
 
     def greedy_lower_bound(self, state):
-        agents = sorted(self.instance.agents, key=lambda a: state.movement_left(a))
+        agents = sorted(self.instance.agents, key=lambda a: self.instance.movement_left(state, a))
         visited_vertices = set()
         reward = 0
         for agent in agents:
-            steps = state.movement_left(agent)
-            path = self.get_greedy_path(self.instance.map_map[state.a_pos[agent.hash()].loc],
-                                                        steps, state, visited_vertices)
-            for u in range(1, min(agent.utility_budget + 1, len(path))):
-                reward += sum(state.matrices[agent.hash()][:, u]) \
-                          * sum(state.bernoulli(v) for v in path[0: u])
+            steps = self.instance.movement_left(state, agent)
+            path = self.get_greedy_path(self.instance.map_map[state.loc[agent.hash()]],
+                                        steps, state, visited_vertices)
+            for u in range(1, agent.utility_budget + 1):
+                reward += state.utl[agent.hash()][u] * sum(state.bernoulli(v) for v in path[0: min(u, len(path))])
         return reward
-
-    def lower_bound_base_plus_utility(self, state):
-        probs_u_not_0 = {agent: self.get_prob_utility_gt0(state, agent) for agent in self.instance.agents}
-        reachables = {agent: self.get_reachable_by_agents(state, agent) for agent in self.instance.agents}
-        already_visited = set()
-        lowerbound = 0
-        agents = sorted(self.instance.agents, key=lambda a: probs_u_not_0[a], reverse=True)
-        for agent in agents:
-            bernoullis = {v.hash(): v.bernoulli() for v in reachables[agent] if v not in already_visited}
-            if len(bernoullis) == 0:
-                continue
-            v = max([v for v in bernoullis], key=lambda v: bernoullis[v])
-            already_visited.add(v)
-            lowerbound += bernoullis[v] * probs_u_not_0[agent]
-        return lowerbound
 
     def map_reduce(self):
         InstanceManager.map_reduce(self.instance)
@@ -211,16 +197,12 @@ class Solver:
 
     def branch_and_bound(self, upper_bound=None, lower_bound=None, is_greedy=False, depth_first=False, astar=False):
         want_print = False
+        #self.dup_det = False
         if upper_bound is not None or lower_bound is not None:
             self.calculate_all_pairs_distances_with_Seidel()
         self.restart()
         if want_print:
             self.timer.start("init")
-        if is_greedy:
-            que = PriorityQueue(self.root)
-        else:
-            que = RegularQueue(self.root)
-
         if is_greedy:
             que = PriorityQueue(self.root)
         elif astar:
@@ -242,11 +224,12 @@ class Solver:
                 return self.get_results()
             self.log_if_needed()
             node = que.pop()
+
+
             if want_print:
                 self.timer.end_from_last_end('pop')
             if not node.state.is_terminal():
-                node.expand(
-                    [self.instance.make_action(action, node.state) for action in self.instance.actions(node.state)])
+                node.expand(self.instance)
                 self.num_of_states += len(node.children)
 
                 if want_print:
@@ -280,15 +263,21 @@ class Solver:
                     if want_print:
                         self.timer.end_from_last_end('push')
         self.log_if_needed(needed=True)
+        print(self.best_node.get_path(self.instance.agents))
         return self.get_results()
 
     def value_plus_upper_bound(self, state):
         return self.instance.reward(state) + self.upper_bound_base_plus_utility(state)
 
     def is_duplicate(self, state):
-        if state.hash() not in self.visited_states or self.visited_states[state.hash()] > state.time_left:
-            self.visited_states[state.hash] = state.time_left
+        hash = state.hash()
+        if hash not in self.visited_states:
+            self.visited_states[hash] = state.time_left
             return False
+        if state.time_left > self.visited_states[hash]:
+            self.visited_states[hash] = state.time_left
+            return False
+
         return True
 
     def emp_mcts(self):
@@ -325,7 +314,7 @@ class Solver:
                 children = [self.instance.make_action(action, node.state) for action in
                             self.instance.actions(node.state)]
                 random.shuffle(children)
-                node.expand(children)
+                node.expand(self.instance)
                 self.num_of_states += len(node.children)
                 node.times_visited += 1
                 node = node.children[0]
@@ -334,7 +323,7 @@ class Solver:
             node.times_visited += 1
             rollout_state = node.state.copy()
             if method == 'VEC':
-                path = node.get_path_actions()
+                path = node.get_path(self.instance.agents)
 
             while not rollout_state.is_terminal():
                 action = random.choice(self.instance.actions(rollout_state))
@@ -388,9 +377,4 @@ class Solver:
 
 
 if __name__ == "__main__":
-    dec = instance_decoder.Decoder()
-    dec.decode_reduced()
-    inst = dec.instances[0]
-    sol = Solver(inst)
-    sol.timeout = 60
-    res = sol.greedy_branch_and_bound()
+    pass

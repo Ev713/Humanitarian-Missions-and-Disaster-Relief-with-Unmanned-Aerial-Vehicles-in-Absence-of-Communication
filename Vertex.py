@@ -18,14 +18,14 @@ class Vertex:
     def expectation(self):
         return sum([r * self.distribution[r] for r in self.distribution])
 
-    def q(self):
+    def p(self):
         return 1 - self.distribution[0]
 
-    def p(self):
+    def q(self):
         return self.distribution[0]
 
     def bernoulli(self):
-        return 0 if self.q() == 0 else sum([r * self.distribution[r] for r in self.distribution]) / self.q()
+        return 0 if self.p() == 0 else sum([r * self.distribution[r] for r in self.distribution]) / self.p()
 
 
 class EmpVertex(Vertex):
@@ -48,14 +48,13 @@ class EmpVertex(Vertex):
                 return
 
     def generate_semi_emp_reward(self):
-        if random.random() > self.p():
+        if random.random() > self.q():
             self.reward = self.bernoulli()
             if self.reward == 0:
                 self.is_empty = True
             else:
                 self.is_empty = False
             return
-
 
     def __str__(self):
         return "det_v" + str(self.number) + " " + str(self.reward) + " " + str(self.is_empty)

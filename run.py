@@ -67,13 +67,13 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
 
 
 def single_run():
-    timeout = 60
+    timeout = 600
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(types_allowed=('FR'), small_ones=True, sort_by_size=True, size_lower_bound=10)
+    decoder.decode_reduced(small_ones=True, sort_by_size=True)
     inst = decoder.instances[0]
     name = 'scratch'
     # Inst_visualizer.vis3(inst, name)
-    algo = 'BFS'
+    algo = 'GBNB'
     solve(inst, algo, timeout, name)
 
 
@@ -94,14 +94,14 @@ def multi_run():
         # 'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_10_sat_' + computer
+    name = 'dec_10_opt_' + computer
     timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced()
+    decoder.decode_reduced(small_ones=True, sort_by_size=True)
     instances = decoder.instances
     runs_left = len(instances)*len(algos)
-    max_workers = 3  # round(multiprocessing.cpu_count() * 0.2)
+    max_workers = 4  # round(multiprocessing.cpu_count() * 0.2)
 
     print(f"Starting multi-run. \nTimeout: {timeout}\n"
           f"Algorithms: {algos}\nMax workers: {max_workers}\n"
@@ -117,8 +117,8 @@ def multi_run():
             print(f"number of processes: {len(processes)}")
             last_start = time.perf_counter()
             ram = psutil.virtual_memory()[2]
-            if len(processes) >= max_workers or ram > 75:
-                while all([p.is_alive() for p in processes]) and len(processes) >= max_workers or ram > 75:
+            if len(processes) >= max_workers or ram > 60:
+                while all([p.is_alive() for p in processes]) and len(processes) >= max_workers or ram > 60:
                     ram = psutil.virtual_memory()[2]
                     if ram > 95:
                         processes[0].kill()

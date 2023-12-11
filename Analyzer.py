@@ -108,7 +108,7 @@ class Analyzer:
             run.horizon = row[5]
             run.algo = row[6]
             run.fin_res = row[7]
-            run.time = float(row[8].strip('\'\'')) if row[8] != '-' else -1
+            run.time = float(row[8]) if row[8] != '-' else -1
             run.states = row[9]
             run.results = [[float(number.strip(",)")) for number in pair.split(", ")] for pair in
                            row[10].strip("()").strip().split("), (")]
@@ -231,6 +231,8 @@ class Analyzer:
         for inst_name in self.instances:
             inst = self.instances[inst_name]
             for algo in inst:
+                if inst[algo].time < 3:
+                    print(inst_name, algo)
                 if -1 < inst[algo].time < self.timeout * 0.9:
                     opt_results[inst_name] = inst[algo].fin_res
                     break
@@ -243,7 +245,9 @@ class Analyzer:
                 for run in self.runs:
                     if run.inst_name not in opt_results:
                         continue
-                    if run.algo == algo and run.time <= t and run.fin_res == opt_results[run.inst_name]:
+                    if run.algo == algo and -1 < run.time <= t:
+                        if run.fin_res != opt_results[run.inst_name]:
+                            raise Exception("different final solutions")
                         if run.type in self.allowed_types:
                             num_of_succ += 1
                 self.data_for_graphs[algo][0].append(t)
@@ -262,7 +266,7 @@ class Analyzer:
 
 
 def main():
-    filepath = "data/check_dec_9_opt_ser.csv"
+    filepath = "data/dec_10_opt_loc.csv"
     analyzer = Analyzer(filepath)
     analyzer.acc = 2
     analyzer.timeout = 300

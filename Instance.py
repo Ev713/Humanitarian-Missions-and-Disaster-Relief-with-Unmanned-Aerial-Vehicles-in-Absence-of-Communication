@@ -45,10 +45,13 @@ class Instance:
         self.agents_map = {a.hash(): a for a in agents}
         self.horizon = horizon  # int
         self.initial_state = (agents.copy(), map.copy())
-        self.flybys = True
+        self.dropoffs = True
         # self.check_sums_of_probs_is_0()
         self.distance = {}
         self.source = source
+
+    def get_time(self, state):
+        return self.horizon - state.time_left
 
     def sum_of_probs_is_1(self):
         for v in self.map:
@@ -65,20 +68,16 @@ class Instance:
     def actions(self, state):
         # action: {a1: v_k, a2: v_m, ...  }
         agent_actions = {}
-        if self.flybys:
-            fly_by_options = [False, True]
-        else:
-            fly_by_options = [False]
         # time = len(state.path[list(state.path.keys())[0]]) - state.time_left - 1
         time = self.horizon - state.time_left
         for a_hash in self.agents_map:
-            a_loc_hash = state.get_a_pos(a_hash).loc
+            a_loc_hash = state.get_loc(a_hash)
             a_loc = self.map_map[a_loc_hash]
             if self.agents_map[a_hash].movement_budget <= time:
-                agent_actions[a_hash] = [State.Position(a_loc_hash, True)]
+                agent_actions[a_hash] = [State.Action(a_loc_hash, True)]
             else:
-                agent_actions[a_hash] = [State.Position(a_loc_hash, b) for b in fly_by_options] + \
-                                        [State.Position(n.hash(), b) for n in a_loc.neighbours for b in fly_by_options]
+                agent_actions[a_hash] = [State.Action(a_loc_hash, b) for b in (True, False)] + \
+                                        [State.Action(n.hash(), b) for n in a_loc.neighbours for b in (True, False)]
         actions = [a for a in one_val_per_key_combinations(agent_actions)]
         return actions
 
