@@ -94,7 +94,7 @@ def multi_run():
         # 'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_10_opt_' + computer
+    name = 'dec_11_opt_' + computer
     timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
