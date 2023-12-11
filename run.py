@@ -67,14 +67,14 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
 
 
 def single_run():
-    timeout = 600
+    timeout = 60
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(small_ones=True,  size_lower_bound=25, size_higher_bound=25, types_allowed='SC')
     inst = decoder.instances[0]
     name = 'scratch'
     # Inst_visualizer.vis3(inst, name)
-    for algo in ['BFS', 'BNB', 'BNBL', 'GBNB', 'ASTAR']:
-        solve(inst, algo, timeout, name)
+    algo = 'GBNB'
+    solve(inst, algo, timeout, name)
 
 
 def solve(*args):
@@ -84,24 +84,24 @@ def solve(*args):
 def multi_run():
     algos = [
         # 'MCTS_E',
-        # 'MCTS_V',
-        # 'MCTS_S',
+        'MCTS_V',
+        'MCTS_S',
         'BFS',
         'BNBL',
-        'BNB',
+        #'BNB',
         'GBNB',
         'ASTAR'
         # 'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_11_opt_' + computer
+    name = 'dec_12_sat_' + computer
     timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
     decoder.decode_reduced(small_ones=True, sort_by_size=True)
     instances = decoder.instances
     runs_left = len(instances)*len(algos)
-    max_workers = 4  # round(multiprocessing.cpu_count() * 0.2)
+    max_workers = round(multiprocessing.cpu_count() * 0.2)
 
     print(f"Starting multi-run. \nTimeout: {timeout}\n"
           f"Algorithms: {algos}\nMax workers: {max_workers}\n"
@@ -142,4 +142,4 @@ def multi_run():
 
 
 if __name__ == "__main__":
-    single_run()
+    multi_run()
