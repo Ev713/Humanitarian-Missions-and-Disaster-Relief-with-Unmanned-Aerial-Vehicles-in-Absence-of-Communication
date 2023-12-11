@@ -38,7 +38,7 @@ class EmpInstance(Instance.Instance):
         for _ in range(num_of_sims):
             self.regenerate_instance()
             round_reward = 0
-            for t in range(self.horizon + 1):
+            for t in range(self.horizon):
                 for a in self.agents:
                     if a.movement_budget < t or \
                             a.current_utility_budget == 0 or \
