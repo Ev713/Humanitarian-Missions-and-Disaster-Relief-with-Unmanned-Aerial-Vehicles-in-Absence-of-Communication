@@ -266,7 +266,7 @@ class Analyzer:
 
 
 def main():
-    filepath = "data/dec_10_opt_loc.csv"
+    filepath = "data/dec_11_opt_ser.csv"
     analyzer = Analyzer(filepath)
     analyzer.acc = 2
     analyzer.timeout = 300
@@ -299,6 +299,11 @@ def main():
         if run.inst_name not in analyzer.instances:
             analyzer.instances[run.inst_name] = {}
         analyzer.instances[run.inst_name][run.algo] = run
+
+    for inst_name in analyzer.instances:
+        if len(analyzer.instances[inst_name]) != 5:
+            print()
+
     analyzer.get_opt_graph()
 
     # algo = 'BNBL'

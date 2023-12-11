@@ -170,6 +170,8 @@ class Solver:
         while steps_left > 0:
             reachable = [v for v in self.get_reachable_from(ver, steps_left) if v.hash() not in visited]
             best = max(reachable, key=lambda v: state.bers[v.hash()].e())
+            if state.bers[best.hash()].e() == 0:
+                return path
             steps_left -= max(self.all_pair_distances[ver.hash(), best.hash()], 1)
             path.append(best)
             visited.add(best.hash())
@@ -263,7 +265,7 @@ class Solver:
                     if want_print:
                         self.timer.end_from_last_end('push')
         self.log_if_needed(needed=True)
-        print(self.best_node.get_path(self.instance.agents))
+        #print(self.best_node.get_path(self.instance.agents))
         return self.get_results()
 
     def value_plus_upper_bound(self, state):

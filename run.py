@@ -69,12 +69,12 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
 def single_run():
     timeout = 600
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(small_ones=True, sort_by_size=True)
+    decoder.decode_reduced(small_ones=True,  size_lower_bound=25, size_higher_bound=25, types_allowed='SC')
     inst = decoder.instances[0]
     name = 'scratch'
     # Inst_visualizer.vis3(inst, name)
-    algo = 'GBNB'
-    solve(inst, algo, timeout, name)
+    for algo in ['BFS', 'BNB', 'BNBL', 'GBNB', 'ASTAR']:
+        solve(inst, algo, timeout, name)
 
 
 def solve(*args):
@@ -142,4 +142,4 @@ def multi_run():
 
 
 if __name__ == "__main__":
-    multi_run()
+    single_run()
