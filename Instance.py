@@ -72,6 +72,8 @@ class Instance:
         time = self.horizon - state.time_left
         for a_hash in self.agents_map:
             a_loc_hash = state.get_loc(a_hash)
+            if a_loc_hash is None:
+                a_loc_hash = self.agents_map[a_hash].loc.hash()
             a_loc = self.map_map[a_loc_hash]
             if self.agents_map[a_hash].movement_budget <= time:
                 agent_actions[a_hash] = [State.Action(a_loc_hash, True)]

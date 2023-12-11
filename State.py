@@ -61,6 +61,8 @@ class EmpState(State):
                 self.path[a.hash()] = [None for _ in range(instance.horizon)]
 
     def get_loc(self, a_hash):
+        if self.path[a_hash][0] is None:
+            return None
         if self.path[a_hash][-1] is not None:
             return self.path[a_hash][-1].loc
         first_none = 0

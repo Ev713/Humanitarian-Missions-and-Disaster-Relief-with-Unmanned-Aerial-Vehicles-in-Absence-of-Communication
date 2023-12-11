@@ -69,11 +69,11 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
 def single_run():
     timeout = 60
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(small_ones=True,  size_lower_bound=25, size_higher_bound=25, types_allowed='SC')
-    inst = decoder.instances[0]
+    decoder.decode_reduced(small_ones=True, sort_by_size=True)
+    inst = decoder.instances[6]
     name = 'scratch'
     # Inst_visualizer.vis3(inst, name)
-    algo = 'GBNB'
+    algo = 'MCTS_V'
     solve(inst, algo, timeout, name)
 
 
