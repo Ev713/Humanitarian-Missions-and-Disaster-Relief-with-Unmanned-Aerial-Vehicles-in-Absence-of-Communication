@@ -169,8 +169,8 @@ class Solver:
         path = []
         while steps_left > 0:
             reachable = [v for v in self.get_reachable_from(ver, steps_left) if v.hash() not in visited]
-            best = max(reachable, key=lambda v: state.bers[v.hash()].e())
-            if state.bers[best.hash()].e() == 0:
+            best = max(reachable, key=lambda v: state.bers[v.hash()].e()) if len(reachable) != 0 else None
+            if best is None or state.bers[best.hash()].e() == 0:
                 return path
             steps_left -= max(self.all_pair_distances[ver.hash(), best.hash()], 1)
             path.append(best)
