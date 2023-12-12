@@ -360,14 +360,14 @@ class Generator:
 
 
 def generate():
-    for type in ['AG']:
+    for type in ['AG', 'FL', 'SC', 'FR', 'MT']:
         if type == 'AG':
             low = 5
             high = 45
             jump = 5
         else:
-            low = 3
-            high = 40
+            low = 15
+            high = 50
             jump = 1
         for side in range(low, high, jump):
             size = round(math.sqrt(side))
@@ -379,14 +379,14 @@ def generate():
             else:
                 cols = size*size
                 rows = size*size
-            agents = max((cols + rows) // 5, 1)
-            hor = max(random.randint(int(size * 0.9), int(size) * 2), 2)
+            agents = max(round(random.randint(1, 15)/size), 1)
+            hor = max(random.randint(int(size * 0.9), int(size) * 3), 2)
             mr = max(size // 2, 2)
             if type != 'AG':
                 G = Generator(type, cols, rows, agents, hor)
                 G.ACC = 4
                 G.MAX_REWARD = mr
-                InstanceManager.to_string(G.gen_instance(), "small_map")
+                InstanceManager.to_string(G.gen_instance(), "medium_map")
                 print(G.name + " added.")
 
             else:
@@ -394,32 +394,8 @@ def generate():
                     G = Generator(type, cols, cols, 1, cols, ag_p=p)
                     G.ACC = 4
                     G.MAX_REWARD = mr
-                    InstanceManager.to_string(G.gen_instance(), "small_map")
+                    InstanceManager.to_string(G.gen_instance(), "medium_map")
                     print(G.name + " added.")
 
 if __name__=='__main__':
     generate()
-
-'''for type in ['FR', 'MT']:
-    for size in range(3, 27, 6):
-        for agents in range(1, 6):
-            cols = max(random.randint(int(size * 0.75), int(size * 1.25)), 2)
-            rows = max(random.randint(round(size * 0.75), round(size * 1.25)), 2)
-            hor = max(random.randint(int(size * 0.9), int(size) * 2), 2)
-            mr = max(size // 2, 2)
-            G = Generator(
-                'i_' + str(size) + '_' + str(cols) + '_' + str(rows) + '_' + str(agents) + '_' + str(hor) + '_', type,
-                rows, cols, agents, hor)
-            G.ACC = 4
-            G.max_reward = mr
-            f = open("ready_maps/" + G.file_name, "w")
-            g = open("THIRD_instance_collector.py", "a")
-            g.write("from ready_maps import " + G.name + "\n")
-            g.write("old_instances.append(" + G.name + ".instance1)\n")
-            g.close()
-            G.gen_map(f)
-            f.close()
-            break
-        break
-    break
-'''

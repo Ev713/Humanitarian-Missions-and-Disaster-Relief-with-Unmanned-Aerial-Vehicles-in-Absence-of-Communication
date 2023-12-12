@@ -92,7 +92,7 @@ class Analyzer:
         self.algos = None
         self.data_for_tables = None
         self.file_path = filepath
-        self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip')
+        self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip', engine='python' )
         self.runs = []
         self.instances = {}
 
@@ -231,8 +231,6 @@ class Analyzer:
         for inst_name in self.instances:
             inst = self.instances[inst_name]
             for algo in inst:
-                if inst[algo].time < 3:
-                    print(inst_name, algo)
                 if -1 < inst[algo].time < self.timeout * 0.9:
                     opt_results[inst_name] = inst[algo].fin_res
                     break
@@ -286,6 +284,8 @@ def main():
 
     for run in analyzer.runs:
         analyzer.algos.add(run.algo)
+        if 100< run.time <300:
+            print(run.inst_name)
         max_result = 0
         for r in run.results:
             if r[0] >= max_result:
@@ -299,10 +299,6 @@ def main():
         if run.inst_name not in analyzer.instances:
             analyzer.instances[run.inst_name] = {}
         analyzer.instances[run.inst_name][run.algo] = run
-
-    for inst_name in analyzer.instances:
-        if len(analyzer.instances[inst_name]) != 5:
-            print()
 
     analyzer.get_opt_graph()
 
