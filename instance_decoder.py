@@ -50,7 +50,11 @@ class Decoder:
             filepath = 'small_map'
         for filename in os.scandir(filepath):
             if filename.is_file():
-                decoded_instance = InstanceManager.to_inst(filename)
+                try:
+                    decoded_instance = InstanceManager.to_inst(filename)
+                except:
+                    print(f"decodeing {filename} failed")
+                    continue
                 if size_lower_bound is not None and len(decoded_instance.map) < size_lower_bound:
                     continue
                 if size_higher_bound is not None and len(decoded_instance.map) > size_higher_bound:
