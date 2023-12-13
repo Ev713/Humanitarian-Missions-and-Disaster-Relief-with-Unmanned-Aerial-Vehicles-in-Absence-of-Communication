@@ -98,7 +98,7 @@ def multi_run():
     timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(small_ones=True, sort_by_size=True, size_lower_bound=49, types_allowed=('AG05', 'AG01', 'AG001'))
+    decoder.decode_reduced(sort_by_size=True, file_path='new_small_maps')
     instances = decoder.instances
     runs_left = len(instances)*len(algos)
     max_workers = round(multiprocessing.cpu_count() * 0.1)
@@ -118,7 +118,8 @@ def multi_run():
             last_start = time.perf_counter()
             ram = psutil.virtual_memory()[2]
             if len(processes) >= max_workers or ram > 60:
-                while all([p.is_alive() for p in processes]) and len(processes) >= max_workers or ram > 60:
+                while (all([p.is_alive() for p in processes]) and (len(processes) >= max_workers
+                                                                   or runs_left == len(processes))) or ram > 60:
                     ram = psutil.virtual_memory()[2]
                     if ram > 95:
                         processes[0].kill()
@@ -136,6 +137,7 @@ def multi_run():
                         runs_left -= 1
                         print(f"Process removed. New process may start. {runs_left} left")
                 print(f"number of processes: {len(processes)}")
+
     finish = time.perf_counter()
     print(f'Finished in {round(finish - start, 2)} second(s)')
     print(f"Processes killed: {killed}")

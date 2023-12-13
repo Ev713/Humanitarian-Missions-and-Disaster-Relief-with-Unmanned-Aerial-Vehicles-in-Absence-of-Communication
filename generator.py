@@ -386,7 +386,7 @@ def generate():
                 G = Generator(type, cols, rows, agents, hor)
                 G.ACC = 4
                 G.MAX_REWARD = mr
-                InstanceManager.to_string(G.gen_instance(), "small_map")
+                InstanceManager.to_string(G.gen_instance(), "new_small_maps")
                 print(G.name + " added.")
 
             else:
@@ -394,9 +394,43 @@ def generate():
                     G = Generator(type, cols, cols, 1, cols, ag_p=p)
                     G.ACC = 4
                     G.MAX_REWARD = mr
-                    InstanceManager.to_string(G.gen_instance(), "small_map")
+                    InstanceManager.to_string(G.gen_instance(), "new_small_maps")
                     print(G.name + " added.")
 
 
+def new_generate():
+    for type in ('SC', 'MT', 'FR'):
+        for complexity in range(8, 25, 2):
+            for agents in range(1, 4):
+                hor = int(complexity/agents)
+                if hor < 5:
+                    continue
+                cols = 0
+                rows = 0
+                while not hor*0.6 < cols*rows < hor*2:
+                    cols = random.randint(1, complexity)
+                    rows = random.randint(1, complexity)
+
+                mr = 5
+
+                G = Generator(type, cols, rows, agents, hor)
+                G.ACC = 4
+                G.MAX_REWARD = mr
+                InstanceManager.to_string(G.gen_instance(), "new_small_maps")
+                print(G.name + " added.")
+
+def generate_ag():
+    for side in range(10, 71, 30):
+        cols = side
+        mr = 5
+        type = 'AG'
+        for p in [0.5, 0.1, 0.01]:
+            G = Generator(type, cols, cols, 1, cols, ag_p=p)
+            G.ACC = 4
+            G.MAX_REWARD = mr
+            InstanceManager.to_string(G.gen_instance(), "new_small_maps")
+            print(G.name + " added.")
+
+
 if __name__ == '__main__':
-    generate()
+    generate_ag()
