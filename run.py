@@ -101,7 +101,7 @@ def multi_run():
     decoder.decode_reduced(sort_by_size=True, file_path='new_small_maps')
     instances = decoder.instances
     runs_left = len(instances)*len(algos)
-    max_workers = round(multiprocessing.cpu_count() * 0.3)
+    max_workers = round(multiprocessing.cpu_count() * 0.2)
 
     print(f"Starting multi-run. \nTimeout: {timeout}\n"
           f"Algorithms: {algos}\nMax workers: {max_workers}\n"

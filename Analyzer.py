@@ -267,7 +267,7 @@ class Analyzer:
 
 
 def main():
-    filepath = "data/dec_12_opt_ser.csv"
+    filepath = "data/bugged_opt.csv"
     analyzer = Analyzer(filepath)
     analyzer.acc = 2
     analyzer.timeout = 600
