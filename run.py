@@ -67,13 +67,13 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
 
 
 def single_run():
-    timeout = 60
+    timeout = 300
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(small_ones=True, sort_by_size=True)
-    inst = decoder.instances[6]
+    decoder.decode_reduced(file_path='new_small_maps', types_allowed='SC')
+    inst = decoder.instances[4]
     name = 'scratch'
     # Inst_visualizer.vis3(inst, name)
-    algo = 'MCTS_E'
+    algo = 'GBNB'
     solve(inst, algo, timeout, name)
 
 
@@ -101,7 +101,7 @@ def multi_run():
     decoder.decode_reduced(sort_by_size=True, file_path='new_small_maps')
     instances = decoder.instances
     runs_left = len(instances)*len(algos)
-    max_workers = round(multiprocessing.cpu_count() * 0.1)
+    max_workers = round(multiprocessing.cpu_count() * 0.4)
 
     print(f"Starting multi-run. \nTimeout: {timeout}\n"
           f"Algorithms: {algos}\nMax workers: {max_workers}\n"
@@ -144,4 +144,4 @@ def multi_run():
 
 
 if __name__ == "__main__":
-    multi_run()
+    single_run()

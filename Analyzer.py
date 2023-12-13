@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-
 # (inst.name, solver_type, algo, flybys)
 
 renames = {
@@ -25,6 +24,7 @@ renames = {
     'GBNB': 'Greedy BnB'
 
 }
+
 
 class Run:
     def __init__(self):
@@ -81,7 +81,7 @@ class Analyzer:
         self.algos = None
         self.data_for_tables = None
         self.file_path = filepath
-        self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip', engine='python' )
+        self.df = pd.read_csv(self.file_path, header=None, on_bad_lines='skip', engine='python')
         self.runs = []
         self.instances = {}
 
@@ -183,7 +183,7 @@ class Analyzer:
                     if t not in run_complete_data:
                         run_complete_data[t] = run_complete_data[t - 1]
                 runs_complete_results.append(run_complete_data)
-            for t in range(def_time):
+            for t in range(0, def_time, int(def_time / 20)):
                 results = []
                 for run in runs_complete_results:
                     results.append(run[t])
@@ -191,8 +191,9 @@ class Analyzer:
                 graphs[algo][0].append(t)
                 graphs[algo][1].append(avg_result)
 
-        for algo in self.algos:
-            plt.plot(graphs[algo][0], graphs[algo][1], label='line with marker')
+        markers = ['>', '+', '.', ',', 'o', 'v', 'x', 'X', 'D', '|']
+        for i in range(len(self.algos)):
+            plt.plot(graphs[self.algos[i]][0], graphs[self.algos[i]][1], markers[i % 10], linestyle='-')
 
         plt.legend([renames[algo] for algo in self.algos])
         if not relative_to_states:
@@ -202,7 +203,7 @@ class Analyzer:
         plt.ylabel("Result (relative to best result)")
         plt.title(self.get_title())
         plt.ylim(bottom=0)
-        plt.xlim(self.timeout/20, self.timeout)
+        plt.xlim(self.timeout / 20, self.timeout)
 
         print("States (relative to best states):")
         for algo in self.data_for_tables:
@@ -227,7 +228,7 @@ class Analyzer:
         self.data_for_graphs = {algo: [[], []] for algo in self.algos}
 
         for algo in self.algos:
-            for t in range(self.timeout):
+            for t in range(0, self.timeout, int(self.timeout/20)):
                 num_of_succ = 0
                 for run in self.runs:
                     if run.inst_name not in opt_results:
@@ -240,8 +241,9 @@ class Analyzer:
                 self.data_for_graphs[algo][0].append(t)
                 self.data_for_graphs[algo][1].append(num_of_succ)
 
-        for algo in self.algos:
-            plt.plot(self.data_for_graphs[algo][0], self.data_for_graphs[algo][1], label=algo)
+        markers = ['>', '+', '.', ',', 'o', 'v', 'x', 'X', 'D', '|']
+        for i in range(len(self.algos)):
+            plt.plot(self.data_for_graphs[self.algos[i]][0], self.data_for_graphs[self.algos[i]][1], markers[i % 10], linestyle='-')
 
         plt.legend([renames[algo] for algo in self.algos])
         plt.xlabel("Time")
@@ -263,8 +265,9 @@ class Analyzer:
             types += f"{renames[t]}   "
         return types
 
+
 def main():
-    filepath = "data/dec_11_opt_ser.csv"
+    filepath = "data/dec_12_opt_ser.csv"
     analyzer = Analyzer(filepath)
     analyzer.acc = 2
     analyzer.timeout = 600
@@ -279,10 +282,10 @@ def main():
         'MCTS_S',
         'ASTAR',
         'BFS',
-        'BNBL',
+        #'BNBL',
         'BNB',
         'MCTS_E',
-        'GBNB'
+        #'GBNB'
     )
 
     analyzer.create_runs()

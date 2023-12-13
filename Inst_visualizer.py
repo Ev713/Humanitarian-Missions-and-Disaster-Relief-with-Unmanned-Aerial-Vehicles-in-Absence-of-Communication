@@ -129,10 +129,10 @@ def vis3(inst, path=None):
     # print(color_map)
     if path != None:
         plt.savefig("maps_images/" + path + "/" + inst.name + ".png")
-        plt.show()
+    plt.show()
 
 
 decoder = instance_decoder.Decoder()
-decoder.decode_reduced()
-for inst in decoder.instances:
-    vis3(inst)
+decoder.decode_reduced(file_path='new_small_maps', types_allowed='SC')
+inst = decoder.instances[4]
+vis3(inst)
