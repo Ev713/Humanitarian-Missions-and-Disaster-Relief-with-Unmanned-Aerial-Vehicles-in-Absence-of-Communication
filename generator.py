@@ -433,4 +433,4 @@ def generate_ag():
 
 
 if __name__ == '__main__':
-    generate_ag()
+    new_generate()

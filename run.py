@@ -94,7 +94,7 @@ def multi_run():
         'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_13_opt_' + computer
+    name = 'dec_13_opt_new_maps_' + computer
     timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
