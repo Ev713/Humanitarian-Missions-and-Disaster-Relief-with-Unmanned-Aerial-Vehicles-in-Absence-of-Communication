@@ -90,7 +90,7 @@ def multi_run():
         'BNBL',
         'BNB',
         'GBNB',
-        'ASTAR'
+        'ASTAR',
         'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
