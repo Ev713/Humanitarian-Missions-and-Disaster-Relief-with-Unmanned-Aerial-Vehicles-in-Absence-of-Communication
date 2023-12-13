@@ -360,7 +360,7 @@ class Generator:
 
 
 def generate():
-    for type in ['AG', 'FL', 'SC', 'FR', 'MT']:
+    for type in ['AG']:
         if type == 'AG':
             low = 5
             high = 45
@@ -386,7 +386,7 @@ def generate():
                 G = Generator(type, cols, rows, agents, hor)
                 G.ACC = 4
                 G.MAX_REWARD = mr
-                InstanceManager.to_string(G.gen_instance(), "medium_map")
+                InstanceManager.to_string(G.gen_instance(), "small_map")
                 print(G.name + " added.")
 
             else:
@@ -394,8 +394,9 @@ def generate():
                     G = Generator(type, cols, cols, 1, cols, ag_p=p)
                     G.ACC = 4
                     G.MAX_REWARD = mr
-                    InstanceManager.to_string(G.gen_instance(), "medium_map")
+                    InstanceManager.to_string(G.gen_instance(), "small_map")
                     print(G.name + " added.")
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     generate()
