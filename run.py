@@ -88,17 +88,17 @@ def multi_run():
         #'MCTS_S',
         'BFS',
         'BNBL',
-        #'BNB',
-        #'GBNB',
+        'BNB',
+        'GBNB',
         'ASTAR'
-        # 'DFS'
+        'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_12_opt_' + computer
+    name = 'dec_13_opt_' + computer
     timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(small_ones=True, sort_by_size=True)
+    decoder.decode_reduced(small_ones=True, sort_by_size=True, types_allowed=('AG05', 'AG01', 'AG001'))
     instances = decoder.instances
     runs_left = len(instances)*len(algos)
     max_workers = round(multiprocessing.cpu_count() * 0.1)

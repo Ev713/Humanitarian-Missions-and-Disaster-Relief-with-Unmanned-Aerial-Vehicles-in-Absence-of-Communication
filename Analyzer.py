@@ -8,6 +8,24 @@ import math
 
 # (inst.name, solver_type, algo, flybys)
 
+renames = {
+    'MT': 'Mountain-Top',
+    'SC': 'Sanity-Check',
+    'AG': 'Anti-Greedy',
+    'FR': 'Full-Random',
+    'FL': 'Flower',
+
+    'MCTS_S': 'UCT',
+    'MCTS_V': f'UCT$^D$',
+    'BFS': 'BFS',
+    'ASTAR': 'BNB',
+    'BNB': 'BnB Breadth first, lower = 0',
+    'BNBL': 'BnB Breadth first',
+    'MCTS_E': 'UCT with full distribs',
+    'GBNB': 'Greedy BnB'
+
+}
+
 class Run:
     def __init__(self):
         self.inst_name = None
@@ -51,35 +69,6 @@ class Run:
         cp.fin_res = self.fin_res
         cp.map_type = self.map_type
         cp.is_real = self.is_real
-
-
-class Instance_data:
-    def __init__(self, inst_name, flybys, map_type):
-        self.inst_name = inst_name
-        self.flybys = flybys
-        self.type = map_type
-        self.BFS_time = None
-        self.best_value = None
-        self.BFS = None
-        self.BNB = None
-        self.MCTS_D = None
-        self.MCTS_S = None
-
-    def clone(self):
-        cp = Instance_data(self.inst_name, self.flybys, self.type)
-        self.BFS_time = None
-        self.best_value = None
-        self.BFS = None
-        self.BNB = None
-        self.MCTS = None
-
-    def erase_unnescesarry_MCTS(self):
-        new_res = []
-        for r in self.MCTS.results:
-            if r[1] > self.BFS_time:
-                break
-            new_res.append(r)
-        self.MCTS.results = new_res
 
 
 class Analyzer:
@@ -203,17 +192,17 @@ class Analyzer:
                 graphs[algo][1].append(avg_result)
 
         for algo in self.algos:
-            plt.plot(graphs[algo][0], graphs[algo][1], label=algo)
+            plt.plot(graphs[algo][0], graphs[algo][1], label='line with marker')
 
-        plt.legend(self.algos)
+        plt.legend([renames[algo] for algo in self.algos])
         if not relative_to_states:
             plt.xlabel("Time")
         else:
             plt.xlabel("States")
         plt.ylabel("Result (relative to best result)")
-        plt.title("All maps")
+        plt.title(self.get_title())
         plt.ylim(bottom=0)
-        plt.xlim(30, 300)
+        plt.xlim(self.timeout/20, self.timeout)
 
         print("States (relative to best states):")
         for algo in self.data_for_tables:
@@ -254,25 +243,46 @@ class Analyzer:
         for algo in self.algos:
             plt.plot(self.data_for_graphs[algo][0], self.data_for_graphs[algo][1], label=algo)
 
-        plt.legend(self.algos)
+        plt.legend([renames[algo] for algo in self.algos])
         plt.xlabel("Time")
-        plt.ylabel("number of successes")
-        plt.xlim(0, 300)
-        plt.title("Optimal - all maps")
+        plt.ylabel("number of solved")
+        plt.xlim(0, self.timeout)
+
+        plt.title(self.get_title())
         plt.ylim(bottom=0)
         plt.show()
 
+    def get_title(self):
+        used_types = {t for t in self.allowed_types if t not in ('AG05', 'AG01', 'AG001')}
+        if 'AG05' in self.allowed_types:
+            used_types.add('AG')
+        if len(used_types) >= 4:
+            return "Overall"
+        types = ""
+        for t in used_types:
+            types += f"{renames[t]}   "
+        return types
 
 def main():
-    filepath = "data/dec_11_opt_ser.csv"
+    filepath = "data/dec_11_sat_ser.csv"
     analyzer = Analyzer(filepath)
     analyzer.acc = 2
-    analyzer.timeout = 300
+    analyzer.timeout = 600
     analyzer.allowed_types = (
         'FR',
         'MT',
         'SC',
-        'AG01', 'AG001', 'AG05'
+        'AG01', 'AG001', 'AG05',
+    )
+    allowed_algos = (
+        'MCTS_V',
+        'MCTS_S',
+        'ASTAR',
+        'BFS',
+        'BNBL',
+        'BNB',
+        'MCTS_E',
+        'GBNB'
     )
 
     analyzer.create_runs()
@@ -283,9 +293,10 @@ def main():
     counter = 0
 
     for run in analyzer.runs:
-        analyzer.algos.add(run.algo)
-        if 100< run.time <300:
-            print(run.inst_name)
+        if run.algo in allowed_algos:
+            analyzer.algos.add(run.algo)
+        else:
+            continue
         max_result = 0
         for r in run.results:
             if r[0] >= max_result:
