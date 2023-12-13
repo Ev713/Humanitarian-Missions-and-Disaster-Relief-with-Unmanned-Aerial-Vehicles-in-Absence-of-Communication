@@ -264,7 +264,7 @@ class Analyzer:
         return types
 
 def main():
-    filepath = "data/dec_11_sat_ser.csv"
+    filepath = "data/dec_11_opt_ser.csv"
     analyzer = Analyzer(filepath)
     analyzer.acc = 2
     analyzer.timeout = 600
