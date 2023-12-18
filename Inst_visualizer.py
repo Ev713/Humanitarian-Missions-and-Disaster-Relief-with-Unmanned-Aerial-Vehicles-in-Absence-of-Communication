@@ -133,6 +133,6 @@ def vis3(inst, path=None):
 
 
 decoder = instance_decoder.Decoder()
-decoder.decode_reduced(file_path='new_small_maps', types_allowed='SC')
-inst = decoder.instances[4]
-vis3(inst)
+decoder.decode_reduced(types_allowed=('AG05'), size_higher_bound=79, sort_by_size=True)
+inst = decoder.instances[0]
+vis3(inst, '')

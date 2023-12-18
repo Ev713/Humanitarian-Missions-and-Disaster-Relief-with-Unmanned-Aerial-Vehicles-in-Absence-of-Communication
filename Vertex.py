@@ -41,20 +41,13 @@ class EmpVertex(Vertex):
             sum_p += self.distribution[r]
             if sum_p > p:
                 self.reward = r
-                if r == 0:
-                    self.is_empty = True
-                else:
-                    self.is_empty = False
-                return
+                break
+        self.is_empty = (self.reward == 0)
 
     def generate_semi_emp_reward(self):
         if random.random() > self.q():
             self.reward = self.bernoulli()
-            if self.reward == 0:
-                self.is_empty = True
-            else:
-                self.is_empty = False
-            return
+        self.is_empty = (self.reward == 0)
 
     def __str__(self):
         return "det_v" + str(self.number) + " " + str(self.reward) + " " + str(self.is_empty)

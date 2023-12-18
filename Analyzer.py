@@ -131,7 +131,7 @@ class Analyzer:
             #    continue
 
             max_result = max([instance_runs[algo].results[-1][0] for algo in self.algos if algo in instance_runs])
-            def_states = max([instance_runs[algo].results[-1][1] for algo in self.algos if algo in instance_runs])
+            def_states = 1 #max([instance_runs[algo].results[-1][1] for algo in self.algos if algo in instance_runs])
 
             # for instance in instances:
             #    for algo in algos:
@@ -201,13 +201,14 @@ class Analyzer:
         else:
             plt.xlabel("States")
         plt.ylabel("Result (relative to best result)")
-        plt.title(self.get_title())
+        plt.title(self.get_title() + " Anytime")
         plt.ylim(bottom=0)
         plt.xlim(self.timeout / 20, self.timeout)
 
         print("States (relative to best states):")
         for algo in self.data_for_tables:
             print(algo + ": " + str(round(statistics.mean(self.data_for_tables[algo]), 3)))
+        plt.savefig("data/Images/"+self.get_title().replace(" ", '_')+"sat"+("_SM"if len(self.algos) > 4 else "" )+".jpg")
         plt.show()
 
     def get_opt_graph(self):
@@ -250,8 +251,11 @@ class Analyzer:
         plt.ylabel("number of solved")
         plt.xlim(0, self.timeout)
 
-        plt.title(self.get_title())
+        plt.title(self.get_title()+" Optimal")
         plt.ylim(bottom=0)
+
+        plt.savefig("data/Images/"+self.get_title().replace(" ", '_')+"opt"+("_SM"if len(self.algos) > 4 else "" )+".jpg")
+
         plt.show()
 
     def get_title(self):
@@ -267,7 +271,7 @@ class Analyzer:
 
 
 def main():
-    filepath = "data/bugged_opt.csv"
+    filepath = "data/dec_14_opt_new_maps_ser.csv"
     analyzer = Analyzer(filepath)
     analyzer.acc = 2
     analyzer.timeout = 600
@@ -282,9 +286,10 @@ def main():
         'MCTS_S',
         'ASTAR',
         'BFS',
+
         #'BNBL',
-        'BNB',
-        'MCTS_E',
+        #'BNB',
+        #'MCTS_E',
         #'GBNB'
     )
 
@@ -306,7 +311,6 @@ def main():
                 max_result = r[0]
             else:
                 counter += 1
-                break
     analyzer.algos = sorted(list(analyzer.algos))
 
     for run in analyzer.runs:
@@ -314,7 +318,7 @@ def main():
             analyzer.instances[run.inst_name] = {}
         analyzer.instances[run.inst_name][run.algo] = run
 
-    analyzer.get_opt_graph()
+    analyzer.get_sat_graph()
 
     # algo = 'BNBL'
     # plt.scatter(sizes[algo], fin_ress[algo])

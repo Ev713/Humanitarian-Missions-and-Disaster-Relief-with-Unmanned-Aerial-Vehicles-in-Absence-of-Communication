@@ -83,9 +83,9 @@ def solve(*args):
 
 def multi_run():
     algos = [
-        # 'MCTS_E',
-        #'MCTS_V',
-        #'MCTS_S',
+        'MCTS_E',
+        'MCTS_V',
+        'MCTS_S',
         'BFS',
         'BNBL',
         'BNB',
@@ -94,15 +94,14 @@ def multi_run():
         'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
-    name = 'dec_13_opt_new_maps_' + computer
+    name = 'dec_18_sat_' + computer
     timeout = 600
     start = time.perf_counter()
     decoder = instance_decoder.Decoder()
-    decoder.decode_reduced(sort_by_size=True, file_path='new_small_maps')
+    decoder.decode_reduced()
     instances = decoder.instances
     runs_left = len(instances)*len(algos)
-    max_workers = round(multiprocessing.cpu_count() * 0.2)
-
+    max_workers = round(multiprocessing.cpu_count() * 0.10)
     print(f"Starting multi-run. \nTimeout: {timeout}\n"
           f"Algorithms: {algos}\nMax workers: {max_workers}\n"
           f"Instances: {len(instances)}")
@@ -117,11 +116,11 @@ def multi_run():
             print(f"number of processes: {len(processes)}")
             last_start = time.perf_counter()
             ram = psutil.virtual_memory()[2]
-            if len(processes) >= max_workers or ram > 60:
+            if len(processes) >= max_workers or ram > 50:
                 while (all([p.is_alive() for p in processes]) and (len(processes) >= max_workers
-                                                                   or runs_left == len(processes))) or ram > 60:
+                                                                   or runs_left == len(processes))) or ram > 50:
                     ram = psutil.virtual_memory()[2]
-                    if ram > 95:
+                    if ram > 75:
                         processes[0].kill()
                         killed += 1
                     time_passed = round(time.perf_counter() - last_start)
