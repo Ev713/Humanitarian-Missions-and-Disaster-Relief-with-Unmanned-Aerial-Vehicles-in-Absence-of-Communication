@@ -91,7 +91,7 @@ def multi_run():
         'BNB',
         'GBNB',
         'ASTAR',
-        'DFS'
+        #'DFS'
     ]
     computer = "loc" if multiprocessing.cpu_count() < 10 else "ser"
     name = 'dec_18_sat_' + computer
@@ -101,7 +101,7 @@ def multi_run():
     decoder.decode_reduced()
     instances = decoder.instances
     runs_left = len(instances)*len(algos)
-    max_workers = round(multiprocessing.cpu_count() * 0.10)
+    max_workers = 4  # round(multiprocessing.cpu_count() * 0.10)
     print(f"Starting multi-run. \nTimeout: {timeout}\n"
           f"Algorithms: {algos}\nMax workers: {max_workers}\n"
           f"Instances: {len(instances)}")
