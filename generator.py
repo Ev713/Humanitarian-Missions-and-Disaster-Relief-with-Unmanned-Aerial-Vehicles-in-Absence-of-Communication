@@ -64,7 +64,7 @@ class Generator:
                     self.max_reward = math.ceil(self.cols / self.ag_p)
                     warnings.warn("Mximum reward was adjusted as per definition"
                                   " of anti-greedy.", UserWarning)
-                self.unpassable = [self.xy_to_num(x, y) for x in range(rows) for y in range(cols) if x != 0 and y != 0]
+                self.unpassable = [self.enhash(x, y) for x in range(rows) for y in range(cols) if x != 0 and y != 0]
             case 'SC':
                 if self.horizon != self.rows + self.cols - 3:
                     self.horizon = self.rows + self.cols - 3
@@ -91,12 +91,15 @@ class Generator:
             self.name = name
         self.file_name = self.name + ".py"
 
+    def get_vertices(self):
+        return [(x, y) for x in range(self.cols) for y in range(self.rows) if self.xy_is_legal(x, y)]
+
     def generate_init_loc_hash(self, agent_hash):
-        for l in range(self.rows * self.cols):
-            if self.num_is_legal(l):
-                return l
+        vertices = self.get_vertices()
+        for l in vertices:  # range(self.rows * self.cols):
+            return l
         if self.type == 'FL':
-            return self.xy_to_num(self.rows / 2, self.cols / 2)
+            return self.enhash(self.rows / 2, self.cols / 2)
         raise Exception("No legal squares")
 
     def generate_full_random_distr(self, vertex_hash):
@@ -118,10 +121,11 @@ class Generator:
 
     def generate_centers(self):
         centers = set()
+        vertices = self.get_vertices()
         while len(centers) != self.num_of_centers:
-            center = random.randint(1, self.rows * self.cols)
-            if self.num_is_legal(center):
-                centers.add(center)
+            center = random.choice(vertices)
+            #            if self.num_is_legal(center):
+            centers.add(center)
         return centers
 
     def each_connected_component_has_a_center(self, centers):
@@ -129,7 +133,7 @@ class Generator:
         while True:
             new_vertices = set()
             for v in vertices:
-                neighbours = set(self.get_neighbours(*self.num_to_xy(v)))
+                neighbours = set(self.get_neighbours(*self.dehash(*v)))
                 new_vertices = new_vertices.union(neighbours)
             if new_vertices.issubset(vertices):
                 return False
@@ -153,10 +157,10 @@ class Generator:
             prev_level = next_level.copy()
             next_level = set()
             for c in prev_level:
-                ngbrs = self.get_neighbours(*self.num_to_xy(c))
+                ngbrs = self.get_neighbours(*self.dehash(*c))
                 for n in ngbrs:
                     if n not in distances:
-                        next_level.add(int(n))
+                        next_level.add(n)
                         distances[n] = level
             if len(next_level) == 0:
                 for i in range(self.cols * self.rows):
@@ -220,21 +224,21 @@ class Generator:
         return round(sum(list(distr.values())), self.ACC) == 1
 
     def generate_sanity_check_distr(self, v):
-        x, y = self.num_to_xy(v)
+        x, y = self.dehash(*v)
         if ((x == 0) ^ (y == 0)) or ((x == self.cols - 1) ^ (y == self.rows - 1)):
             return {1: 1, 0: 0}
         else:
             return {0: 1}
 
     def generate_flower_distr(self, v):
-        x, y = self.num_to_xy(v)
+        x, y = self.dehash(*v)
         if x == 0 or y == 0 or x == self.cols - 1 or y == self.rows - 1:
             return {1: 1, 0: 0}
         else:
             return {0: 1}
 
     def generate_anti_greed_distr(self, v):
-        x, y = self.num_to_xy(v)
+        x, y = self.dehash(*v)
         if x == 0:
             if y == self.rows - 1:
                 distr = {math.ceil(self.cols / self.ag_p): self.ag_p, 0: 1 - self.ag_p}
@@ -254,13 +258,13 @@ class Generator:
             return 2
         return random.randint(int(self.horizon * 0.5), self.horizon)
 
-    def xy_to_num(self, x, y):
-        num = y * self.cols + x + 1
-        return num
+    def enhash(self, x, y):
+        # num = y * self.cols + x + 1
+        return x, y  # num
 
     def get_neighbours(self, x, y):
         potential_neighbours = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
-        return [int(self.xy_to_num(m, n)) for (m, n) in potential_neighbours if self.xy_is_legal(m, n)]
+        return [self.enhash(m, n) for (m, n) in potential_neighbours if self.xy_is_legal(m, n)]
 
     def num_is_legal(self, num):
         return 0 < num <= self.cols * self.rows and not num in self.unpassable
@@ -268,10 +272,10 @@ class Generator:
     def xy_is_legal(self, x, y):
         if self.unpassable is None:
             raise Exception("Failed to check legality because unpassable is not defined")
-        return 0 <= x < self.cols and 0 <= y < self.rows and self.xy_to_num(x, y) not in self.unpassable
+        return 0 <= x < self.cols and 0 <= y < self.rows and self.enhash(x, y) not in self.unpassable
 
-    def num_to_xy(self, num):
-        x, y = (num - 1) % self.cols, (num - 1) // self.cols
+    def dehash(self, x, y):  # num):
+        # x, y = (num - 1) % self.cols, (num - 1) // self.cols
         return x, y
 
     def gen_instance(self):
@@ -280,10 +284,10 @@ class Generator:
         neighbours_hashes = {}
         for y in range(self.rows):
             for x in range(self.cols):
-                vertex_hash = self.xy_to_num(x, y)
+                vertex_hash = self.enhash(x, y)
                 if vertex_hash in self.unpassable:
                     continue
-                v = Vertex.Vertex(vertex_hash)
+                v = Vertex.Vertex(*vertex_hash)
                 v.distribution = self.generate_distr(vertex_hash)
                 neighbours_hashes[v] = self.get_neighbours(x, y)
                 map_map[vertex_hash] = v
@@ -303,7 +307,7 @@ class Generator:
         # f.write(mountns)
         for y in range(self.rows):
             for x in range(self.cols):
-                vertex_hash = self.xy_to_num(x, y)
+                vertex_hash = self.enhash(x, y)
                 if vertex_hash in mountns:
                     continue
                 f.write("vertex" + str(vertex_hash) + " = Vertex.Vertex(" + str(vertex_hash) + ")\n")
@@ -312,7 +316,7 @@ class Generator:
 
         for y in range(self.rows):
             for x in range(self.cols):
-                vertex_hash = self.xy_to_num(x, y)
+                vertex_hash = self.enhash(x, y)
                 if vertex_hash in mountns:
                     continue
                 else:
@@ -338,7 +342,7 @@ class Generator:
             for x in range(self.cols):
                 if x == 0:
                     f.write("\n        ")
-                vertex_hash = self.xy_to_num(x, y)
+                vertex_hash = self.enhash(x, y)
                 vertex_str = "vertex" + str(vertex_hash) + ' ' * (
                         len(str(self.rows * self.cols)) - len(str(vertex_hash)))
                 if vertex_hash in mountns:
@@ -371,15 +375,15 @@ def generate():
             jump = 1
         for side in range(low, high, jump):
             size = round(math.sqrt(side))
-            #if (type == 'AG' and size % 10 != 5) or (type == 'SC' and size % 3 == 4):
+            # if (type == 'AG' and size % 10 != 5) or (type == 'SC' and size % 3 == 4):
             #    continue
             if type != 'AG' and type != 'SC' and type != 'FL':
                 cols = max(random.randint(int(size * 0.75), int(size * 1.25)), 2)
                 rows = max(random.randint(round(size * 0.75), round(size * 1.25)), 2)
             else:
-                cols = size*size
-                rows = size*size
-            agents = max(round(random.randint(1, 15)/size), 1)
+                cols = size * size
+                rows = size * size
+            agents = max(round(random.randint(1, 15) / size), 1)
             hor = max(random.randint(int(size * 0.9), int(size) * 3), 2)
             mr = max(size // 2, 2)
             if type != 'AG':
@@ -399,25 +403,31 @@ def generate():
 
 
 def new_generate():
-    for type in ('SC', 'MT', 'FR'):
+    for map_type in ('SC', 'MT', 'FR'):
         for complexity in range(8, 25, 2):
             for agents in range(1, 4):
-                hor = int(complexity/agents)
+                hor = int(complexity / agents)
                 if hor < 5:
                     continue
                 cols = 0
                 rows = 0
-                while not hor*0.6 < cols*rows < hor*2:
+                while not hor * 0.6 < cols * rows < hor * 2:
                     cols = random.randint(1, complexity)
                     rows = random.randint(1, complexity)
 
                 mr = 5
 
-                G = Generator(type, cols, rows, agents, hor)
+                G = Generator(map_type, cols, rows, agents, hor)
                 G.ACC = 4
                 G.MAX_REWARD = mr
-                InstanceManager.to_string(G.gen_instance(), "new_small_maps")
+                InstanceManager.to_string(G.gen_instance(), "next_gen_maps")
                 print(G.name + " added.")
+                return
+
+
+def generate_one():
+    map_type = random.choice(('SC', 'MT', 'FR'))
+
 
 def generate_ag():
     for side in range(10, 71, 30):
@@ -428,8 +438,9 @@ def generate_ag():
             G = Generator(type, cols, cols, 1, cols, ag_p=p)
             G.ACC = 4
             G.MAX_REWARD = mr
-            InstanceManager.to_string(G.gen_instance(), "new_small_maps")
+            InstanceManager.to_string(G.gen_instance(), "next_gen_maps")
             print(G.name + " added.")
+            return
 
 
 if __name__ == '__main__':

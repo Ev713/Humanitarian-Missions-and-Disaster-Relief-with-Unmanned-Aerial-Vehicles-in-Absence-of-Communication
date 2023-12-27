@@ -94,6 +94,8 @@ def vis_2(inst):
 
 
 def vis3(inst, path=None):
+    distrs = {v.hash(): v.distribution for v in inst.map}
+
     cols = determine_cols(inst)
     rows = math.ceil(inst.map[-1].number / cols)
     color_map = [['#000000' for _ in range(cols)] for _ in range(rows)]

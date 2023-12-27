@@ -33,12 +33,12 @@ def to_string(inst, filepath=''):
     for a in inst.agents:
         file.write('A' + '\n')
         file.write(str(a.number) + '\n')
-        file.write(str(a.loc.number) + '\n')
+        file.write(str(a.loc.hash()) + '\n')
         file.write(str(a.movement_budget) + '\n')
         file.write(str(a.utility_budget) + '\n')
     for v in inst.map:
         file.write('V' + '\n')
-        file.write(str(v.number) + '\n')
+        file.write(str(v.hash()) + '\n')
         file.write('N' + '\n')
         for n in v.neighbours:
             file.write(str(n.hash()) + '\n')
