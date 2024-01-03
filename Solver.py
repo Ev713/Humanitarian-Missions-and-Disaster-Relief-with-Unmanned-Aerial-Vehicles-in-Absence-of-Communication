@@ -52,6 +52,7 @@ class Solver:
         self.best_value = 0
         self.map_reduced = False
 
+        self.return_path = False
         self.timer = Timer()
 
     def restart(self):
@@ -65,6 +66,8 @@ class Solver:
         self.num_of_states = 0
 
     def get_results(self):
+        if self.return_path:
+            return self.timer.logs[max(list(self.timer.logs.keys()))][0]
         log = self.timer.logs['run']
         results = []
         for t in log:
@@ -199,7 +202,7 @@ class Solver:
 
     def branch_and_bound(self, upper_bound=None, lower_bound=None, is_greedy=False, depth_first=False, astar=False):
         want_print = False
-        #self.dup_det = False
+        # self.dup_det = False
         if upper_bound is not None or lower_bound is not None:
             self.calculate_all_pairs_distances_with_Seidel()
         self.restart()
@@ -226,7 +229,6 @@ class Solver:
                 return self.get_results()
             self.log_if_needed()
             node = que.pop()
-
 
             if want_print:
                 self.timer.end_from_last_end('pop')
@@ -265,7 +267,7 @@ class Solver:
                     if want_print:
                         self.timer.end_from_last_end('push')
         self.log_if_needed(needed=True)
-        #print(self.best_node.get_path(self.instance.agents))
+        # print(self.best_node.get_path(self.instance.agents))
         return self.get_results()
 
     def value_plus_upper_bound(self, state):

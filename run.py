@@ -26,11 +26,12 @@ def write_data(r, name, ):
               header=False)
 
 
-def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
+def run_solver(inst, algo, timeout=1800, default='-', dup_det=True, return_path=False):
     print("start " + inst.name, algo)
     solver = Solver.Solver(inst)
     solver.dup_det = dup_det
     solver.timeout = timeout
+    solver.return_path = return_path
     results = None
     if algo == 'MCTS_E':
         results = solver.emp_mcts()
@@ -59,7 +60,8 @@ def run_solver(inst, algo, timeout=1800, default='-', dup_det=True):
     if algo == 'DFS':
         solver.type = 'U1S'
         results = solver.branch_and_bound(depth_first=True)
-
+    if return_path:
+        return results
     fin_res = results[-1][0] if len(results) > 0 else default
     fin_time = results[-1][-1] if len(results) > 0 and results[-1][-1] < timeout else default
     fin_states = results[-1][1] if len(results) > 0 else default

@@ -426,7 +426,9 @@ def new_generate():
 
 
 def generate_one():
-    map_type = random.choice(('SC', 'MT', 'FR'))
+    g = Generator('EMPTY', 10, 10, 1, 10, unpassable=[(1, 2), (5, 7)])
+    inst = g.gen_instance()
+    breakpoint()
 
 
 def generate_ag():
@@ -444,4 +446,4 @@ def generate_ag():
 
 
 if __name__ == '__main__':
-    new_generate()
+    generate_one()
