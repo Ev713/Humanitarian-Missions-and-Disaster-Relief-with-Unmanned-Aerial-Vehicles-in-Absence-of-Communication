@@ -131,7 +131,7 @@ class Analyzer:
             #    continue
 
             max_result = max([instance_runs[algo].results[-1][0] for algo in self.algos if algo in instance_runs])
-            def_states = 1 #max([instance_runs[algo].results[-1][1] for algo in self.algos if algo in instance_runs])
+            def_states = 1  # max([instance_runs[algo].results[-1][1] for algo in self.algos if algo in instance_runs])
 
             # for instance in instances:
             #    for algo in algos:
@@ -183,7 +183,7 @@ class Analyzer:
                     if t not in run_complete_data:
                         run_complete_data[t] = run_complete_data[t - 1]
                 runs_complete_results.append(run_complete_data)
-            for t in range(0, def_time, int(def_time / 20)):
+            for t in range(0, def_time, int(def_time / 20)+1):
                 results = []
                 for run in runs_complete_results:
                     results.append(run[t])
@@ -192,23 +192,28 @@ class Analyzer:
                 graphs[algo][1].append(avg_result)
 
         markers = ['>', '+', '.', ',', 'o', 'v', 'x', 'X', 'D', '|']
+        font = {'family': 'normal',
+                'weight': 'normal',
+                'size': 15}
+        plt.rc('font', **font)
         for i in range(len(self.algos)):
             plt.plot(graphs[self.algos[i]][0], graphs[self.algos[i]][1], markers[i % 10], linestyle='-')
 
-        plt.legend([renames[algo] for algo in self.algos])
+        plt.legend([renames[algo] for algo in self.algos], fontsize=17)
         if not relative_to_states:
-            plt.xlabel("Time")
+            plt.xlabel("Time", fontsize=15)
         else:
             plt.xlabel("States")
-        plt.ylabel("Result (relative to best result)")
-        plt.title(self.get_title() + " Anytime")
+        plt.ylabel("Result (relative to best result)", fontsize=15)
+        plt.title(self.get_title() + " Anytime", fontsize=17)
         plt.ylim(bottom=0)
         plt.xlim(self.timeout / 20, self.timeout)
 
         print("States (relative to best states):")
         for algo in self.data_for_tables:
             print(algo + ": " + str(round(statistics.mean(self.data_for_tables[algo]), 3)))
-        plt.savefig("data/Images/"+self.get_title().replace(" ", '_')+"sat"+("_SM"if len(self.algos) > 4 else "" )+".jpg")
+        plt.savefig("data/17apr/Images/" + self.get_title().replace(" ", '_') +
+                    "sat" + ("_SM" if len(self.algos) > 4 else "") + ".jpg")
         plt.show()
 
     def get_opt_graph(self):
@@ -229,7 +234,7 @@ class Analyzer:
         self.data_for_graphs = {algo: [[], []] for algo in self.algos}
 
         for algo in self.algos:
-            for t in range(0, self.timeout, int(self.timeout/20)):
+            for t in range(0, self.timeout, int(self.timeout / 20)):
                 num_of_succ = 0
                 for run in self.runs:
                     if run.inst_name not in opt_results:
@@ -243,18 +248,23 @@ class Analyzer:
                 self.data_for_graphs[algo][1].append(num_of_succ)
 
         markers = ['>', '+', '.', ',', 'o', 'v', 'x', 'X', 'D', '|']
+        font = {'family': 'normal',
+                'weight': 'normal',
+                'size': 15}
         for i in range(len(self.algos)):
-            plt.plot(self.data_for_graphs[self.algos[i]][0], self.data_for_graphs[self.algos[i]][1], markers[i % 10], linestyle='-')
+            plt.plot(self.data_for_graphs[self.algos[i]][0],
+                     self.data_for_graphs[self.algos[i]][1], markers[i % 10], linestyle='-')
 
-        plt.legend([renames[algo] for algo in self.algos])
+        plt.legend([renames[algo] for algo in self.algos], fontsize=17)
         plt.xlabel("Time")
         plt.ylabel("number of solved")
         plt.xlim(0, self.timeout)
 
-        plt.title(self.get_title()+" Optimal")
+        plt.title(self.get_title() + " Optimal", fontsize=17)
         plt.ylim(bottom=0)
 
-        plt.savefig("data/Images/"+self.get_title().replace(" ", '_')+"opt"+("_SM"if len(self.algos) > 4 else "" )+".jpg")
+        plt.savefig("data/17apr/Images/" + self.get_title().replace(" ", '_') + "opt" + (
+            "_SM" if len(self.algos) > 4 else "") + ".jpg")
 
         plt.show()
 
@@ -271,21 +281,25 @@ class Analyzer:
 
 
 def main():
-    filepath = "data/dec_14_opt_new_maps_ser.csv"
+    filepath = "data/18_feb/dec_13_opt_new_maps_ser.csv"
     analyzer = Analyzer(filepath)
     analyzer.acc = 2
-    analyzer.timeout = 600
+    analyzer.timeout = 900
     analyzer.allowed_types = (
-        'FR',
-        'MT',
-        'SC',
+        #'FR',
+        #'MT',
+        #'SC',
         'AG01', 'AG001', 'AG05',
     )
     allowed_algos = (
-        'MCTS_V',
-        'MCTS_S',
+        # Paper:
+        #'MCTS_V',
+        #'MCTS_S',
+
         'ASTAR',
         'BFS',
+
+        # Supplementary materials:
 
         #'BNBL',
         #'BNB',
@@ -318,7 +332,7 @@ def main():
             analyzer.instances[run.inst_name] = {}
         analyzer.instances[run.inst_name][run.algo] = run
 
-    analyzer.get_sat_graph()
+    analyzer.get_opt_graph()
 
     # algo = 'BNBL'
     # plt.scatter(sizes[algo], fin_ress[algo])
